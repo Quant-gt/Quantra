@@ -1,0 +1,11 @@
+{
+  "name": "nlp",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "uvicorn main:app --reload --port 3003",
+    "start": "fastapi run main.py",
+    "lint": "echo \"Python linting\"",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  }
+}
