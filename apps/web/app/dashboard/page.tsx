@@ -1,131 +1,171 @@
 "use client";
 
-import React, { useState } from 'react';
-import { motion } from 'framer-motion';
-import { Shield, ShieldAlert, Zap, BarChart3, Clock, Power } from 'lucide-react';
+import React from 'react';
+import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
+import { Globe, ArrowUpRight, ArrowDownRight } from 'lucide-react';
+
+const data = [
+  { name: '9 Mar', value: 90000 },
+  { name: '12 Mar', value: 92000 },
+  { name: '17 Mar', value: 88000 },
+  { name: '20 Mar', value: 91000 },
+  { name: '25 Mar', value: 89000 },
+  { name: '30 Mar', value: 93000 },
+  { name: '2 Apr', value: 92000 },
+  { name: '7 Apr', value: 94297 },
+];
 
 export default function DashboardPage() {
-  const [isKillSwitchActive, setIsKillSwitchActive] = useState(false);
-  const [isPending, setIsPending] = useState(false);
-
-  const handleKillSwitch = async () => {
-    setIsPending(true);
-    // Simulate API call
-    setTimeout(() => {
-      setIsKillSwitchActive(!isKillSwitchActive);
-      setIsPending(false);
-    }, 1000);
-  };
-
   return (
-    <div className="min-h-screen bg-[#0B0F19] text-white p-8">
-      {/* Header */}
-      <header className="flex justify-between items-center mb-12">
-        <div>
-          <h1 className="text-4xl font-bold bg-gradient-to-r from-blue-500 to-emerald-500 bg-clip-text text-transparent">
-            QUANTRA
-          </h1>
-          <p className="text-gray-400 mt-1">Algo Trading Cockpit</p>
-        </div>
-        <div className="flex items-center gap-4">
-          <div className="flex items-center gap-2 bg-[#1A2333] px-4 py-2 rounded-lg border border-gray-800">
-            <Clock size={16} className="text-blue-400" />
-            <span className="text-sm font-mono">Market: Open</span>
-          </div>
-          <div className="bg-[#1A2333] px-4 py-2 rounded-lg border border-gray-800">
-            <span className="text-sm">Welcome, Admin</span>
-          </div>
-        </div>
-      </header>
+    <div className="space-y-6">
+      {/* Page Title */}
+      <div>
+        <h1 className="text-2xl font-bold text-white">Portfolio Dashboard</h1>
+        <p className="text-gray-500 text-sm mt-1">Real-time overview of your trading portfolio</p>
+      </div>
 
-      {/* Grid Layout */}
-      <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
+      {/* KPI Cards Grid */}
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-6">
         
-        {/* Stats Cards */}
-        <div className="lg:col-span-2 grid grid-cols-1 md:grid-cols-2 gap-6">
-          
-          {/* Card 1 */}
-          <div className="bg-[#151C2C] p-6 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-gray-400">Live Strategies</span>
-              <Zap size={20} className="text-emerald-500" />
+        {/* Card 1 */}
+        <div className="bg-[#161B22] p-6 rounded-xl border border-[#30363D] shadow-sm">
+          <div className="text-xs font-semibold text-gray-500 mb-2 tracking-wider">TOTAL INVESTMENT</div>
+          <div className="text-2xl font-bold text-white">₹92,805</div>
+        </div>
+
+        {/* Card 2 */}
+        <div className="bg-[#161B22] p-6 rounded-xl border border-[#30363D] shadow-sm">
+          <div className="text-xs font-semibold text-gray-500 mb-2 tracking-wider">CURRENT VALUE</div>
+          <div className="text-2xl font-bold text-white">₹94,297</div>
+        </div>
+
+        {/* Card 3 */}
+        <div className="bg-[#161B22] p-6 rounded-xl border border-[#30363D] shadow-sm">
+          <div className="text-xs font-semibold text-gray-500 mb-2 tracking-wider">DAY'S P&L</div>
+          <div className="text-2xl font-bold text-[#39D353] flex items-baseline gap-2">
+            +₹1,132
+            <span className="text-sm font-medium">▲ 1.20%</span>
+          </div>
+        </div>
+
+        {/* Card 4 */}
+        <div className="bg-[#161B22] p-6 rounded-xl border border-[#30363D] shadow-sm">
+          <div className="text-xs font-semibold text-gray-500 mb-2 tracking-wider">OVERALL P&L</div>
+          <div className="text-2xl font-bold text-[#39D353] flex items-baseline gap-2">
+            +₹1,492
+            <span className="text-sm font-medium">▲ 1.61%</span>
+          </div>
+        </div>
+      </div>
+
+      {/* Charts & Tables Grid */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
+        
+        {/* Left Column: Market Overview */}
+        <div className="bg-[#161B22] p-6 rounded-xl border border-[#30363D] shadow-sm flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <div className="flex items-center gap-2">
+              <Globe size={16} className="text-gray-500" />
+              <span className="font-bold text-white">Market Overview</span>
             </div>
-            <h3 className="text-3xl font-bold">4 <span className="text-sm text-gray-500">/ 5 active</span></h3>
-            <div className="mt-4 text-sm text-emerald-500">↑ 12% from yesterday</div>
+            <span className="text-xs bg-[#21262D] text-[#39D353] px-2.5 py-0.5 rounded-full font-semibold flex items-center gap-1">
+              <span className="w-1.5 h-1.5 bg-[#39D353] rounded-full inline-block"></span>
+              LIVE
+            </span>
           </div>
 
-          {/* Card 2 */}
-          <div className="bg-[#151C2C] p-6 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-gray-400">Current OPS</span>
-              <BarChart3 size={20} className="text-blue-500" />
-            </div>
-            <h3 className="text-3xl font-bold">3.2 <span className="text-sm text-gray-500">/ 10 max</span></h3>
-            <div className="mt-4 text-sm text-blue-500">Within SEBI limits</div>
+          {/* Tabs */}
+          <div className="flex gap-4 border-b border-[#30363D] mb-4 text-sm">
+            <button className="text-white font-medium border-b-2 border-[#F78166] pb-2 px-1">Indices</button>
+            <button className="text-gray-500 hover:text-white pb-2 px-1 transition-colors">Top NSE Stocks</button>
+            <button className="text-gray-500 hover:text-white pb-2 px-1 transition-colors">Banking</button>
           </div>
 
-          {/* Card 3 (Full width in this column) */}
-          <div className="md:col-span-2 bg-[#151C2C] p-6 rounded-2xl border border-gray-800 hover:border-gray-700 transition-all">
-            <div className="flex justify-between items-center mb-4">
-              <span className="text-gray-400">Daily Compliance Status</span>
-              <Shield size={20} className="text-emerald-500" />
+          {/* List of Indices */}
+          <div className="space-y-3 flex-1">
+            <div className="flex justify-between items-center bg-[#0D1117] p-4 rounded-lg hover:bg-[#1C2128] transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-[#21262D] rounded-lg flex items-center justify-center font-bold text-xs text-white">N</div>
+                <div className="flex flex-col justify-center">
+                  <div className="text-sm font-bold text-white leading-tight">NIFTY 50</div>
+                  <div className="text-xs text-gray-500 mt-0.5 leading-tight">Nifty 50</div>
+                </div>
+              </div>
+              <div className="text-right flex flex-col justify-center">
+                <div className="text-sm font-bold text-white leading-tight">22,453.30</div>
+                <div className="text-xs text-[#39D353] flex items-center justify-end gap-0.5 mt-0.5 leading-tight">
+                  <ArrowUpRight size={12} /> +150.20 (0.67%)
+                </div>
+              </div>
             </div>
-            <div className="flex gap-4 items-center">
-              <div className="flex-1 bg-[#1A2333] p-4 rounded-lg text-center">
-                <div className="text-xs text-gray-500 mb-1">Daily 2FA</div>
-                <div className="text-emerald-500 font-medium">Verified</div>
+
+            <div className="flex justify-between items-center bg-[#0D1117] p-4 rounded-lg hover:bg-[#1C2128] transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-[#21262D] rounded-lg flex items-center justify-center font-bold text-xs text-white">S</div>
+                <div className="flex flex-col justify-center">
+                  <div className="text-sm font-bold text-white leading-tight">SENSEX</div>
+                  <div className="text-xs text-gray-500 mt-0.5 leading-tight">Sensex</div>
+                </div>
               </div>
-              <div className="flex-1 bg-[#1A2333] p-4 rounded-lg text-center">
-                <div className="text-xs text-gray-500 mb-1">Static IP</div>
-                <div className="text-emerald-500 font-medium">Verified</div>
+              <div className="text-right flex flex-col justify-center">
+                <div className="text-sm font-bold text-white leading-tight">74,616.58</div>
+                <div className="text-xs text-[#39D353] flex items-center justify-end gap-0.5 mt-0.5 leading-tight">
+                  <ArrowUpRight size={12} /> +509.73 (0.69%)
+                </div>
               </div>
-              <div className="flex-1 bg-[#1A2333] p-4 rounded-lg text-center">
-                <div className="text-xs text-gray-500 mb-1">Algo ID</div>
-                <div className="text-emerald-500 font-medium">Registered</div>
+            </div>
+
+            <div className="flex justify-between items-center bg-[#0D1117] p-4 rounded-lg hover:bg-[#1C2128] transition-colors">
+              <div className="flex items-center gap-3">
+                <div className="w-9 h-9 bg-[#21262D] rounded-lg flex items-center justify-center font-bold text-xs text-white">B</div>
+                <div className="flex flex-col justify-center">
+                  <div className="text-sm font-bold text-white leading-tight">BANKNIFTY</div>
+                  <div className="text-xs text-gray-500 mt-0.5 leading-tight">Nifty Bank</div>
+                </div>
+              </div>
+              <div className="text-right flex flex-col justify-center">
+                <div className="text-sm font-bold text-white leading-tight">48,201.10</div>
+                <div className="text-xs text-red-500 flex items-center justify-end gap-0.5 mt-0.5 leading-tight">
+                  <ArrowDownRight size={12} /> -45.30 (-0.09%)
+                </div>
               </div>
             </div>
           </div>
         </div>
 
-        {/* Kill Switch Section */}
-        <div className="lg:col-span-1">
-          <div className="bg-[#151C2C] p-8 rounded-2xl border border-gray-800 flex flex-col h-full justify-between">
-            <div>
-              <div className="flex items-center gap-3 mb-6">
-                <ShieldAlert size={28} className={isKillSwitchActive ? "text-red-500" : "text-yellow-500"} />
-                <h2 className="text-xl font-bold">Emergency Kill Switch</h2>
-              </div>
-              <p className="text-gray-400 text-sm mb-6">
-                Activating the kill switch will immediately cancel all pending orders and pause all live strategies across all linked brokers. This action is compliant with SEBI 2026 mandates.
-              </p>
+        {/* Right Column: Portfolio Performance */}
+        <div className="bg-[#161B22] p-6 rounded-xl border border-[#30363D] shadow-sm flex flex-col">
+          <div className="flex justify-between items-center mb-6">
+            <span className="font-bold text-white">Portfolio Performance</span>
+            <div className="flex gap-2 text-xs bg-[#0D1117] p-1 rounded-lg">
+              <button className="px-2.5 py-1 text-gray-500 hover:text-white transition-colors">1W</button>
+              <button className="px-2.5 py-1 bg-[#21262D] text-white rounded transition-colors">1M</button>
+              <button className="px-2.5 py-1 text-gray-500 hover:text-white transition-colors">3M</button>
+              <button className="px-2.5 py-1 text-gray-500 hover:text-white transition-colors">1Y</button>
             </div>
+          </div>
 
-            <div className="flex flex-col items-center gap-4">
-              {/* Status Indicator */}
-              <div className={`text-sm font-medium ${isKillSwitchActive ? "text-red-500" : "text-emerald-500"}`}>
-                Status: {isKillSwitchActive ? "ACTIVATED" : "System Normal"}
-              </div>
-
-              {/* Big Glassmorphism Button */}
-              <motion.button
-                whileHover={{ scale: 1.05 }}
-                whileTap={{ scale: 0.95 }}
-                onClick={handleKillSwitch}
-                disabled={isPending}
-                className={`w-full py-4 px-6 rounded-xl font-bold text-lg transition-all flex items-center justify-center gap-2 ${
-                  isKillSwitchActive
-                    ? "bg-gradient-to-r from-emerald-600 to-emerald-700 hover:from-emerald-700 hover:to-emerald-800 text-white shadow-lg shadow-emerald-900/50"
-                    : "bg-gradient-to-r from-red-600 to-red-700 hover:from-red-700 hover:to-red-800 text-white shadow-lg shadow-red-900/50"
-                } ${isPending ? "opacity-75 cursor-wait" : ""}`}
-              >
-                <Power size={20} />
-                {isPending ? "Processing..." : isKillSwitchActive ? "Deactivate Kill Switch" : "ACTIVATE KILL SWITCH"}
-              </motion.button>
-              
-              <span className="text-xs text-gray-600 text-center">
-                Requires admin privileges. Action will be logged to compliance audit trail.
-              </span>
-            </div>
+          {/* Chart */}
+          <div className="h-64 w-full flex-1">
+            <ResponsiveContainer width="100%" height="100%">
+              <AreaChart data={data} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="colorValue" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#388BFD" stopOpacity={0.3}/>
+                    <stop offset="95%" stopColor="#388BFD" stopOpacity={0}/>
+                  </linearGradient>
+                </defs>
+                <XAxis dataKey="name" stroke="#5C6C7C" style={{ fontSize: '10px' }} tickLine={false} />
+                <YAxis stroke="#5C6C7C" style={{ fontSize: '10px' }} domain={['dataMin - 2000', 'dataMax + 2000']} tickLine={false} axisLine={false} />
+                <Tooltip 
+                  contentStyle={{ backgroundColor: '#161B22', border: '1px solid #30363D', borderRadius: '8px', fontSize: '12px' }}
+                  labelStyle={{ color: '#8B949E' }}
+                  itemStyle={{ color: '#FFFFFF' }}
+                  cursor={{ stroke: '#30363D' }}
+                />
+                <Area type="monotone" dataKey="value" stroke="#388BFD" strokeWidth={2} fillOpacity={1} fill="url(#colorValue)" />
+              </AreaChart>
+            </ResponsiveContainer>
           </div>
         </div>
 

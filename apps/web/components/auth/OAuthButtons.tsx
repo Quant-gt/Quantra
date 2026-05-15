@@ -15,12 +15,12 @@ export default function OAuthButtons() {
   };
 
   return (
-    <div className="flex flex-col gap-3">
+    <div className="flex flex-row gap-4 justify-center">
       <button
         onClick={() => handleOAuth("google")}
-        className="w-full flex items-center justify-center gap-2 bg-white text-gray-900 hover:bg-gray-100 font-semibold py-2 px-4 rounded-md transition-colors"
+        className="w-[150px] h-[150px] flex flex-col items-center justify-center gap-3 bg-white text-gray-900 hover:bg-gray-100 font-semibold rounded-2xl transition-colors text-sm shadow-lg"
       >
-        <svg viewBox="0 0 24 24" className="w-5 h-5">
+        <svg viewBox="0 0 24 24" className="w-8 h-8">
           <path
             d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z"
             fill="#4285F4"
@@ -38,17 +38,17 @@ export default function OAuthButtons() {
             fill="#EA4335"
           />
         </svg>
-        Continue with Google
+        <span>Google</span>
       </button>
 
       <button
         onClick={() => handleOAuth("apple")}
-        className="w-full flex items-center justify-center gap-2 bg-black text-white border border-white/20 hover:bg-gray-900 font-semibold py-2 px-4 rounded-md transition-colors"
+        className="w-[150px] h-[150px] flex flex-col items-center justify-center gap-3 bg-black text-white border border-white/20 hover:bg-gray-900 font-semibold rounded-2xl transition-colors text-sm shadow-lg"
       >
-        <svg viewBox="0 0 24 24" className="w-5 h-5" fill="currentColor">
+        <svg viewBox="0 0 24 24" className="w-8 h-8" fill="currentColor">
           <path d="M12.152 6.896c-.948 0-2.415-1.078-3.96-1.04-2.04.027-3.91 1.183-4.961 3.014-2.117 3.675-.546 9.103 1.519 12.09 1.013 1.454 2.208 3.09 3.792 3.039 1.52-.065 2.09-.987 3.935-.987 1.831 0 2.43.987 3.96.948 1.61-.05 2.643-1.503 3.618-2.95 1.168-1.682 1.636-3.325 1.662-3.415-.039-.013-3.182-1.221-3.22-4.857-.026-3.04 2.48-4.494 2.597-4.559-1.429-2.09-3.623-2.324-4.39-2.376-2-.156-3.675 1.09-4.533 1.09zM15.53 3.83c.843-1.012 1.4-2.427 1.245-3.83-1.207.052-2.662.805-3.532 1.818-.78.896-1.454 2.338-1.273 3.714 1.338.104 2.715-.688 3.56-1.702z" />
         </svg>
-        Continue with Apple
+        <span>Apple</span>
       </button>
     </div>
   );
