@@ -1,3 +1,6 @@
+-- Add full_name to users
+ALTER TABLE users ADD COLUMN IF NOT EXISTS full_name TEXT;
+
 -- Add slug to strategies
 ALTER TABLE strategies ADD COLUMN IF NOT EXISTS slug TEXT UNIQUE;
 ALTER TABLE strategies ADD COLUMN IF NOT EXISTS min_capital NUMERIC DEFAULT 10000;
