@@ -1,0 +1,11 @@
+{
+  "name": "scraper",
+  "version": "0.1.0",
+  "private": true,
+  "scripts": {
+    "dev": "uvicorn main:app --reload --port 3004",
+    "start": "uvicorn main:app --port 3004",
+    "lint": "echo \"Python linting\"",
+    "test": "echo \"Error: no test specified\" && exit 0"
+  }
+}
