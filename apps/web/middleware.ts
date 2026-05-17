@@ -54,7 +54,22 @@ export async function middleware(request: NextRequest) {
     }
   )
 
-  await supabase.auth.getSession()
+  const { data: { session } } = await supabase.auth.getSession()
+
+  // Protect dashboard routes
+  if (request.nextUrl.pathname.startsWith('/dashboard')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/auth', request.url))
+    }
+  }
+
+  // Redirect logged in users away from auth pages
+  if (request.nextUrl.pathname.startsWith('/auth')) {
+    // Exclude callback route from this check to allow OAuth flow to complete
+    if (session && !request.nextUrl.pathname.startsWith('/auth/callback')) {
+      return NextResponse.redirect(new URL('/dashboard', request.url))
+    }
+  }
 
   return response
 }

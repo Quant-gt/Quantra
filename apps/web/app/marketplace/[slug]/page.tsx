@@ -8,7 +8,7 @@ import { ExternalLink, ShieldCheck, TrendingUp, AlertTriangle } from "lucide-rea
 export const revalidate = 60; // ISR 60 seconds
 
 export default async function StrategyDetailPage({ params }: { params: { slug: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data: strategy, error } = await supabase
     .from("marketplace_strategies")

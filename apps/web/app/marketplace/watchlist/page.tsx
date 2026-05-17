@@ -3,7 +3,7 @@ import StrategyCard, { Strategy } from "@/components/marketplace/StrategyCard";
 import { redirect } from "next/navigation";
 
 export default async function WatchlistPage() {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   const { data: { user } } = await supabase.auth.getUser();
   if (!user) {
@@ -19,7 +19,7 @@ export default async function WatchlistPage() {
     `)
     .eq("user_id", user.id);
 
-  const strategies = watchlist?.map(w => w.marketplace_strategies).filter(Boolean) as Strategy[] || [];
+  const strategies = watchlist?.map(w => w.marketplace_strategies).filter(Boolean) as unknown as Strategy[] || [];
 
   return (
     <div className="min-h-screen bg-background py-12 px-4">

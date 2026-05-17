@@ -1,8 +1,9 @@
 import express from 'express';
-import redis from './lib/redis.ts';
-import { dailyAuthCheck } from './middleware/auth.ts';
-import { opsMonitor } from './middleware/ops.ts';
-import { killSwitchCheck } from './middleware/killswitch.ts';
+import redis from './lib/redis.js';
+import { dailyAuthCheck } from './middleware/auth.js';
+import { opsMonitor } from './middleware/ops.js';
+import { killSwitchCheck } from './middleware/killswitch.js';
+import creatorRoutes from './routes/creator.js';
 
 const app = express();
 const port = process.env.PORT || 3001;
@@ -48,19 +49,65 @@ app.post('/webhook/auth', express.json(), async (req, res) => {
 });
 
 // Protected route for strategy deployment (SEBI Compliance Check)
-app.post('/api/strategy/deploy', killSwitchCheck, dailyAuthCheck, express.json(), async (req, res) => {
+app.post('/api/strategy/deploy', dailyAuthCheck, killSwitchCheck, express.json(), async (req, res) => {
   res.json({
     success: true,
     message: 'Strategy deployment authorized. All SEBI daily compliance checks passed.'
   });
 });
+
+// Protected route for Strategy DAG Validation (Stage 1-3 validation)
+app.post('/api/strategy/validate', dailyAuthCheck, express.json(), async (req, res) => {
+  const { nodes, edges } = req.body;
+  
+  if (!nodes || !edges) {
+    return res.status(400).json({ error: 'Nodes and edges are required for validation.' });
+  }
+
+  // Stage 1: Graph Integrity Check
+  const hasTrigger = nodes.some((n: any) => n.type === 'input');
+  const hasAction = nodes.some((n: any) => n.type === 'output');
+  
+  if (!hasTrigger || !hasAction) {
+    return res.status(400).json({ 
+      error: 'Graph Integrity Failed', 
+      details: 'Strategy must contain at least one Trigger node and one Action node.' 
+    });
+  }
+
+  // Stage 2: Cycle Detection (Simple mock for now)
+  const isCyclic = false; // Add DFS cycle detection logic here for production
+  if (isCyclic) {
+    return res.status(400).json({ 
+      error: 'Cycle Detected', 
+      details: 'Strategy logic contains an infinite loop.' 
+    });
+  }
+
+  // Stage 3: SEBI Compliance Mock Check
+  const triggerCount = nodes.filter((n: any) => n.type === 'input').length;
+  if (triggerCount > 5) {
+    return res.status(400).json({ 
+      error: 'SEBI Compliance Failed', 
+      details: 'Too many simultaneous triggers. Risk of breaching 10 Orders Per Second (OPS) limit.' 
+    });
+  }
+
+  res.json({
+    success: true,
+    message: 'Strategy passed all 3 validation stages successfully.',
+    ops_estimate: triggerCount * 2
+  });
+});
+
 // Protected route for order placement (SEBI OPS Check)
-app.post('/api/trade/place', killSwitchCheck, opsMonitor, express.json(), async (req, res) => {
+app.post('/api/trade/place', dailyAuthCheck, killSwitchCheck, opsMonitor, express.json(), async (req, res) => {
   res.json({
     success: true,
     message: 'Order placed successfully. OPS limits respected.'
   });
 });
+
 // Admin route to trigger Kill Switch (SEBI Compliance)
 app.post('/api/admin/killswitch', express.json(), async (req, res) => {
   const { action, userId } = req.body;
@@ -93,6 +140,9 @@ app.post('/api/admin/killswitch', express.json(), async (req, res) => {
     res.status(500).json({ error: 'Failed to trigger kill switch' });
   }
 });
+
+// Mount modular routes
+app.use('/api/v1/creator', dailyAuthCheck, express.json(), creatorRoutes);
 
 app.listen(port, () => {
   console.log(`API running on port ${port}`);

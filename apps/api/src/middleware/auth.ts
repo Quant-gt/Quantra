@@ -12,18 +12,31 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
  * According to SEBI 2026 mandate, sessions expire at 16:05 IST daily.
  */
 export const dailyAuthCheck = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
-  const userId = req.headers['x-user-id'] as string;
+  const authHeader = req.headers.authorization;
 
-  if (!userId) {
-    return res.status(401).json({ error: 'Missing x-user-id header for authentication' });
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ error: 'Missing or invalid Authorization header' });
   }
 
+  const token = authHeader.split(' ')[1];
+
   try {
+    const { data: { user }, error: authError } = await supabase.auth.getUser(token);
+
+    if (authError || !user) {
+      return res.status(401).json({ error: 'Invalid or expired token' });
+    }
+
+    const userId = user.id;
+    req.headers['x-user-id'] = userId; // Set verified user ID for downstream middlewares
     // Get current time in IST
     const now = new Date();
     const istDateStr = now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour12: false });
-    const [datePart, timePart] = istDateStr.split(', ');
-    const [hours, minutes] = timePart.split(':').map(Number);
+    const parts = istDateStr.split(', ');
+    const timePart = parts[1] || "00:00:00";
+    const timeSplits = timePart.split(':').map(Number);
+    const hours = timeSplits[0] || 0;
+    const minutes = timeSplits[1] || 0;
 
     // 1. Check if current time is past 16:05 IST
     if (hours > 16 || (hours === 16 && minutes >= 5)) {
@@ -53,7 +66,7 @@ export const dailyAuthCheck = async (req: express.Request, res: express.Response
     const last2faIst = last2fa.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour12: false });
     const [last2faDatePart] = last2faIst.split(', ');
 
-    if (datePart !== last2faDatePart) {
+    if (parts[0] !== last2faDatePart) {
       return res.status(403).json({
         error: 'Daily 2FA authentication required for today.',
         code: 'MANDATORY_DAILY_2FA'

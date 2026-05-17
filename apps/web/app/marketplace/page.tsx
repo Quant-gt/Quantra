@@ -10,7 +10,7 @@ export default async function MarketplacePage({
 }: {
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   let query = supabase.from("marketplace_strategies").select("*");
 

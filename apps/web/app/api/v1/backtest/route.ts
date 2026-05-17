@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   try {
     const { strategy_id, symbol, start_date, end_date } = await request.json();
     
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: { user } } = await supabase.auth.getUser();
     
     if (!user) {

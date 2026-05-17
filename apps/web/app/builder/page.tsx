@@ -3,7 +3,7 @@ import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 
 export default async function BuilderPage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   // Verify strategy exists and user owns it
   const { data: strategy, error } = await supabase

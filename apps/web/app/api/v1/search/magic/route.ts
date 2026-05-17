@@ -55,7 +55,7 @@ export async function POST(request: Request) {
     }
 
     // 3. Query Supabase using RPC
-    const supabase = createClient();
+    const supabase = await createClient();
     const { data: results, error } = await supabase.rpc('search_magic_strategies', {
       query_embedding: nlpData.embedding,
       match_threshold: 0.3,

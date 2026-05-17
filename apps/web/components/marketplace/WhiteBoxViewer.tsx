@@ -29,7 +29,7 @@ export default function WhiteBoxViewer() {
         elementsSelectable={false}
         proOptions={{ hideAttribution: true }}
       >
-        <Background color="#ffffff" gap={16} size={1} opacity={0.1} />
+        <Background color="#ffffff" gap={16} size={1} />
         <Controls className="fill-white/80" />
       </ReactFlow>
     </div>

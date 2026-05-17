@@ -6,7 +6,7 @@ import { notFound } from "next/navigation";
 export const revalidate = 60;
 
 export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
-  const supabase = createClient();
+  const supabase = await createClient();
   
   // Fetch creator info
   const { data: creator, error: creatorError } = await supabase

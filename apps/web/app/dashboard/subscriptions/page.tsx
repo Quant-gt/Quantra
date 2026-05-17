@@ -80,7 +80,7 @@ export default function SubscriptionsPage() {
               <div className="flex items-center gap-3">
                 <div className="w-10 h-6 bg-blue-600 rounded flex items-center justify-center text-xs font-bold text-white">
                   VISA
-                </支撑>
+                </div>
                 <div>
                   <p className="text-white font-medium">•••• •••• •••• 4242</p>
                   <p className="text-xs text-white/50">Expires 12/28</p>

@@ -1,5 +1,5 @@
 import express from 'express';
-import redis from '../lib/redis.ts';
+import redis from '../lib/redis.js';
 
 /**
  * Middleware to monitor and throttle Orders Per Second (OPS).

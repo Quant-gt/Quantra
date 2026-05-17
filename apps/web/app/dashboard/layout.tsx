@@ -1,6 +1,7 @@
 "use client";
 
 import React from 'react';
+import Link from 'next/link';
 import { 
   LayoutDashboard, 
   Search, 
@@ -8,7 +9,8 @@ import {
   Zap, 
   History, 
   SlidersHorizontal, 
-  LogOut 
+  LogOut,
+  Settings
 } from 'lucide-react';
 
 export default function DashboardLayout({
@@ -23,43 +25,58 @@ export default function DashboardLayout({
       <div className="w-64 bg-[#161B22] border-r border-[#30363D] flex flex-col justify-between flex-shrink-0">
         <div>
           {/* Logo */}
-          <div className="p-6 flex items-center gap-2 border-b border-[#30363D]">
-            <BarChart2 className="text-[#388BFD]" size={24} />
-            <span className="text-xl font-bold text-white">Quantra</span>
+          <div className="p-6 border-b border-[#30363D] flex items-center gap-3">
+            <div className="w-8 h-8 bg-white flex items-center justify-center rounded-lg shadow-sm">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+              </svg>
+            </div>
+            <span className="text-xl font-bold text-white tracking-tight">Quantra</span>
           </div>
 
           {/* Navigation */}
           <nav className="mt-6">
             <div className="px-6 text-xs font-semibold text-gray-500 mb-2">MAIN MENU</div>
-            <a href="/dashboard" className="flex items-center gap-3 px-6 py-3 bg-[#1F2937] text-[#58A6FF] font-medium border-l-4 border-[#388BFD]">
+            <Link href="/dashboard" className="flex items-center gap-3 px-6 py-3 bg-[#1F2937] text-[#58A6FF] font-medium border-l-4 border-[#388BFD]">
               <LayoutDashboard size={18} />
               Dashboard
-            </a>
-            <a href="/dashboard/scanner" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            </Link>
+            <Link href="/dashboard/scanner" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
               <Search size={18} />
               Stock Scanner
-            </a>
-            <a href="/dashboard/charts" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            </Link>
+            <Link href="/dashboard/builder" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+              <SlidersHorizontal size={18} />
+              Strategy Builder
+            </Link>
+            <Link href="/dashboard/charts" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
               <BarChart2 size={18} />
               Live Charts
-            </a>
-            <a href="/dashboard/autotrade" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            </Link>
+            <Link href="/dashboard/autotrade" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
               <Zap size={18} />
               Auto Trade
-            </a>
-            <a href="/dashboard/backtesting" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            </Link>
+            <Link href="/dashboard/backtesting" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
               <History size={18} />
               Backtesting
-            </a>
-            <a href="/dashboard/scans" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            </Link>
+            <Link href="/dashboard/scans" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
               <SlidersHorizontal size={18} />
               Custom Scans
-            </a>
+            </Link>
+            <div className="mt-4 px-6 text-xs font-semibold text-gray-500 mb-2">SYSTEM</div>
+            <Link href="/dashboard/settings" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+              <Settings size={18} />
+              Settings & API
+            </Link>
           </nav>
         </div>
 
-        {/* User Profile - Linked to Profile Page */}
-        <a href="/dashboard/profile" className="p-4 border-t border-[#30363D] flex items-center justify-between bg-[#11161D] hover:bg-[#1C2128] transition-colors cursor-pointer">
+        {/* User Profile - Linked to Settings Page */}
+        <Link href="/dashboard/settings" className="p-4 border-t border-[#30363D] flex items-center justify-between bg-[#11161D] hover:bg-[#1C2128] transition-colors cursor-pointer">
           <div className="flex items-center gap-3">
             <div className="w-10 h-10 bg-[#388BFD] rounded-full flex items-center justify-center font-bold text-white">
               SB
@@ -72,7 +89,7 @@ export default function DashboardLayout({
           <div className="text-gray-500 hover:text-white">
             <LogOut size={18} />
           </div>
-        </a>
+        </Link>
       </div>
 
       {/* Main Content */}
