@@ -8,4 +8,8 @@ jobs:
     steps:
       - name: Trigger Render Deploy
         run: |
-          curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          if [ -z "${{ secrets.RENDER_DEPLOY_HOOK_URL }}" ]; then
+            echo "RENDER_DEPLOY_HOOK_URL is not set. Skipping API deploy hook."
+          else
+            curl -X POST ${{ secrets.RENDER_DEPLOY_HOOK_URL }}
+          fi
