@@ -4,24 +4,39 @@ import React, { useState } from 'react';
 import { User, Key, Shield, Settings2, Save, Trash2, Eye, EyeOff, CheckCircle2, AlertCircle, Copy, Check, Info } from 'lucide-react';
 
 import CreatorOnboarding from '@/components/settings/CreatorOnboarding';
+import RiskManagement from '@/components/settings/RiskManagement';
+import BrokerConnectionModal from '@/components/settings/BrokerConnectionModal';
 
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('api');
   const [showKey, setShowKey] = useState<number | null>(null);
   const [copiedKey, setCopiedKey] = useState<number | null>(null);
+  const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
 
-  const apiKeys = [
+  const [apiKeys, setApiKeys] = useState([
     { id: 1, provider: "Fyers", status: "Connected", appId: "H5XXXXXX", addedAt: "12 May, 2026", validUntil: "12 May, 2027" },
     { id: 2, provider: "Zerodha Kite", status: "Expired", appId: "KTXXXXXX", addedAt: "01 Jan, 2026", validUntil: "01 Apr, 2026" },
-  ];
+  ]);
 
   const handleCopy = (id: number) => {
     setCopiedKey(id);
     setTimeout(() => setCopiedKey(null), 2000);
   };
 
+  const handleBrokerSuccess = (provider: string, appId: string) => {
+    const newKey = {
+      id: Date.now(),
+      provider,
+      status: "Connected",
+      appId,
+      addedAt: new Date().toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+      validUntil: new Date(Date.now() + 31536000000).toLocaleDateString('en-GB', { day: '2-digit', month: 'short', year: 'numeric' }),
+    };
+    setApiKeys([newKey, ...apiKeys]);
+  };
+
   return (
-    <div className="p-4 md:p-8 bg-[#0D1117] min-h-full max-w-6xl mx-auto space-y-8">
+    <div className="p-4 md:p-8 bg-[#0D1117] min-h-full max-w-6xl mx-auto space-y-8 relative">
       {/* Header */}
       <div>
         <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
@@ -42,8 +57,8 @@ export default function SettingsPage() {
             { id: 'profile', label: 'Profile Settings', icon: <User size={18} /> },
             { id: 'api', label: 'API Management', icon: <Key size={18} /> },
             { id: 'creator', label: 'Creator Center', icon: <Shield size={18} /> },
+            { id: 'risk', label: 'Risk Management', icon: <AlertCircle size={18} /> },
             { id: 'security', label: 'Security & 2FA', icon: <Shield size={18} /> },
-            { id: 'preferences', label: 'Preferences', icon: <Settings2 size={18} /> },
           ].map(tab => (
             <button
               key={tab.id}
@@ -71,7 +86,10 @@ export default function SettingsPage() {
                   <h2 className="text-xl font-bold text-white tracking-tight">Broker API Connections</h2>
                   <p className="text-sm text-gray-400 mt-1">Connect your trading accounts to enable live execution.</p>
                 </div>
-                <button className="bg-[#238636] hover:bg-[#2ea043] text-white px-4 py-2 rounded-md text-sm font-bold transition-all shadow-lg">
+                <button 
+                  onClick={() => setIsBrokerModalOpen(true)}
+                  className="bg-[#238636] hover:bg-[#2ea043] text-white px-4 py-2 rounded-md text-sm font-bold transition-all shadow-lg"
+                >
                   Add Connection
                 </button>
               </div>
@@ -191,7 +209,11 @@ export default function SettingsPage() {
             <CreatorOnboarding />
           )}
 
-          {(activeTab === 'security' || activeTab === 'preferences') && (
+          {activeTab === 'risk' && (
+            <RiskManagement />
+          )}
+
+          {(activeTab === 'security') && (
             <div className="p-6 flex flex-col items-center justify-center text-center h-[400px] text-gray-500">
               <Settings2 size={48} className="mb-4 text-[#30363D]" />
               <h3 className="text-xl font-bold text-white mb-2">Section Under Construction</h3>
@@ -200,6 +222,12 @@ export default function SettingsPage() {
           )}
         </div>
       </div>
+
+      <BrokerConnectionModal 
+        isOpen={isBrokerModalOpen} 
+        onClose={() => setIsBrokerModalOpen(false)} 
+        onSuccess={handleBrokerSuccess} 
+      />
     </div>
   );
 }

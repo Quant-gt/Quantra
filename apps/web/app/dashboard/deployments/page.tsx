@@ -45,6 +45,34 @@ export default function DeploymentsPage() {
     }, 2000);
   };
 
+  const handleModeToggle = (id: string, currentMode: string) => {
+    const newMode = currentMode === 'live' ? 'paper' : 'live';
+    const confirmMsg = newMode === 'live' 
+      ? "WARNING: You are switching to LIVE execution. Real capital will be used. Proceed?" 
+      : "Switching to PAPER trading. Trades will be simulated.";
+      
+    if (confirm(confirmMsg)) {
+      setDeployments(prev => prev.map(dep => 
+        dep.id === id ? { ...dep, mode: newMode } : dep
+      ));
+    }
+  };
+
+  // Simulate real-time PnL ticking for active deployments
+  useEffect(() => {
+    const interval = setInterval(() => {
+      setDeployments(prev => prev.map(dep => {
+        if (dep.status === 'active') {
+          // Add random jitter to unrealised PnL
+          const jitter = (Math.random() - 0.5) * 50; 
+          return { ...dep, unrealised_pnl: dep.unrealised_pnl + jitter };
+        }
+        return dep;
+      }));
+    }, 2000);
+    return () => clearInterval(interval);
+  }, []);
+
   return (
     <div className="min-h-screen bg-background pb-20">
       {/* Master Kill Banner */}
@@ -116,6 +144,19 @@ export default function DeploymentsPage() {
 
                 {/* Actions */}
                 <div className="flex gap-2">
+                  {dep.status !== 'killed' && (
+                    <button
+                      onClick={() => handleModeToggle(dep.id, dep.mode)}
+                      className={`border p-3 rounded-lg transition-colors flex items-center gap-2 text-sm font-semibold ${
+                        dep.mode === 'live' 
+                        ? 'bg-amber-500/10 border-amber-500/30 text-amber-400 hover:bg-amber-500/20' 
+                        : 'bg-blue-500/10 border-blue-500/30 text-blue-400 hover:bg-blue-500/20'
+                      }`}
+                      title="Toggle Execution Mode"
+                    >
+                      {dep.mode === 'live' ? 'Switch to Paper' : 'Switch to Live'}
+                    </button>
+                  )}
                   {dep.status === 'active' && (
                     <button
                       onClick={() => handleKill(dep.id)}

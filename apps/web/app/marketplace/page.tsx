@@ -1,9 +1,8 @@
-import { createClient } from "@/lib/supabase/server";
 import StrategyCard, { Strategy } from "@/components/marketplace/StrategyCard";
 import MarketplaceFilters from "@/components/marketplace/MarketplaceFilters";
 import MagicFilter from "@/components/marketplace/MagicFilter";
 
-export const revalidate = 60; // ISR: Revalidate every 60 seconds
+import { createClient } from "@/lib/supabase/server";
 
 export default async function MarketplacePage({
   searchParams,
@@ -11,39 +10,44 @@ export default async function MarketplacePage({
   searchParams: { [key: string]: string | string[] | undefined };
 }) {
   const supabase = await createClient();
-  
-  let query = supabase.from("marketplace_strategies").select("*");
+  const { data: rawStrategies } = await supabase
+    .from('strategies')
+    .select('*')
+    .eq('is_public_marketplace', true);
 
-  // Apply filters from URL search params
+  let strategies: Strategy[] = (rawStrategies || []).map((row: any) => ({
+    id: row.id,
+    slug: row.slug || row.id,
+    name: row.name,
+    classification: row.type || "black_box",
+    algo_id: row.algo_id || "PENDING",
+    creator_id: row.creator_id,
+    creator_name: "Verified Creator",
+    creator_ra_verified: true,
+    min_capital: row.min_capital || 100000,
+    fee: row.fee || 0,
+    profit_share: row.profit_share || 0,
+    cagr: row.logic_graph?.metrics?.cagr || 0,
+    max_drawdown: row.logic_graph?.metrics?.max_drawdown || 0,
+    sharpe_ratio: row.logic_graph?.metrics?.sharpe_ratio || 0,
+    win_rate: row.logic_graph?.metrics?.win_rate || 0,
+    subscriber_count: row.logic_graph?.metrics?.subscriber_count || 0,
+  }));
+
+  // Apply basic mock filters
   if (searchParams.classification && searchParams.classification !== "all") {
-    query = query.eq("classification", searchParams.classification);
+    strategies = strategies.filter(s => s.classification === searchParams.classification);
   }
-  if (searchParams.minCagr) {
-    query = query.gte("cagr", searchParams.minCagr);
-  }
-  if (searchParams.maxDd) {
-    query = query.lte("max_drawdown", searchParams.maxDd);
-  }
-  if (searchParams.minCapital) {
-    query = query.lte("min_capital", searchParams.minCapital);
-  }
-
-  // Fetch strategies
-  const { data: strategies, error } = await query;
-
-  // Ideally, fetch user's watchlist to pass `isWatchlisted` state to StrategyCard
-  // For ISR pages, passing user-specific state requires client-side fetching or hydrating,
-  // but for now we'll rely on the client component to handle its own bookmark state if needed
   
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-[#0D1117] font-sans">
       {/* Hero Section */}
-      <div className="bg-[url('/bg-abstract.jpg')] bg-cover bg-center relative py-20 px-4">
-        <div className="absolute inset-0 bg-background/80 backdrop-blur-sm z-0"></div>
+      <div className="bg-[#161B22] border-b border-[#30363D] relative py-20 px-4">
+        <div className="absolute inset-0 bg-gradient-to-b from-[#388BFD]/5 to-transparent z-0 pointer-events-none"></div>
         <div className="max-w-7xl mx-auto relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">Discover Your Edge</h1>
-          <p className="text-xl text-white/70 max-w-2xl mx-auto mb-8">
-            Browse and subscribe to SEBI-compliant algorithmic strategies built by verified experts.
+          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Discover Your Edge</h1>
+          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+            Browse and subscribe to institutional-grade algorithmic strategies built by verified experts.
           </p>
           
           <MagicFilter />
@@ -61,23 +65,19 @@ export default async function MarketplacePage({
           <div className="flex-1">
             <div className="flex justify-between items-center mb-6">
               <h2 className="text-2xl font-bold text-white">All Strategies</h2>
-              <div className="text-sm text-white/50">
-                {strategies?.length || 0} Results
+              <div className="text-sm text-gray-500 font-medium">
+                {strategies.length} Results
               </div>
             </div>
 
-            {error ? (
-              <div className="p-8 text-center border border-red-500/20 bg-red-500/10 rounded-xl text-red-400">
-                Failed to load strategies. Please try again later.
-              </div>
-            ) : strategies && strategies.length > 0 ? (
+            {strategies.length > 0 ? (
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
                 {strategies.map((strategy: Strategy) => (
                   <StrategyCard key={strategy.id} strategy={strategy} />
                 ))}
               </div>
             ) : (
-              <div className="p-12 text-center border border-white/10 glass-panel rounded-xl text-white/50">
+              <div className="p-12 text-center border border-[#30363D] bg-[#161B22] rounded-xl text-gray-500">
                 No strategies found matching your filters.
               </div>
             )}

@@ -1,0 +1,41 @@
+version: 1.0
+
+agent:
+  mode: semi-autonomous
+  # In semi-autonomous mode, Jules will create Pull Request comments and suggestion diffs. 
+  # It will not force-push commits directly to your branch.
+
+scope:
+  include:
+    - "apps/web/components/**/*"
+    - "apps/web/app/**/*"
+    - "apps/web/hooks/**/*"
+  exclude:
+    - "apps/web/public/**/*"
+    - "**/*.test.ts"
+    - "**/*.test.tsx"
+    - "node_modules"
+    - ".next"
+
+optimization_goals:
+  # Primary focus for React Flow and visual node builders
+  frontend_rendering:
+    target_framerate: 60
+    prioritize_memoization: true
+    identify_unnecessary_renders: true
+    enforce_usecallback: true
+
+  # Focus for Next.js and bundle sizes
+  bundle_size:
+    max_chunk_size_kb: 250
+    suggest_dynamic_imports: true
+    analyze_heavy_dependencies: true
+
+  # General code health
+  readability: true
+  complexity_reduction: true
+
+rules:
+  - "Never suggest removing error boundaries."
+  - "When suggesting React.memo, always verify that props are shallow-equatable."
+  - "Prefer CSS modules or Tailwind over heavy runtime-in-JS libraries if replacements are suggested."

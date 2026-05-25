@@ -10,8 +10,12 @@ import {
   History, 
   SlidersHorizontal, 
   LogOut,
-  Settings
+  Settings,
+  Globe,
+  Activity,
+  ArrowUpRight
 } from 'lucide-react';
+import LiveTickerTape from '@/components/dashboard/LiveTickerTape';
 
 export default function DashboardLayout({
   children,
@@ -37,7 +41,7 @@ export default function DashboardLayout({
           </div>
 
           {/* Navigation */}
-          <nav className="mt-6">
+          <nav className="mt-6 flex-1 overflow-y-auto">
             <div className="px-6 text-xs font-semibold text-gray-500 mb-2">MAIN MENU</div>
             <Link href="/dashboard" className="flex items-center gap-3 px-6 py-3 bg-[#1F2937] text-[#58A6FF] font-medium border-l-4 border-[#388BFD]">
               <LayoutDashboard size={18} />
@@ -67,10 +71,23 @@ export default function DashboardLayout({
               <SlidersHorizontal size={18} />
               Custom Scans
             </Link>
-            <div className="mt-4 px-6 text-xs font-semibold text-gray-500 mb-2">SYSTEM</div>
+            
+            <div className="mt-8 px-6 text-xs font-semibold text-gray-500 mb-2">SYSTEM</div>
             <Link href="/dashboard/settings" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
               <Settings size={18} />
-              Settings & API
+              Settings
+            </Link>
+          
+            <div className="mt-8 px-6 text-xs font-semibold text-gray-500 mb-2">COMMUNITY</div>
+            <Link href="/dashboard/feed" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+              <Globe size={18} />
+              Social Feed
+            </Link>
+            <Link href="/creator" className="flex items-center justify-between px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors group">
+              <div className="flex items-center gap-3">
+                <Activity size={18} />
+                Creator Studio
+              </div>
             </Link>
           </nav>
         </div>
@@ -95,25 +112,7 @@ export default function DashboardLayout({
       {/* Main Content */}
       <div className="flex-1 flex flex-col overflow-hidden">
         {/* Top Ticker Bar */}
-        <div className="bg-[#161B22] border-b border-[#30363D] p-3 text-xs flex flex-wrap items-center gap-6 overflow-hidden">
-          <span className="text-red-500 font-bold">₹ -0.10 (-0.01%)</span>
-          <span className="font-medium flex items-center gap-1">
-            <span className="w-4 h-4 bg-[#1F2937] rounded-full inline-block text-center text-[10px] leading-4">T</span>
-            TCS 2,539.85 <span className="text-green-500">+66.30 (+2.68%)</span>
-          </span>
-          <span className="font-medium flex items-center gap-1">
-            <span className="w-4 h-4 bg-[#1F2937] rounded-full inline-block text-center text-[10px] leading-4">H</span>
-            HDFCBANK 772.05 <span className="text-green-500">+0.85 (+0.11%)</span>
-          </span>
-          <span className="font-medium flex items-center gap-1">
-            <span className="w-4 h-4 bg-[#1F2937] rounded-full inline-block text-center text-[10px] leading-4">I</span>
-            INFY 1,340.15 <span className="text-green-500">+34.00 (+2.60%)</span>
-          </span>
-          <span className="font-medium flex items-center gap-1">
-            <span className="w-4 h-4 bg-[#1F2937] rounded-full inline-block text-center text-[10px] leading-4">R</span>
-            RELIANCE 1,304.00 <span className="text-green-500">+12.00 (+0.93%)</span>
-          </span>
-        </div>
+        <LiveTickerTape />
 
         {/* Content Area */}
         <div className="flex-1 overflow-auto p-6 bg-[#0D1117]">

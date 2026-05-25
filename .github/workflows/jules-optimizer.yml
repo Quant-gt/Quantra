@@ -1,0 +1,28 @@
+name: Jules Code Optimization
+
+on:
+  pull_request:
+    types: [opened, synchronize, reopened]
+    paths:
+      - 'apps/web/**'
+
+jobs:
+  jules_review:
+    name: Run Jules Optimizer
+    runs-on: ubuntu-latest
+    
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0 # Full history is sometimes needed for robust analysis
+          
+      - name: Run Jules Analysis
+        # Assuming a community or official action for Jules. 
+        # Replace this with the exact Action path provided by Google Jules documentation once published.
+        uses: google/jules-action@v1
+        with:
+          api-token: ${{ secrets.JULES_API_TOKEN }}
+          config-file: '.jules.yml'
+          pr-comment-mode: 'review' # Comments on lines of code directly
+          fail-on-severe: false # Don't block the build on optimization suggestions

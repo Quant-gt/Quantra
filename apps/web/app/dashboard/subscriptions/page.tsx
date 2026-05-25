@@ -9,14 +9,32 @@ export default function SubscriptionsPage() {
     { id: '2', name: 'BankNifty Trend Follower', creator: 'Mentor Meera', fee: 1500, profit_share: 15, status: 'active', next_billing: '2026-06-15' }
   ]);
 
-  const handleCancel = (id: string) => {
+  const [loadingId, setLoadingId] = useState<string | null>(null);
+
+  const handleCancel = async (id: string) => {
     if (!confirm("Are you sure you want to cancel this subscription? You will lose access at the end of the billing period.")) return;
     
-    setSubscriptions(prev => prev.map(sub => 
-      sub.id === id ? { ...sub, status: 'cancelled_pending' } : sub
-    ));
-    
-    alert("Subscription cancellation scheduled.");
+    setLoadingId(id);
+    try {
+      const res = await fetch('/api/v1/billing/cancel', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ subscriptionId: id })
+      });
+      const data = await res.json();
+      
+      if (data.success) {
+        setSubscriptions(prev => prev.map(sub => 
+          sub.id === id ? { ...sub, status: 'cancelled_pending' } : sub
+        ));
+      } else {
+        alert("Failed to cancel subscription");
+      }
+    } catch (err) {
+      alert("Network error");
+    } finally {
+      setLoadingId(null);
+    }
   };
 
   return (
@@ -58,8 +76,10 @@ export default function SubscriptionsPage() {
                   {sub.status === 'active' && (
                     <button
                       onClick={() => handleCancel(sub.id)}
-                      className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 px-4 py-2 rounded-lg transition-colors text-sm font-semibold"
+                      disabled={loadingId === sub.id}
+                      className="bg-red-500/20 hover:bg-red-500 text-red-400 hover:text-white border border-red-500/30 px-4 py-2 rounded-lg transition-colors text-sm font-semibold disabled:opacity-50 flex items-center gap-2"
                     >
+                      {loadingId === sub.id ? <RefreshCw className="w-4 h-4 animate-spin" /> : null}
                       Cancel
                     </button>
                   )}

@@ -1,8 +1,11 @@
 import express from 'express';
 import { Redis } from '@upstash/redis';
 import { createClient } from '@supabase/supabase-js';
+import cors from 'cors';
+import { runBacktest } from './backtester.ts';
 
 const app = express();
+app.use(cors());
 const port = process.env.PORT || 3002;
 
 // Initialize Redis & Supabase
@@ -90,6 +93,138 @@ app.post('/execute', async (req, res) => {
   } catch (error: any) {
     console.error('Execution Error:', error);
     return res.status(500).json({ success: false, error: 'Internal execution error' });
+  }
+});
+
+// --- START BACKTEST EXECUTION ENGINE ---
+app.post('/execute/backtest', async (req, res) => {
+  try {
+    const { strategy_id, symbol, initial_capital } = req.body;
+    
+    if (!strategy_id || !symbol || !initial_capital) {
+      return res.status(400).json({ success: false, error: 'Missing required payload fields: strategy_id, symbol, initial_capital' });
+    }
+
+    console.log(`[BACKTEST] Running simulation for strategy ${strategy_id} on ${symbol}`);
+    
+    const result = await runBacktest({ strategy_id, symbol, initial_capital: Number(initial_capital) });
+    
+    return res.json({ success: true, ...result });
+  } catch (error: any) {
+    console.error(`[BACKTEST ERROR]`, error.message);
+    return res.status(500).json({ success: false, error: error.message || 'Backtest failed' });
+  }
+});
+
+// --- START COPY TRADING FAN-OUT EXECUTION ENGINE ---
+app.post('/execute/fanout', async (req, res) => {
+  const { creator_id, strategy_id, symbol, action, base_qty, price, algo_id } = req.body;
+
+  if (!strategy_id || !symbol || !action || !base_qty) {
+    return res.status(400).json({ success: false, error: 'Missing required payload fields.' });
+  }
+
+  try {
+    // 1. Fetch all active subscribers for this strategy
+    const { data: subscribers, error: subError } = await supabase
+      .from('marketplace_subscriptions')
+      .select('user_id, allocation_multiplier')
+      .eq('strategy_id', strategy_id)
+      .eq('status', 'active');
+
+    if (subError) throw subError;
+
+    if (!subscribers || subscribers.length === 0) {
+      return res.json({ success: true, message: 'No active subscribers found for fan-out.', executions: 0 });
+    }
+
+    console.log(`[FAN-OUT] Triggered for strategy ${strategy_id}. Fanning out to ${subscribers.length} accounts.`);
+
+    // 2. Bulk fetch Risk Profiles for all subscribers to prevent N+1 queries
+    const subscriberIds = subscribers.map(s => s.user_id);
+    const { data: riskProfiles } = await supabase
+      .from('user_portfolio_risk')
+      .select('*')
+      .in('user_id', subscriberIds);
+      
+    const riskMap: Record<string, any> = {};
+    if (riskProfiles) {
+      riskProfiles.forEach(rp => { riskMap[rp.user_id] = rp; });
+    }
+
+    // 3. Prepare bulk execution array
+    const executionLogs: any[] = [];
+
+    // 4. Process each subscriber (Simulating simultaneous broker execution)
+    const promises = subscribers.map(async (sub) => {
+      const risk = riskMap[sub.user_id];
+      let tradeStatus = 'success';
+      let broker_order_id = `FAN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+
+      // --- RISK INTERCEPTOR: Max Daily Drawdown ---
+      if (risk) {
+        const totalPnl = Number(risk.today_unrealised_pnl) + Number(risk.today_realised_pnl);
+        if (totalPnl <= Number(risk.max_daily_drawdown_limit)) {
+          tradeStatus = 'rejected';
+          broker_order_id = 'RISK_GUARD_DRAWDOWN';
+          console.warn(`[RISK GUARD] Blocked trade for ${sub.user_id} due to Max Drawdown breach.`);
+        }
+      }
+
+      // Calculate specific quantity based on subscriber's multiplier
+      let multiplier = sub.allocation_multiplier || 1.0;
+      
+      // --- RISK INTERCEPTOR: Dynamic Position Sizing (Kelly Criterion) ---
+      if (risk && risk.position_sizing_model === 'kelly_criterion') {
+        // In a real app, calculate Kelly = W - [(1 - W) / R]. We simulate a dynamic aggressive size.
+        multiplier = multiplier * 1.5; 
+      }
+      
+      const finalQty = Math.max(1, Math.floor(base_qty * multiplier)); // Minimum 1 share
+
+      // If rejected by risk guards, skip the actual API call
+      if (tradeStatus === 'success') {
+        // In production, we would fetch broker API keys here and fire the actual HTTP request to Fyers/Zerodha
+        // const keys = await getBrokerKeys(sub.user_id);
+      }
+
+      // Build execution log record
+      executionLogs.push({
+        user_id: sub.user_id,
+        strategy_id,
+        symbol,
+        action,
+        quantity: finalQty,
+        price,
+        execution_type: 'live', // assuming live for copy trade
+        status: tradeStatus,
+        broker_order_id
+      });
+    });
+
+    // Execute all broker API calls simultaneously
+    await Promise.all(promises);
+
+    // 4. Bulk insert logs into execution_logs table so subscribers can see it on their dashboard
+    if (executionLogs.length > 0) {
+      const { error: logError } = await supabase
+        .from('execution_logs')
+        .insert(executionLogs);
+
+      if (logError) {
+        console.error('[FAN-OUT] Error writing execution logs:', logError);
+      }
+    }
+
+    return res.json({ 
+      success: true, 
+      message: 'Fan-out execution completed.', 
+      executions: executionLogs.length 
+    });
+
+  } catch (error: any) {
+    console.error('[FAN-OUT] Critical Error:', error);
+    return res.status(500).json({ success: false, error: 'Internal fan-out error' });
   }
 });
 
