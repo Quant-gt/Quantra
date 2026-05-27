@@ -3,11 +3,13 @@ import { createClient } from '@/lib/supabase/server';
 import { Redis } from '@upstash/redis';
 import crypto from 'crypto';
 
-// Initialize Redis for caching
-const redis = new Redis({
-  url: process.env.UPSTASH_REDIS_REST_URL || '',
-  token: process.env.UPSTASH_REDIS_REST_TOKEN || '',
-});
+// Initialize Redis for caching only if env vars are present
+const redisUrl = process.env.UPSTASH_REDIS_REST_URL;
+const redisToken = process.env.UPSTASH_REDIS_REST_TOKEN;
+const redis = redisUrl && redisToken ? new Redis({
+  url: redisUrl,
+  token: redisToken,
+}) : null;
 
 export async function POST(request: Request) {
   try {
@@ -21,7 +23,7 @@ export async function POST(request: Request) {
     const cacheKey = `magic_search:${queryHash}`;
 
     // 1. Check Cache
-    if (process.env.UPSTASH_REDIS_REST_URL) {
+    if (redis) {
       const cachedResults = await redis.get(cacheKey);
       if (cachedResults) {
         return NextResponse.json({ results: cachedResults, cached: true });
@@ -72,7 +74,7 @@ export async function POST(request: Request) {
     })) || [];
 
     // 5. Cache Results
-    if (process.env.UPSTASH_REDIS_REST_URL && enhancedResults.length > 0) {
+    if (redis && enhancedResults.length > 0) {
       await redis.set(cacheKey, enhancedResults, { ex: 300 }); // 5 min TTL
     }
 
