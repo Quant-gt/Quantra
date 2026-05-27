@@ -2,14 +2,15 @@ import VisualBuilder from "@/components/builder/VisualBuilder";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-export default async function BuilderPage({ params }: { params: { id: string } }) {
+export default async function BuilderPage() {
   const supabase = await createClient();
   
   // Verify strategy exists and user owns it
+  // Since this is the generic /builder route (not [id]), we just fetch a placeholder or skip it
   const { data: strategy, error } = await supabase
     .from("strategies")
     .select("*")
-    .eq("id", params.id)
+    .limit(1)
     .single();
 
   // If error or not found, we can still allow creating a new one or just return 404 for now
