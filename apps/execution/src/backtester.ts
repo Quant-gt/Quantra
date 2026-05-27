@@ -65,8 +65,8 @@ export async function runBacktest(req: BacktestRequest): Promise<BacktestResult>
   const closePrices = dates.map(d => parseFloat(timeSeries[d]['4. close']));
 
   for (let i = 20; i < dates.length; i++) {
-    const date = dates[i];
-    const price = closePrices[i];
+    const date = dates[i]!;
+    const price = closePrices[i]!;
     
     // Calculate SMAs
     const sma5 = closePrices.slice(i - 5, i).reduce((a, b) => a + b, 0) / 5;
@@ -112,7 +112,7 @@ export async function runBacktest(req: BacktestRequest): Promise<BacktestResult>
   const winRate = totalTrades > 0 ? (winningTrades / totalTrades) * 100 : 0;
   
   // Approximate Sharpe (Assume risk-free rate = 0, using simple return standard deviation)
-  const returns = equity_curve.map((v, i) => i > 0 ? (v.value - equity_curve[i-1].value) / equity_curve[i-1].value : 0).slice(1);
+  const returns = equity_curve.map((v, i) => i > 0 ? (v.value - equity_curve[i-1]!.value) / equity_curve[i-1]!.value : 0).slice(1);
   const avgReturn = returns.reduce((a, b) => a + b, 0) / (returns.length || 1);
   const stdDev = Math.sqrt(returns.reduce((sq, val) => sq + Math.pow(val - avgReturn, 2), 0) / (returns.length || 1));
   const sharpeRatio = stdDev === 0 ? 0 : (avgReturn / stdDev) * Math.sqrt(252); // Annualized

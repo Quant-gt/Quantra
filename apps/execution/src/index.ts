@@ -2,7 +2,7 @@ import express from 'express';
 import { Redis } from '@upstash/redis';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
-import { runBacktest } from './backtester.ts';
+import { runBacktest } from './backtester.js';
 
 const app = express();
 app.use(cors());
