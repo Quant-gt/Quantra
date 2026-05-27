@@ -1,4 +1,4 @@
-import BuilderCanvas from "@/components/builder/BuilderCanvas";
+import VisualBuilder from "@/components/builder/VisualBuilder";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 
@@ -38,7 +38,7 @@ export default async function BuilderPage({ params }: { params: { id: string } }
         </div>
       </div>
 
-      <BuilderCanvas />
+      <VisualBuilder />
     </div>
   );
 }
