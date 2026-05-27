@@ -2,14 +2,15 @@ import VisualBuilder from "@/components/builder/VisualBuilder";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 
-export default async function BuilderPage({ params }: { params: { id: string } }) {
+export default async function BuilderPage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = await createClient();
   
   // Verify strategy exists and user owns it
   const { data: strategy, error } = await supabase
     .from("strategies")
     .select("*")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   // If error or not found, we can still allow creating a new one or just return 404 for now
