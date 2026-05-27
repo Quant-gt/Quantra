@@ -2,7 +2,7 @@
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
-import { ArrowLeft, CheckCircle2, Link as LinkIcon, Settings, DollarSign, Activity } from "lucide-react";
+import { ArrowLeft, CheckCircle2, Link as LinkIcon, Settings, DollarSign, Activity, Shield } from "lucide-react";
 import Link from "next/link";
 
 export default function PublishStrategy() {

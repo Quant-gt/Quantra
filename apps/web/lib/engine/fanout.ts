@@ -5,7 +5,7 @@ import { executeUpstoxOrder } from './brokers/upstox';
 export const engineLogs: string[] = [];
 
 function log(msg: string) {
-  const timestamp = new Date().toISOString().split('T')[1].slice(0, -1); // HH:MM:SS.mmm
+  const timestamp = new Date().toISOString().split('T')[1]!.slice(0, -1); // HH:MM:SS.mmm
   engineLogs.unshift(`[${timestamp}] ${msg}`);
   if (engineLogs.length > 100) engineLogs.pop(); // Keep last 100 logs
   console.log(`[FANOUT] ${msg}`);

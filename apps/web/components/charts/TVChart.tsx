@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useRef } from 'react';
-import { createChart, ColorType, ISeriesApi, Time } from 'lightweight-charts';
+import { createChart, ColorType, ISeriesApi, Time, CandlestickSeries } from 'lightweight-charts';
 import { feed, Tick } from '@/lib/engine/feed';
 
 interface TVChartProps {
@@ -45,7 +45,7 @@ export default function TVChart({ symbol }: TVChartProps) {
     chartRef.current = chart;
 
     // 2. Create Candlestick Series
-    const candlestickSeries = chart.addCandlestickSeries({
+    const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: '#39D353',
       downColor: '#F85149',
       borderVisible: false,
@@ -88,12 +88,12 @@ export default function TVChart({ symbol }: TVChartProps) {
       if (tick.symbol !== symbol) return;
 
       const now = Math.floor(Date.now() / 1000);
-      const currentMinute = (now - (now % 60)) as Time;
+      const currentMinuteNum = now - (now % 60);
 
-      if (currentMinute > lastCandle.time) {
+      if (currentMinuteNum > (lastCandle.time as number)) {
         // Start a new candle for the new minute
         lastCandle = {
-          time: currentMinute,
+          time: currentMinuteNum as Time,
           open: tick.price,
           high: tick.price,
           low: tick.price,
@@ -102,12 +102,12 @@ export default function TVChart({ symbol }: TVChartProps) {
       } else {
         // Update existing candle with live price
         lastCandle.close = tick.price;
-        lastCandle.high = Math.max(lastCandle.high, tick.price);
-        lastCandle.low = Math.min(lastCandle.low, tick.price);
+        lastCandle.high = Math.max(lastCandle.high as number, tick.price);
+        lastCandle.low = Math.min(lastCandle.low as number, tick.price);
       }
 
       // Instruct TradingView chart to visually "tick" the last candle
-      candlestickSeries.update(lastCandle);
+      candlestickSeries.update(lastCandle as any);
     };
 
     const unsubscribe = feed.subscribe(handleTick);

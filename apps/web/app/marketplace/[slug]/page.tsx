@@ -8,7 +8,8 @@ import TVChart from "@/components/charts/TVChart";
 import { createClient } from "@/lib/supabase/client";
 import { Strategy } from "@/components/marketplace/StrategyCard";
 
-export default function StrategyDetailPage({ params }: { params: { slug: string } }) {
+export default function StrategyDetailPage({ params }: { params: Promise<{ slug: string }> }) {
+  const { slug } = React.use(params);
   const router = useRouter();
   const [isSubscribed, setIsSubscribed] = useState(false);
   const [showToast, setShowToast] = useState(false);
@@ -21,7 +22,7 @@ export default function StrategyDetailPage({ params }: { params: { slug: string 
       const { data: row } = await supabase
         .from('strategies')
         .select('*')
-        .eq('slug', params.slug)
+        .eq('slug', slug)
         .single();
 
       if (row) {
@@ -47,7 +48,7 @@ export default function StrategyDetailPage({ params }: { params: { slug: string 
       setLoading(false);
     }
     fetchStrategy();
-  }, [params.slug]);
+  }, [slug]);
 
   const handleSubscribe = () => {
     setIsSubscribed(true);

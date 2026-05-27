@@ -161,12 +161,12 @@ export default function ComplianceDashboard() {
                       </div>
                       
                       {verificationResults[req.id] ? (
-                        <div className={`text-xs p-2 rounded border ${verificationResults[req.id].is_match ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
+                        <div className={`text-xs p-2 rounded border ${verificationResults[req.id]!.is_match ? 'bg-green-500/10 border-green-500/30 text-green-400' : 'bg-red-500/10 border-red-500/30 text-red-400'}`}>
                           <div className="font-bold flex items-center gap-1">
-                            {verificationResults[req.id].is_match ? <Check size={12} /> : <X size={12} />}
-                            {verificationResults[req.id].is_match ? 'Name Matched' : 'Name Mismatch'}
+                            {verificationResults[req.id]!.is_match ? <Check size={12} /> : <X size={12} />}
+                            {verificationResults[req.id]!.is_match ? 'Name Matched' : 'Name Mismatch'}
                           </div>
-                          <div className="mt-1 text-gray-400">NSDL: {verificationResults[req.id].registered_name}</div>
+                          <div className="mt-1 text-gray-400">NSDL: {verificationResults[req.id]!.registered_name}</div>
                         </div>
                       ) : (
                         <div 

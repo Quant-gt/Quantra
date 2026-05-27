@@ -5,14 +5,15 @@ import { notFound } from "next/navigation";
 
 export const revalidate = 60;
 
-export default async function CreatorProfilePage({ params }: { params: { id: string } }) {
+export default async function CreatorProfilePage({ params }: { params: Promise<{ id: string }> }) {
+  const { id } = await params;
   const supabase = await createClient();
-  
+
   // Fetch creator info
   const { data: creator, error: creatorError } = await supabase
     .from("users")
     .select("id, full_name, ra_verified, ra_license_no, created_at")
-    .eq("id", params.id)
+    .eq("id", id)
     .single();
 
   if (creatorError || !creator) {

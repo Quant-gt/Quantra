@@ -39,7 +39,7 @@ export default function LiveTickerTape() {
           // Merge pending ticks into state
           const nextState = { ...prev };
           Object.keys(pendingTicks.current).forEach(sym => {
-            nextState[sym] = pendingTicks.current[sym];
+            nextState[sym] = pendingTicks.current[sym]!;
           });
           return nextState;
         });
