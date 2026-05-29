@@ -1,7 +1,7 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { BarChart2, TrendingUp, Calendar, Clock, Globe, Maximize2, Settings, Crosshair, ArrowUpRight, ArrowDownRight, Activity } from 'lucide-react';
+import { BarChart2, TrendingUp, Calendar, Clock, Globe, Maximize2, Settings, Crosshair, ArrowUpRight, ArrowDownRight, Activity, X, Plus } from 'lucide-react';
 import TVChart from '@/components/charts/TVChart';
 import { feed, Tick } from '@/lib/engine/feed';
 
@@ -10,17 +10,53 @@ export default function DashboardChartsPage() {
   const [activeSymbol, setActiveSymbol] = useState('RELIANCE');
   const [liveData, setLiveData] = useState<{ price: number, change: number, changePct: number }>({ price: 2951.71, change: -3.11, changePct: -0.11 });
   
-  const [watchlist, setWatchlist] = useState<Record<string, { price: number; change: string; positive: boolean }>>({
-    'NIFTY 50': { price: 23507.25, change: '+0.02%', positive: true },
-    'BANKNIFTY': { price: 48084.09, change: '-0.01%', positive: false },
-    'RELIANCE': { price: 2951.71, change: '-0.11%', positive: false },
-    'TCS': { price: 3924.43, change: '+0.01%', positive: true },
-    'INFY': { price: 1422.13, change: '-0.02%', positive: false },
-    'HDFC BANK': { price: 1517.53, change: '-0.01%', positive: false },
-    'ICICI BANK': { price: 1120.90, change: '+1.15%', positive: true },
-    'SBI': { price: 780.40, change: '-1.20%', positive: false },
-  });
+  const [watchlist, setWatchlist] = useState<Record<string, { price: number; change: string; positive: boolean }>>({});
+  const [isAddModalOpen, setIsAddModalOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
 
+  // 1. Initial watchlist load on mount
+  useEffect(() => {
+    const saved = typeof window !== 'undefined' ? localStorage.getItem('quantra_watchlist') : null;
+    let activeList = ['NIFTY 50', 'BANKNIFTY', 'RELIANCE', 'TCS', 'INFY', 'HDFC BANK', 'ICICI BANK', 'SBI'];
+    if (saved) {
+      try {
+        activeList = JSON.parse(saved);
+      } catch (err) {
+        console.error('Failed to parse watchlist from storage:', err);
+      }
+    }
+    
+    const initialWatchlist: Record<string, { price: number; change: string; positive: boolean }> = {};
+    const defaultPrices: Record<string, number> = {
+      'NIFTY 50': 23507.25,
+      'BANKNIFTY': 48084.09,
+      'RELIANCE': 2951.71,
+      'TCS': 3924.43,
+      'INFY': 1422.13,
+      'HDFC BANK': 1517.53,
+      'ICICI BANK': 1120.90,
+      'SBI': 780.40
+    };
+
+    activeList.forEach(sym => {
+      initialWatchlist[sym] = {
+        price: defaultPrices[sym] || 100.00,
+        change: '0.00%',
+        positive: true
+      };
+    });
+    setWatchlist(initialWatchlist);
+
+    // Register active list with client feed
+    feed.updateSymbols(activeList);
+    
+    // Set first item in active list as default active symbol if RELIANCE is deleted
+    if (activeList.length > 0 && !activeList.includes('RELIANCE')) {
+      setActiveSymbol(activeList[0]!);
+    }
+  }, []);
+
+  // 2. Listen to price feed ticks
   useEffect(() => {
     const handleTick = (tick: Tick) => {
       // Update watchlist item dynamically
@@ -43,7 +79,48 @@ export default function DashboardChartsPage() {
     };
     const unsubscribe = feed.subscribe(handleTick);
     return () => unsubscribe();
-  }, [activeSymbol]);
+  }, [activeSymbol, watchlist]);
+
+  const handleAddSymbol = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!searchQuery.trim()) return;
+    const cleanSym = searchQuery.trim().toUpperCase();
+    
+    if (watchlist[cleanSym]) {
+      alert(`${cleanSym} is already in your watchlist.`);
+      return;
+    }
+
+    const updatedList = [...Object.keys(watchlist), cleanSym];
+    localStorage.setItem('quantra_watchlist', JSON.stringify(updatedList));
+
+    setWatchlist(prev => ({
+      ...prev,
+      [cleanSym]: { price: 100.00, change: '0.00%', positive: true }
+    }));
+
+    feed.updateSymbols(updatedList);
+    setSearchQuery('');
+    setIsAddModalOpen(false);
+  };
+
+  const handleDeleteSymbol = (e: React.MouseEvent, symbolToDelete: string) => {
+    e.stopPropagation();
+    const updatedList = Object.keys(watchlist).filter(s => s !== symbolToDelete);
+    localStorage.setItem('quantra_watchlist', JSON.stringify(updatedList));
+
+    setWatchlist(prev => {
+      const next = { ...prev };
+      delete next[symbolToDelete];
+      return next;
+    });
+
+    feed.updateSymbols(updatedList);
+    
+    if (activeSymbol === symbolToDelete && updatedList.length > 0) {
+      setActiveSymbol(updatedList[0]!);
+    }
+  };
 
   return (
     <div className="p-4 md:p-8 bg-[#0D1117] min-h-full flex flex-col gap-6">
@@ -131,8 +208,11 @@ export default function DashboardChartsPage() {
               <Globe size={16} className="text-[#58A6FF]" />
               MARKET WATCH
             </h2>
-            <button className="text-[#58A6FF] hover:text-white transition-colors text-xs font-bold bg-[#388BFD]/10 px-2 py-1 rounded">
-              + ADD
+            <button 
+              onClick={() => setIsAddModalOpen(true)}
+              className="text-[#58A6FF] hover:text-white transition-colors text-xs font-bold bg-[#388BFD]/10 px-2 py-1 rounded flex items-center gap-1 cursor-pointer"
+            >
+              <Plus size={12} /> ADD
             </button>
           </div>
 
@@ -144,13 +224,26 @@ export default function DashboardChartsPage() {
                   onClick={() => setActiveSymbol(symbol)}
                   className={`flex justify-between items-center p-4 hover:bg-[#1C2128] transition-colors cursor-pointer group ${activeSymbol === symbol ? 'bg-[#1C2128]/50 border-l-4 border-l-[#388BFD]' : 'border-l-4 border-l-transparent'}`}
                 >
-                  <div>
-                    <div className="font-bold text-white group-hover:text-[#58A6FF] transition-colors tracking-tight">{symbol}</div>
+                  <div className="flex-1 min-w-0">
+                    <div className="flex items-center gap-2">
+                      <div className="font-bold text-white group-hover:text-[#58A6FF] transition-colors tracking-tight truncate">{symbol}</div>
+                      
+                      {/* Hide default index symbols from delete to protect layout */}
+                      {!['NIFTY 50', 'BANKNIFTY'].includes(symbol) && (
+                        <button
+                          onClick={(e) => handleDeleteSymbol(e, symbol)}
+                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all ml-auto shrink-0"
+                          title={`Remove ${symbol}`}
+                        >
+                          <X size={12} />
+                        </button>
+                      )}
+                    </div>
                     <div className="text-[10px] uppercase tracking-wider text-gray-500 mt-0.5 flex items-center gap-1">
                       <Activity size={10} /> Vol: {(Math.random() * 5 + 1).toFixed(1)}M
                     </div>
                   </div>
-                  <div className="text-right">
+                  <div className="text-right shrink-0 ml-4">
                     <div className="font-mono font-bold text-white">
                       {item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
                     </div>
@@ -165,6 +258,59 @@ export default function DashboardChartsPage() {
           </div>
         </div>
       </div>
+
+      {/* Add Stock Modal */}
+      {isAddModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-md rounded-2xl shadow-2xl overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-white text-lg flex items-center gap-2">
+                <Plus size={20} className="text-[#58A6FF]" />
+                Add NSE Stock
+              </h3>
+              <button 
+                onClick={() => setIsAddModalOpen(false)}
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                <X size={20} />
+              </button>
+            </div>
+            
+            <form onSubmit={handleAddSymbol} className="space-y-4">
+              <div className="space-y-2">
+                <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Stock Symbol / Ticker</label>
+                <input 
+                  type="text" 
+                  required
+                  value={searchQuery}
+                  onChange={(e) => setSearchQuery(e.target.value.toUpperCase())}
+                  placeholder="e.g. TATASTEEL, ITC, IRFC, ONGC" 
+                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl px-4 py-3 text-white focus:border-[#58A6FF] outline-none transition-colors font-mono" 
+                />
+                <p className="text-[10px] text-gray-500 leading-relaxed">
+                  Enter any stock ticker listed on the National Stock Exchange (NSE). The system will fetch real-time quotes dynamically.
+                </p>
+              </div>
+
+              <div className="flex gap-3 justify-end pt-4 border-t border-[#30363D]">
+                <button 
+                  type="button"
+                  onClick={() => setIsAddModalOpen(false)}
+                  className="px-4 py-2 border border-[#30363D] text-gray-400 hover:text-white rounded-lg text-sm font-medium transition-colors"
+                >
+                  Cancel
+                </button>
+                <button 
+                  type="submit"
+                  className="px-6 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg text-sm font-bold transition-all shadow-lg"
+                >
+                  Add Ticker
+                </button>
+              </div>
+            </form>
+          </div>
+        </div>
+      )}
     </div>
   );
 }

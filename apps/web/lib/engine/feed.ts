@@ -33,9 +33,28 @@ class MockWebSocketFeed {
     }
   }
 
+  updateSymbols(symbols: string[]) {
+    const newPrices: Record<string, number> = {};
+    const newPrevPrices: Record<string, number> = {};
+    
+    symbols.forEach(symbol => {
+      newPrices[symbol] = this.currentPrices[symbol] || 100.00;
+      newPrevPrices[symbol] = this.prevPrices[symbol] || 100.00;
+    });
+
+    this.currentPrices = newPrices;
+    this.prevPrices = newPrevPrices;
+    
+    // Immediate sync for newly added symbols
+    this.syncLivePrices();
+  }
+
   private async syncLivePrices() {
     try {
-      const res = await fetch('/api/v1/engine/live-prices');
+      const symbolsList = Object.keys(this.currentPrices).join(',');
+      if (!symbolsList) return;
+
+      const res = await fetch(`/api/v1/engine/live-prices?symbols=${encodeURIComponent(symbolsList)}`);
       const data = await res.json();
       if (data.success && data.prices) {
         Object.entries(data.prices).forEach(([symbol, info]: any) => {
