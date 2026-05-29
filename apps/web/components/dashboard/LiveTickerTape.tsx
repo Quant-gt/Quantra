@@ -4,7 +4,7 @@ import { useEffect, useState, useRef } from 'react';
 import { feed, Tick } from '@/lib/engine/feed';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 
-const INITIAL_SYMBOLS = ['NIFTY 50', 'BANKNIFTY', 'RELIANCE', 'HDFCBANK', 'TCS', 'INFY'];
+const INITIAL_SYMBOLS = ['NIFTY 50', 'BANKNIFTY', 'RELIANCE', 'HDFC BANK', 'TCS', 'INFY'];
 
 export default function LiveTickerTape() {
   const [ticks, setTicks] = useState<Record<string, Tick>>({});

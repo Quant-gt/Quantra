@@ -13,15 +13,39 @@ class MockWebSocketFeed {
   private subscribers: Set<Subscriber> = new Set();
   private interval: NodeJS.Timeout | null = null;
   private currentPrices: Record<string, number> = {
-    'NIFTY 50': 22500.0,
-    'BANKNIFTY': 48000.0,
-    'RELIANCE': 2950.0,
-    'HDFCBANK': 1520.0,
-    'TCS': 3950.0,
-    'INFY': 1420.0
+    'NIFTY 50': 23507.25,
+    'BANKNIFTY': 48084.09,
+    'RELIANCE': 2951.71,
+    'HDFC BANK': 1517.53,
+    'TCS': 3924.43,
+    'INFY': 1422.13,
+    'ICICI BANK': 1120.90,
+    'SBI': 780.40
   };
 
   private prevPrices: Record<string, number> = { ...this.currentPrices };
+
+  constructor() {
+    this.syncLivePrices();
+    if (typeof window !== 'undefined') {
+      // Sync with real quotes from Yahoo Finance every 15 seconds
+      setInterval(() => this.syncLivePrices(), 15000);
+    }
+  }
+
+  private async syncLivePrices() {
+    try {
+      const res = await fetch('/api/v1/engine/live-prices');
+      const data = await res.json();
+      if (data.success && data.prices) {
+        Object.entries(data.prices).forEach(([symbol, info]: any) => {
+          this.currentPrices[symbol] = info.price;
+        });
+      }
+    } catch (err) {
+      console.error('Failed to sync live prices:', err);
+    }
+  }
 
   subscribe(callback: Subscriber) {
     this.subscribers.add(callback);

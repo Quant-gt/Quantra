@@ -8,11 +8,35 @@ import { feed, Tick } from '@/lib/engine/feed';
 export default function DashboardChartsPage() {
   const [activeTab, setActiveTab] = useState('1D');
   const [activeSymbol, setActiveSymbol] = useState('RELIANCE');
-  const [liveData, setLiveData] = useState<{ price: number, change: number, changePct: number }>({ price: 2575.00, change: 35.00, changePct: 1.38 });
+  const [liveData, setLiveData] = useState<{ price: number, change: number, changePct: number }>({ price: 2951.71, change: -3.11, changePct: -0.11 });
+  
+  const [watchlist, setWatchlist] = useState<Record<string, { price: number; change: string; positive: boolean }>>({
+    'NIFTY 50': { price: 23507.25, change: '+0.02%', positive: true },
+    'BANKNIFTY': { price: 48084.09, change: '-0.01%', positive: false },
+    'RELIANCE': { price: 2951.71, change: '-0.11%', positive: false },
+    'TCS': { price: 3924.43, change: '+0.01%', positive: true },
+    'INFY': { price: 1422.13, change: '-0.02%', positive: false },
+    'HDFC BANK': { price: 1517.53, change: '-0.01%', positive: false },
+    'ICICI BANK': { price: 1120.90, change: '+1.15%', positive: true },
+    'SBI': { price: 780.40, change: '-1.20%', positive: false },
+  });
 
-  // Subscribe to feed for just the header numbers
   useEffect(() => {
     const handleTick = (tick: Tick) => {
+      // Update watchlist item dynamically
+      setWatchlist(prev => {
+        if (!prev[tick.symbol]) return prev;
+        return {
+          ...prev,
+          [tick.symbol]: {
+            price: tick.price,
+            change: `${tick.change >= 0 ? '+' : ''}${tick.changePct}%`,
+            positive: tick.change >= 0
+          }
+        };
+      });
+
+      // Update main chart header
       if (tick.symbol === activeSymbol) {
         setLiveData({ price: tick.price, change: tick.change, changePct: tick.changePct });
       }
@@ -114,29 +138,22 @@ export default function DashboardChartsPage() {
 
           <div className="flex-1 overflow-y-auto">
             <div className="divide-y divide-[#30363D]/50">
-              {[
-                { symbol: "NIFTY 50", price: "22,453.80", change: "+0.45%", positive: true },
-                { symbol: "BANKNIFTY", price: "48,210.50", change: "-0.20%", positive: false },
-                { symbol: "RELIANCE", price: "2,575.00", change: "+1.38%", positive: true },
-                { symbol: "TCS", price: "3,210.45", change: "-0.50%", positive: false },
-                { symbol: "INFY", price: "1,420.30", change: "+2.10%", positive: true },
-                { symbol: "HDFC BANK", price: "1,530.20", change: "+0.80%", positive: true },
-                { symbol: "ICICI BANK", price: "1,120.90", change: "+1.15%", positive: true },
-                { symbol: "SBI", price: "780.40", change: "-1.20%", positive: false },
-              ].map((item, i) => (
+              {Object.entries(watchlist).map(([symbol, item]) => (
                 <div 
-                  key={item.symbol} 
-                  onClick={() => setActiveSymbol(item.symbol)}
-                  className={`flex justify-between items-center p-4 hover:bg-[#1C2128] transition-colors cursor-pointer group ${activeSymbol === item.symbol ? 'bg-[#1C2128]/50 border-l-4 border-l-[#388BFD]' : 'border-l-4 border-l-transparent'}`}
+                  key={symbol} 
+                  onClick={() => setActiveSymbol(symbol)}
+                  className={`flex justify-between items-center p-4 hover:bg-[#1C2128] transition-colors cursor-pointer group ${activeSymbol === symbol ? 'bg-[#1C2128]/50 border-l-4 border-l-[#388BFD]' : 'border-l-4 border-l-transparent'}`}
                 >
                   <div>
-                    <div className="font-bold text-white group-hover:text-[#58A6FF] transition-colors tracking-tight">{item.symbol}</div>
+                    <div className="font-bold text-white group-hover:text-[#58A6FF] transition-colors tracking-tight">{symbol}</div>
                     <div className="text-[10px] uppercase tracking-wider text-gray-500 mt-0.5 flex items-center gap-1">
                       <Activity size={10} /> Vol: {(Math.random() * 5 + 1).toFixed(1)}M
                     </div>
                   </div>
                   <div className="text-right">
-                    <div className="font-mono font-bold text-white">{item.price}</div>
+                    <div className="font-mono font-bold text-white">
+                      {item.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
+                    </div>
                     <div className={`text-xs font-mono font-bold flex items-center justify-end gap-1 ${item.positive ? 'text-[#39D353]' : 'text-[#F85149]'}`}>
                       {item.positive ? <ArrowUpRight size={12} /> : <ArrowDownRight size={12} />}
                       {item.change}
