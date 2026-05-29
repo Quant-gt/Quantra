@@ -2,13 +2,13 @@
   "name": "quantra",
   "private": true,
   "scripts": {
-    "build": "npx turbo run build",
-    "start": "npx turbo run start --filter=web",
-    "dev": "npx turbo run dev",
-    "lint": "npx turbo run lint",
+    "build": "turbo run build",
+    "start": "turbo run start --filter=web",
+    "dev": "turbo run dev",
+    "lint": "turbo run lint",
     "format": "prettier --write \"**/*.{ts,tsx,md}\"",
-    "check-types": "npx turbo run check-types",
-    "test": "npx turbo run test"
+    "check-types": "turbo run check-types",
+    "test": "turbo run test"
   },
   "devDependencies": {
     "prettier": "^3.7.4",
