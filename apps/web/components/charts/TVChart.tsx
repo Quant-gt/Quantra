@@ -60,7 +60,7 @@ export default function TVChart({ symbol }: TVChartProps) {
     // Round to nearest minute
     currentTime = currentTime - (currentTime % 60);
 
-    let currentPrice = symbol === 'RELIANCE' ? 2500 : 22500;
+    let currentPrice = feed.getCurrentPrice(symbol);
     
     for (let i = 0; i < 100; i++) {
       const volatility = currentPrice * 0.002;

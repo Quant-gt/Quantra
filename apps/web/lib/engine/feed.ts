@@ -26,11 +26,15 @@ class MockWebSocketFeed {
   private prevPrices: Record<string, number> = { ...this.currentPrices };
 
   constructor() {
-    this.syncLivePrices();
     if (typeof window !== 'undefined') {
+      this.syncLivePrices();
       // Sync with real quotes from Yahoo Finance every 15 seconds
       setInterval(() => this.syncLivePrices(), 15000);
     }
+  }
+
+  getCurrentPrice(symbol: string): number {
+    return this.currentPrices[symbol] || 100.00;
   }
 
   updateSymbols(symbols: string[]) {
@@ -50,6 +54,7 @@ class MockWebSocketFeed {
   }
 
   private async syncLivePrices() {
+    if (typeof window === 'undefined') return;
     try {
       const symbolsList = Object.keys(this.currentPrices).join(',');
       if (!symbolsList) return;
