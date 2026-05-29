@@ -15,16 +15,23 @@ export default function CreatorOnboarding() {
     setErrorMessage('');
 
     try {
-      // In a real app, you would fetch the token here
-      const token = 'mock-auth-token'; 
-      const userId = 'mock-user-id';
+      const { createClient } = await import('@/lib/supabase/client');
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      
+      if (!session) {
+        throw new Error('You must be logged in to onboard as a creator.');
+      }
+
+      const token = session.access_token; 
+      const userId = session.user.id;
 
       const response = await fetch('/api/v1/creator/onboard', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
-          'x-user-id': userId // Normally set by the gateway, but mocking for demo
+          'x-user-id': userId
         },
         body: JSON.stringify({
           pan_number: panNumber,

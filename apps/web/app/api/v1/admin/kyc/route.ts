@@ -9,11 +9,10 @@ export async function GET() {
       .from('user_kyc')
       .select(`
         user_id,
-        pan_number,
         is_ria,
         sebi_registration_number,
         kyc_status,
-        users:user_id (full_name, email)
+        users:user_id (full_name, email, pan_number)
       `)
       .eq('kyc_status', 'pending');
 
@@ -24,7 +23,7 @@ export async function GET() {
       id: row.user_id,
       user_name: row.users?.full_name || 'Unknown User',
       email: row.users?.email || 'No email provided',
-      pan_number: row.pan_number,
+      pan_number: row.users?.pan_number || 'N/A',
       is_ria: row.is_ria,
       sebi_registration_number: row.sebi_registration_number,
       status: row.kyc_status,
