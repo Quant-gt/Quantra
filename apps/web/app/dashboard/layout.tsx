@@ -1,7 +1,7 @@
 "use client";
 
-import React from 'react';
 import Link from 'next/link';
+import { usePathname } from 'next/navigation';
 import { 
   LayoutDashboard, 
   Search, 
@@ -22,6 +22,17 @@ export default function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
+  const pathname = usePathname();
+
+  const getLinkClass = (href: string) => {
+    const isActive = pathname === href;
+    return `flex items-center gap-3 px-6 py-3 transition-colors ${
+      isActive 
+        ? 'bg-[#1F2937] text-[#58A6FF] font-medium border-l-4 border-[#388BFD]' 
+        : 'text-gray-400 hover:bg-[#1F2937] hover:text-white border-l-4 border-transparent'
+    }`;
+  };
+
   return (
     <div className="flex h-screen bg-[#0D1117] text-white overflow-hidden font-sans">
       
@@ -43,47 +54,47 @@ export default function DashboardLayout({
           {/* Navigation */}
           <nav className="mt-6 flex-1 overflow-y-auto">
             <div className="px-6 text-xs font-semibold text-gray-500 mb-2">MAIN MENU</div>
-            <Link href="/dashboard" className="flex items-center gap-3 px-6 py-3 bg-[#1F2937] text-[#58A6FF] font-medium border-l-4 border-[#388BFD]">
+            <Link href="/dashboard" className={getLinkClass('/dashboard')}>
               <LayoutDashboard size={18} />
               Dashboard
             </Link>
-            <Link href="/dashboard/scanner" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            <Link href="/dashboard/scanner" className={getLinkClass('/dashboard/scanner')}>
               <Search size={18} />
               Stock Scanner
             </Link>
-            <Link href="/dashboard/builder" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            <Link href="/dashboard/builder" className={getLinkClass('/dashboard/builder')}>
               <SlidersHorizontal size={18} />
               Strategy Builder
             </Link>
-            <Link href="/dashboard/charts" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            <Link href="/dashboard/charts" className={getLinkClass('/dashboard/charts')}>
               <BarChart2 size={18} />
               Live Charts
             </Link>
-            <Link href="/dashboard/autotrade" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            <Link href="/dashboard/autotrade" className={getLinkClass('/dashboard/autotrade')}>
               <Zap size={18} />
               Auto Trade
             </Link>
-            <Link href="/dashboard/backtesting" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            <Link href="/dashboard/backtesting" className={getLinkClass('/dashboard/backtesting')}>
               <History size={18} />
               Backtesting
             </Link>
-            <Link href="/dashboard/scans" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            <Link href="/dashboard/scans" className={getLinkClass('/dashboard/scans')}>
               <SlidersHorizontal size={18} />
               Custom Scans
             </Link>
             
             <div className="mt-8 px-6 text-xs font-semibold text-gray-500 mb-2">SYSTEM</div>
-            <Link href="/dashboard/settings" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            <Link href="/dashboard/settings" className={getLinkClass('/dashboard/settings')}>
               <Settings size={18} />
               Settings
             </Link>
           
             <div className="mt-8 px-6 text-xs font-semibold text-gray-500 mb-2">COMMUNITY</div>
-            <Link href="/dashboard/feed" className="flex items-center gap-3 px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors">
+            <Link href="/dashboard/feed" className={getLinkClass('/dashboard/feed')}>
               <Globe size={18} />
               Social Feed
             </Link>
-            <Link href="/creator" className="flex items-center justify-between px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors group">
+            <Link href="/creator" className="flex items-center justify-between px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors group border-l-4 border-transparent">
               <div className="flex items-center gap-3">
                 <Activity size={18} />
                 Creator Studio
