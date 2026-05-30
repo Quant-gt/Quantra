@@ -24,6 +24,33 @@ export default function BrokerConnectionModal({ isOpen, onClose, onSuccess }: Br
   const [selectedBroker, setSelectedBroker] = useState<typeof BROKERS[0] | null>(null);
   const [appId, setAppId] = useState('');
 
+  const getFieldLabels = () => {
+    if (selectedBroker?.id === 'fyers') {
+      return {
+        idLabel: 'Fyers Client ID (User ID)',
+        idPlaceholder: 'e.g. FAJ23271 (Found in top-right of Fyers Dashboard)',
+        keyLabel: 'App ID',
+        keyPlaceholder: 'e.g. LJQBMJDTMW-100 (Found in Fyers API Dashboard)',
+        keyType: 'text',
+        secretLabel: 'Secret ID',
+        secretPlaceholder: 'e.g. FMM52ODHNU (Found in Fyers API Dashboard)',
+        secretType: 'password'
+      };
+    }
+    return {
+      idLabel: 'App ID / Client ID',
+      idPlaceholder: 'e.g. ZER123456',
+      keyLabel: 'API Key',
+      keyPlaceholder: '••••••••••••••••',
+      keyType: 'password',
+      secretLabel: 'API Secret',
+      secretPlaceholder: '••••••••••••••••••••••••••••••••',
+      secretType: 'password'
+    };
+  };
+
+  const labels = getFieldLabels();
+
   if (!isOpen) return null;
 
   const handleSelectBroker = (broker: typeof BROKERS[0]) => {
@@ -135,31 +162,31 @@ export default function BrokerConnectionModal({ isOpen, onClose, onSuccess }: Br
 
                 <form onSubmit={handleSubmit} className="space-y-4">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">App ID / Client ID</label>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">{labels.idLabel}</label>
                     <input 
                       required
                       type="text" 
                       value={appId}
                       onChange={(e) => setAppId(e.target.value)}
-                      placeholder="e.g. ZER123456"
+                      placeholder={labels.idPlaceholder}
                       className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-3 text-white focus:border-[#58A6FF] outline-none transition-colors" 
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">API Key</label>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">{labels.keyLabel}</label>
                     <input 
                       required
-                      type="password" 
-                      placeholder="••••••••••••••••"
+                      type={labels.keyType}
+                      placeholder={labels.keyPlaceholder}
                       className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-3 text-white focus:border-[#58A6FF] outline-none transition-colors" 
                     />
                   </div>
                   <div className="space-y-2">
-                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">API Secret</label>
+                    <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">{labels.secretLabel}</label>
                     <input 
                       required
-                      type="password" 
-                      placeholder="••••••••••••••••••••••••••••••••"
+                      type={labels.secretType}
+                      placeholder={labels.secretPlaceholder}
                       className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-3 text-white focus:border-[#58A6FF] outline-none transition-colors" 
                     />
                   </div>
