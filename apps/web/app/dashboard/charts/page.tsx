@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { BarChart2, TrendingUp, Calendar, Clock, Globe, Maximize2, Settings, Crosshair, ArrowUpRight, ArrowDownRight, Activity, X, Plus, Loader2 } from 'lucide-react';
 import dynamic from 'next/dynamic';
 import { feed, Tick } from '@/lib/engine/feed';
+import StockSearch from '@/components/charts/StockSearch';
 
 const TVChart = dynamic(() => import('@/components/charts/TVChart'), { 
   ssr: false,
@@ -142,7 +143,22 @@ export default function DashboardChartsPage() {
           </p>
         </div>
 
-        <div className="flex gap-2">
+        <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto items-end">
+          <StockSearch 
+            onSelect={(symbol) => {
+              if (!watchlist[symbol]) {
+                const updatedList = [...Object.keys(watchlist), symbol];
+                localStorage.setItem('quantra_watchlist', JSON.stringify(updatedList));
+                setWatchlist(prev => ({
+                  ...prev,
+                  [symbol]: { price: 100.00, change: '0.00%', positive: true }
+                }));
+                feed.updateSymbols(updatedList);
+              }
+              setActiveSymbol(symbol);
+            }}
+          />
+          <div className="flex gap-2">
           <div className="bg-[#161B22] border border-[#30363D] rounded-lg p-1 flex gap-1">
             {['1M', '5M', '15M', '1H', '1D', '1W'].map(tab => (
               <button 
