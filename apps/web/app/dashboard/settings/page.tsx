@@ -80,7 +80,7 @@ export default function SettingsPage() {
         {/* Content Area */}
         <div className="flex-1 bg-[#161B22] border border-[#30363D] rounded-xl shadow-xl overflow-hidden min-h-[500px]">
           {activeTab === 'api' && (
-            <div className="flex flex-col h-full">
+            <div className="flex flex-col">
               <div className="p-6 border-b border-[#30363D] bg-[#0D1117]/50 flex justify-between items-center">
                 <div>
                   <h2 className="text-xl font-bold text-white tracking-tight">Broker API Connections</h2>

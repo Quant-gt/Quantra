@@ -43,7 +43,7 @@ export default function DashboardLayout({
   };
 
   return (
-    <div className="flex h-screen bg-[#0D1117] text-white overflow-hidden font-sans">
+    <div className="flex h-[100dvh] bg-[#0D1117] text-white overflow-hidden font-sans">
       
       {/* Mobile Drawer Overlay */}
       {isMobileMenuOpen && (

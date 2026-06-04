@@ -13,7 +13,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
     setIsMobileMenuOpen(false);
   }, [pathname]);
   return (
-    <div className="flex h-screen bg-[#0B0F19] text-white font-sans overflow-hidden">
+    <div className="flex h-[100dvh] bg-[#0B0F19] text-white font-sans overflow-hidden">
       
       {/* Mobile Drawer Overlay */}
       {isMobileMenuOpen && (
