@@ -13,8 +13,11 @@ import {
   Settings,
   Globe,
   Activity,
-  ArrowUpRight
+  ArrowUpRight,
+  Menu,
+  X
 } from 'lucide-react';
+import { useState, useEffect } from 'react';
 import LiveTickerTape from '@/components/dashboard/LiveTickerTape';
 
 export default function DashboardLayout({
@@ -23,6 +26,12 @@ export default function DashboardLayout({
   children: React.ReactNode;
 }) {
   const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  // Close mobile menu on route change
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
 
   const getLinkClass = (href: string) => {
     const isActive = pathname === href;
@@ -36,8 +45,16 @@ export default function DashboardLayout({
   return (
     <div className="flex h-screen bg-[#0D1117] text-white overflow-hidden font-sans">
       
+      {/* Mobile Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <div className="w-64 bg-[#161B22] border-r border-[#30363D] flex flex-col justify-between flex-shrink-0">
+      <div className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#161B22] border-r border-[#30363D] flex flex-col justify-between transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div>
           {/* Logo */}
           <div className="p-6 border-b border-[#30363D] flex items-center gap-3">
@@ -121,12 +138,32 @@ export default function DashboardLayout({
       </div>
 
       {/* Main Content */}
-      <div className="flex-1 flex flex-col overflow-hidden">
+      <div className="flex-1 flex flex-col overflow-hidden w-full">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between p-4 bg-[#161B22] border-b border-[#30363D]">
+          <div className="flex items-center gap-2">
+            <div className="w-8 h-8 bg-white flex items-center justify-center rounded-lg shadow-sm">
+              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                <polyline points="2 17 12 22 22 17" />
+                <polyline points="2 12 12 17 22 12" />
+              </svg>
+            </div>
+            <span className="text-xl font-bold text-white tracking-tight">Quantra</span>
+          </div>
+          <button 
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="text-gray-400 hover:text-white"
+          >
+            <Menu size={24} />
+          </button>
+        </div>
+
         {/* Top Ticker Bar */}
         <LiveTickerTape />
 
         {/* Content Area */}
-        <div className="flex-1 overflow-auto p-6 bg-[#0D1117]">
+        <div className="flex-1 overflow-auto p-4 md:p-6 bg-[#0D1117]">
           {children}
         </div>
       </div>

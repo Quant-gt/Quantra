@@ -143,7 +143,7 @@ export default function AICreatorPage() {
             </div>
 
             {/* Metrics */}
-            <div className="grid grid-cols-4 divide-x divide-[#30363D] border-b border-[#30363D] bg-[#161B22]/50">
+            <div className="grid grid-cols-2 md:grid-cols-4 divide-y md:divide-y-0 divide-x-0 md:divide-x divide-[#30363D] border-b border-[#30363D] bg-[#161B22]/50">
               <div className="p-6 text-center">
                 <p className="text-xs text-gray-500 mb-1 font-semibold uppercase tracking-wider">Win Rate</p>
                 <p className="text-2xl font-black text-[#39D353] flex items-center justify-center gap-1">
@@ -165,7 +165,7 @@ export default function AICreatorPage() {
             </div>
 
             {/* Logic Breakdown */}
-            <div className="p-6 grid grid-cols-2 gap-6 bg-[#0D1117]">
+            <div className="p-4 md:p-6 grid grid-cols-1 md:grid-cols-2 gap-6 bg-[#0D1117]">
               <div>
                 <h3 className="text-[#58A6FF] font-bold mb-4 flex items-center gap-2"><Zap size={18}/> Entry Rules</h3>
                 <ul className="space-y-3">
@@ -202,7 +202,7 @@ export default function AICreatorPage() {
             </div>
             
             {/* Action Bar */}
-            <div className="p-6 bg-[#161B22] border-t border-[#30363D] flex justify-between items-center">
+            <div className="p-4 md:p-6 bg-[#161B22] border-t border-[#30363D] flex flex-col md:flex-row justify-between items-center gap-4">
               <div className="flex items-center gap-2 text-sm text-gray-400">
                 <Brain size={16} className="text-gray-500"/>
                 Indicators used: {strategy.logic?.indicators?.join(', ')}

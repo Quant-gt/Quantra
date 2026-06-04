@@ -1,12 +1,30 @@
-import React from 'react';
+"use client";
+
+import React, { useState, useEffect } from 'react';
 import Link from 'next/link';
-import { Shield, Users, Database, Settings } from 'lucide-react';
+import { usePathname } from 'next/navigation';
+import { Shield, Users, Database, Settings, Menu, X } from 'lucide-react';
 
 export default function AdminLayout({ children }: { children: React.ReactNode }) {
+  const pathname = usePathname();
+  const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+
+  useEffect(() => {
+    setIsMobileMenuOpen(false);
+  }, [pathname]);
   return (
-    <div className="flex h-screen bg-[#0B0F19] text-white font-sans">
+    <div className="flex h-screen bg-[#0B0F19] text-white font-sans overflow-hidden">
+      
+      {/* Mobile Drawer Overlay */}
+      {isMobileMenuOpen && (
+        <div 
+          className="fixed inset-0 bg-black/60 z-40 md:hidden"
+          onClick={() => setIsMobileMenuOpen(false)}
+        />
+      )}
+
       {/* Sidebar */}
-      <aside className="w-64 bg-[#0D1117] border-r border-[#30363D] flex flex-col">
+      <aside className={`fixed inset-y-0 left-0 z-50 w-64 bg-[#0D1117] border-r border-[#30363D] flex flex-col transform transition-transform duration-300 ease-in-out md:relative md:translate-x-0 ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}`}>
         <div className="p-6 border-b border-[#30363D]">
           <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 flex items-center gap-2">
             <Shield size={24} className="text-red-500" />
@@ -52,8 +70,24 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
       </aside>
 
       {/* Main Content */}
-      <main className="flex-1 flex flex-col overflow-y-auto bg-[#0B0F19]">
-        {children}
+      <main className="flex-1 flex flex-col overflow-y-auto bg-[#0B0F19] w-full">
+        {/* Mobile Header */}
+        <div className="md:hidden flex items-center justify-between p-4 bg-[#0D1117] border-b border-[#30363D]">
+          <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 flex items-center gap-2">
+            <Shield size={24} className="text-red-500" />
+            Quantra Admin
+          </h1>
+          <button 
+            onClick={() => setIsMobileMenuOpen(true)}
+            className="text-gray-400 hover:text-white"
+          >
+            <Menu size={24} />
+          </button>
+        </div>
+
+        <div className="flex-1 overflow-auto p-4 md:p-6">
+          {children}
+        </div>
       </main>
     </div>
   );
