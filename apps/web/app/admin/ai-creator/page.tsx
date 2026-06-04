@@ -60,7 +60,7 @@ export default function AICreatorPage() {
           metrics: {
             cagr: strategy.expected_cagr,
             max_drawdown: strategy.expected_max_drawdown,
-            sharpe_ratio: (strategy.expected_cagr / strategy.expected_max_drawdown).toFixed(2),
+            sharpe_ratio: Number((strategy.expected_cagr / strategy.expected_max_drawdown).toFixed(2)),
             win_rate: strategy.expected_win_rate,
             subscriber_count: 0
           },

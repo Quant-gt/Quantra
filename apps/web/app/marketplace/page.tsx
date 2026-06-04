@@ -27,11 +27,11 @@ export default async function MarketplacePage({
     min_capital: row.min_capital || 100000,
     fee: row.fee || 0,
     profit_share: row.profit_share || 0,
-    cagr: row.logic_graph?.metrics?.cagr || 0,
-    max_drawdown: row.logic_graph?.metrics?.max_drawdown || 0,
-    sharpe_ratio: row.logic_graph?.metrics?.sharpe_ratio || 0,
-    win_rate: row.logic_graph?.metrics?.win_rate || 0,
-    subscriber_count: row.logic_graph?.metrics?.subscriber_count || 0,
+    cagr: Number(row.logic_graph?.metrics?.cagr) || 0,
+    max_drawdown: Number(row.logic_graph?.metrics?.max_drawdown) || 0,
+    sharpe_ratio: Number(row.logic_graph?.metrics?.sharpe_ratio) || 0,
+    win_rate: Number(row.logic_graph?.metrics?.win_rate) || 0,
+    subscriber_count: Number(row.logic_graph?.metrics?.subscriber_count) || 0,
   }));
 
   // Apply basic mock filters
