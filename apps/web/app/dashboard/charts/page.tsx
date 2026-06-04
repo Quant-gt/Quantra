@@ -1,9 +1,14 @@
 "use client";
 
 import React, { useState, useEffect } from 'react';
-import { BarChart2, TrendingUp, Calendar, Clock, Globe, Maximize2, Settings, Crosshair, ArrowUpRight, ArrowDownRight, Activity, X, Plus } from 'lucide-react';
-import TVChart from '@/components/charts/TVChart';
+import { BarChart2, TrendingUp, Calendar, Clock, Globe, Maximize2, Settings, Crosshair, ArrowUpRight, ArrowDownRight, Activity, X, Plus, Loader2 } from 'lucide-react';
+import dynamic from 'next/dynamic';
 import { feed, Tick } from '@/lib/engine/feed';
+
+const TVChart = dynamic(() => import('@/components/charts/TVChart'), { 
+  ssr: false,
+  loading: () => <div className="w-full h-full flex items-center justify-center bg-[#0B0F19]"><Loader2 className="animate-spin text-[#388BFD]" size={32} /></div>
+});
 
 export default function DashboardChartsPage() {
   const [activeTab, setActiveTab] = useState('1D');
