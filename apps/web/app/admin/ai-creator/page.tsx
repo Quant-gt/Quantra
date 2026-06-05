@@ -1,4 +1,4 @@
-"use client";
+"use client";`nimport { toast } from "sonner";
 
 import React, { useState } from 'react';
 import { Sparkles, Loader2, ArrowRight, Brain, Zap, Target, ShieldCheck } from 'lucide-react';
@@ -30,10 +30,10 @@ export default function AICreatorPage() {
       if (data.success) {
         setStrategy(data.data);
       } else {
-        alert("Error: " + data.error);
+        toast.error("Error: " + data.error);
       }
     } catch (err) {
-      alert("Network error while communicating with AI.");
+      toast.error("Network error while communicating with AI.");
     } finally {
       setLoading(false);
     }
@@ -72,12 +72,12 @@ export default function AICreatorPage() {
       
       if (error) {
         console.error(error);
-        alert("Failed to publish to database. Check console for details.");
+        toast.error("Failed to publish to database. Check console for details.");
       } else {
         setPublishSuccess(true);
       }
     } catch (err) {
-      alert("Error publishing strategy.");
+      toast.error("Error publishing strategy.");
     } finally {
       setPublishing(false);
     }
@@ -233,3 +233,4 @@ export default function AICreatorPage() {
     </div>
   );
 }
+

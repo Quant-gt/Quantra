@@ -1,4 +1,4 @@
-"use client";
+"use client";`nimport { toast } from "sonner";
 
 import { useState, useEffect } from "react";
 import { AlertTriangle, Power, PowerOff, RefreshCw } from "lucide-react";
@@ -20,13 +20,13 @@ export default function DeploymentsPage() {
       dep.id === id ? { ...dep, status: 'killed', today_pnl: dep.today_pnl + dep.unrealised_pnl, unrealised_pnl: 0 } : dep
     ));
     
-    alert(`Strategy ${id} killed and positions squared off.`);
+    toast.info(`Strategy ${id} killed and positions squared off.`);
   };
 
   const handleMasterKill = async () => {
     const passphrase = prompt("To confirm Master Kill, type 'KILL ALL':");
     if (passphrase !== 'KILL ALL') {
-      alert("Passphrase incorrect. Master Kill aborted.");
+      toast.info("Passphrase incorrect. Master Kill aborted.");
       return;
     }
 
@@ -41,7 +41,7 @@ export default function DeploymentsPage() {
         unrealised_pnl: 0
       })));
       setMasterKillActive(false);
-      alert("MASTER KILL COMPLETE. All strategies stopped and positions squared off.");
+      toast.success("MASTER KILL COMPLETE. All strategies stopped and positions squared off.");
     }, 2000);
   };
 
@@ -185,3 +185,4 @@ export default function DeploymentsPage() {
     </div>
   );
 }
+

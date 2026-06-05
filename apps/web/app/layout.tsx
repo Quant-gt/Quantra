@@ -1,12 +1,13 @@
 import type { Metadata } from "next";
 import { Inter } from "next/font/google";
 import "./globals.css";
+import { Toaster } from "sonner";
 
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Quantra Pro",
-  description: "Infrastructure for Systematic Trading",
+  title: "Quantra | Algorithmic Trading Platform",
+  description: "Deploy automated trading strategies directly to your broker",
 };
 
 export default function RootLayout({
@@ -16,8 +17,9 @@ export default function RootLayout({
 }>) {
   return (
     <html lang="en" suppressHydrationWarning>
-      <body className={inter.className}>
+      <body className={`${inter.className} bg-[#0D1117] text-white`}>
         {children}
+        <Toaster theme="dark" position="bottom-right" richColors />
       </body>
     </html>
   );

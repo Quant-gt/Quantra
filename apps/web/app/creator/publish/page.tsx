@@ -1,4 +1,4 @@
-"use client";
+"use client";`nimport { toast } from "sonner";
 
 import { useState } from "react";
 import { useRouter } from "next/navigation";
@@ -30,13 +30,13 @@ export default function PublishStrategy() {
       const data = await res.json();
       
       if (data.success) {
-        alert("Strategy published successfully!");
+        toast.success("Strategy published successfully!");
         router.push('/creator');
       } else {
-        alert("Failed to publish: " + data.error);
+        toast.error("Failed to publish: " + data.error);
       }
     } catch (err) {
-      alert("Network error");
+      toast.error("Network error");
     } finally {
       setLoading(false);
     }
@@ -252,3 +252,4 @@ export default function PublishStrategy() {
     </div>
   );
 }
+

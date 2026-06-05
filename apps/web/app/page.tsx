@@ -236,19 +236,20 @@ export default function Home() {
           <div>
             <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-4">Developers</h4>
             <div className="flex flex-col gap-2.5">
-              <a href="#" className="hover:text-white transition-colors">API Docs</a>
-              <a href="#" className="hover:text-white transition-colors">System Status</a>
-              <a href="#" className="hover:text-white transition-colors">Github Repo</a>
-              <a href="#" className="hover:text-white transition-colors">SDK Libraries</a>
+              <a href="/docs" className="hover:text-white transition-colors">API Docs</a>
+              <a href="/status" className="hover:text-white transition-colors">System Status</a>
+              <a href="/github" className="hover:text-white transition-colors">Github Repo</a>
+              <a href="/docs" className="hover:text-white transition-colors">SDK Libraries</a>
             </div>
           </div>
           <div>
             <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-4">Compliance</h4>
-            <div className="flex flex-col gap-2.5">
-              <a href="#" className="hover:text-white transition-colors">Risk Disclosure</a>
-              <a href="#" className="hover:text-white transition-colors">SEBI Regulations</a>
-              <a href="#" className="hover:text-white transition-colors">Terms of Service</a>
-              <a href="#" className="hover:text-white transition-colors">Privacy Policy</a>
+            <div className="flex flex-col gap-3 text-sm text-gray-500">
+              <h4 className="font-bold text-white mb-2">Legal</h4>
+              <a href="/risk-disclosure" className="hover:text-white transition-colors">Risk Disclosure</a>
+              <a href="/sebi" className="hover:text-white transition-colors">SEBI Regulations</a>
+              <a href="/terms" className="hover:text-white transition-colors">Terms of Service</a>
+              <a href="/privacy" className="hover:text-white transition-colors">Privacy Policy</a>
             </div>
           </div>
           <div>

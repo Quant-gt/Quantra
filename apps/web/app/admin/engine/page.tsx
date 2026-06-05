@@ -1,4 +1,4 @@
-"use client";
+"use client";`nimport { toast } from "sonner";
 
 import React, { useState, useEffect } from 'react';
 import { Terminal, Play, Server, Activity } from 'lucide-react';
@@ -34,7 +34,7 @@ export default function EngineTerminal() {
         })
       });
     } catch (err) {
-      alert("Failed to send test signal");
+      toast.error("Failed to send test signal");
     } finally {
       setLoading(false);
     }
@@ -97,3 +97,4 @@ export default function EngineTerminal() {
     </div>
   );
 }
+

@@ -26,6 +26,7 @@
     "react-ts-tradingview-widgets": "^1.2.8",
     "reactflow": "^11.11.4",
     "recharts": "^3.8.1",
+    "sonner": "^2.0.7",
     "technicalindicators": "^3.1.0",
     "zxcvbn": "^4.4.2"
   },

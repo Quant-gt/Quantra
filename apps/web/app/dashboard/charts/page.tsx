@@ -5,6 +5,7 @@ import { BarChart2, TrendingUp, Calendar, Clock, Globe, Maximize2, Settings, Cro
 import dynamic from 'next/dynamic';
 import { feed, Tick } from '@/lib/engine/feed';
 import StockSearch from '@/components/charts/StockSearch';
+import { toast } from 'sonner';
 
 const TVChart = dynamic(() => import('@/components/charts/TVChart'), { 
   ssr: false,
@@ -20,52 +21,51 @@ export default function DashboardChartsPage() {
   const [isAddModalOpen, setIsAddModalOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
 
-  // 1. Initial watchlist load on mount
+  // 1. Initial watchlist load on mount from API
   useEffect(() => {
-    const saved = typeof window !== 'undefined' ? localStorage.getItem('quantra_watchlist') : null;
-    let activeList = ['NIFTY 50', 'BANKNIFTY', 'RELIANCE', 'TCS', 'INFY', 'HDFC BANK', 'ICICI BANK', 'SBI'];
-    if (saved) {
+    const fetchWatchlist = async () => {
       try {
-        activeList = JSON.parse(saved);
+        const res = await fetch('/api/v1/watchlist');
+        if (res.ok) {
+          const data = await res.json();
+          let activeList = data.watchlist && data.watchlist.length > 0 
+            ? data.watchlist 
+            : ['NIFTY 50', 'BANKNIFTY', 'RELIANCE', 'TCS', 'INFY'];
+
+          const initialWatchlist: Record<string, { price: number; change: string; positive: boolean }> = {};
+          const defaultPrices: Record<string, number> = {
+            'NIFTY 50': 23507.25,
+            'BANKNIFTY': 48084.09,
+            'RELIANCE': 2951.71,
+            'TCS': 3924.43,
+            'INFY': 1422.13,
+          };
+
+          activeList.forEach((sym: string) => {
+            initialWatchlist[sym] = {
+              price: defaultPrices[sym] || 100.00,
+              change: '0.00%',
+              positive: true
+            };
+          });
+          
+          setWatchlist(initialWatchlist);
+          feed.updateSymbols(activeList);
+          
+          if (activeList.length > 0 && !activeList.includes('RELIANCE')) {
+            setActiveSymbol(activeList[0]!);
+          }
+        }
       } catch (err) {
-        console.error('Failed to parse watchlist from storage:', err);
+        toast.error("Failed to fetch watchlist from server");
       }
-    }
-    
-    const initialWatchlist: Record<string, { price: number; change: string; positive: boolean }> = {};
-    const defaultPrices: Record<string, number> = {
-      'NIFTY 50': 23507.25,
-      'BANKNIFTY': 48084.09,
-      'RELIANCE': 2951.71,
-      'TCS': 3924.43,
-      'INFY': 1422.13,
-      'HDFC BANK': 1517.53,
-      'ICICI BANK': 1120.90,
-      'SBI': 780.40
     };
-
-    activeList.forEach(sym => {
-      initialWatchlist[sym] = {
-        price: defaultPrices[sym] || 100.00,
-        change: '0.00%',
-        positive: true
-      };
-    });
-    setWatchlist(initialWatchlist);
-
-    // Register active list with client feed
-    feed.updateSymbols(activeList);
-    
-    // Set first item in active list as default active symbol if RELIANCE is deleted
-    if (activeList.length > 0 && !activeList.includes('RELIANCE')) {
-      setActiveSymbol(activeList[0]!);
-    }
+    fetchWatchlist();
   }, []);
 
   // 2. Listen to price feed ticks
   useEffect(() => {
     const handleTick = (tick: Tick) => {
-      // Update watchlist item dynamically
       setWatchlist(prev => {
         if (!prev[tick.symbol]) return prev;
         return {
@@ -78,7 +78,6 @@ export default function DashboardChartsPage() {
         };
       });
 
-      // Update main chart header
       if (tick.symbol === activeSymbol) {
         setLiveData({ price: tick.price, change: tick.change, changePct: tick.changePct });
       }
@@ -87,45 +86,95 @@ export default function DashboardChartsPage() {
     return () => unsubscribe();
   }, [activeSymbol, watchlist]);
 
-  const handleAddSymbol = (e: React.FormEvent) => {
+  const handleAddSymbol = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!searchQuery.trim()) return;
     const cleanSym = searchQuery.trim().toUpperCase();
     
     if (watchlist[cleanSym]) {
-      alert(`${cleanSym} is already in your watchlist.`);
+      toast.info(`${cleanSym} is already in your watchlist.`);
       return;
     }
 
-    const updatedList = [...Object.keys(watchlist), cleanSym];
-    localStorage.setItem('quantra_watchlist', JSON.stringify(updatedList));
+    try {
+      const res = await fetch('/api/v1/watchlist', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbol: cleanSym })
+      });
+      
+      if (res.ok) {
+        toast.success(`Added ${cleanSym} to watchlist`);
+        const updatedList = [...Object.keys(watchlist), cleanSym];
+        
+        setWatchlist(prev => ({
+          ...prev,
+          [cleanSym]: { price: 100.00, change: '0.00%', positive: true }
+        }));
 
-    setWatchlist(prev => ({
-      ...prev,
-      [cleanSym]: { price: 100.00, change: '0.00%', positive: true }
-    }));
-
-    feed.updateSymbols(updatedList);
-    setSearchQuery('');
-    setIsAddModalOpen(false);
+        feed.updateSymbols(updatedList);
+        setSearchQuery('');
+        setIsAddModalOpen(false);
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      toast.error("Failed to add to watchlist");
+    }
   };
 
-  const handleDeleteSymbol = (e: React.MouseEvent, symbolToDelete: string) => {
+  const handleDeleteSymbol = async (e: React.MouseEvent, symbolToDelete: string) => {
     e.stopPropagation();
-    const updatedList = Object.keys(watchlist).filter(s => s !== symbolToDelete);
-    localStorage.setItem('quantra_watchlist', JSON.stringify(updatedList));
-
-    setWatchlist(prev => {
-      const next = { ...prev };
-      delete next[symbolToDelete];
-      return next;
-    });
-
-    feed.updateSymbols(updatedList);
     
-    if (activeSymbol === symbolToDelete && updatedList.length > 0) {
-      setActiveSymbol(updatedList[0]!);
+    try {
+      const res = await fetch(`/api/v1/watchlist?symbol=${symbolToDelete}`, { method: 'DELETE' });
+      if (res.ok) {
+        toast.success(`Removed ${symbolToDelete} from watchlist`);
+        const updatedList = Object.keys(watchlist).filter(s => s !== symbolToDelete);
+
+        setWatchlist(prev => {
+          const next = { ...prev };
+          delete next[symbolToDelete];
+          return next;
+        });
+
+        feed.updateSymbols(updatedList);
+        
+        if (activeSymbol === symbolToDelete && updatedList.length > 0) {
+          setActiveSymbol(updatedList[0]!);
+        }
+      } else {
+        throw new Error();
+      }
+    } catch (err) {
+      toast.error("Failed to remove from watchlist");
     }
+  };
+
+  // Called when the StockSearch component is used to search and directly select a stock
+  const handleStockSearchSelect = async (symbol: string) => {
+    if (!watchlist[symbol]) {
+      try {
+        const res = await fetch('/api/v1/watchlist', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbol })
+        });
+        
+        if (res.ok) {
+          toast.success(`Added ${symbol} to watchlist`);
+          const updatedList = [...Object.keys(watchlist), symbol];
+          setWatchlist(prev => ({
+            ...prev,
+            [symbol]: { price: 100.00, change: '0.00%', positive: true }
+          }));
+          feed.updateSymbols(updatedList);
+        }
+      } catch (err) {
+        toast.error("Failed to auto-add searched stock to watchlist");
+      }
+    }
+    setActiveSymbol(symbol);
   };
 
   return (
@@ -144,22 +193,9 @@ export default function DashboardChartsPage() {
             </p>
           </div>
           
-          {/* New Search Bar Location */}
+          {/* Search Bar Location */}
           <div className="w-full max-w-md">
-            <StockSearch 
-              onSelect={(symbol) => {
-                if (!watchlist[symbol]) {
-                  const updatedList = [...Object.keys(watchlist), symbol];
-                  localStorage.setItem('quantra_watchlist', JSON.stringify(updatedList));
-                  setWatchlist(prev => ({
-                    ...prev,
-                    [symbol]: { price: 100.00, change: '0.00%', positive: true }
-                  }));
-                  feed.updateSymbols(updatedList);
-                }
-                setActiveSymbol(symbol);
-              }}
-            />
+            <StockSearch onSelect={handleStockSearchSelect} />
           </div>
         </div>
 

@@ -1,4 +1,4 @@
-"use client";
+"use client";`nimport { toast } from "sonner";
 
 import { useState } from "react";
 import { CreditCard, CheckCircle, XCircle, RefreshCw } from "lucide-react";
@@ -28,10 +28,10 @@ export default function SubscriptionsPage() {
           sub.id === id ? { ...sub, status: 'cancelled_pending' } : sub
         ));
       } else {
-        alert("Failed to cancel subscription");
+        toast.error("Failed to cancel subscription");
       }
     } catch (err) {
-      alert("Network error");
+      toast.error("Network error");
     } finally {
       setLoadingId(null);
     }
@@ -116,3 +116,4 @@ export default function SubscriptionsPage() {
     </div>
   );
 }
+
