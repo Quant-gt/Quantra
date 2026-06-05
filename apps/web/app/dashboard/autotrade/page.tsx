@@ -1,9 +1,11 @@
 "use client";
 
-import React from 'react';
+import React, { useState } from 'react';
 import { Zap, Play, Pause, Trash2, Plus, Activity, AlertCircle, ShieldCheck, Cpu, ArrowUpRight, ArrowDownRight, Terminal, Clock } from 'lucide-react';
 
 export default function DashboardAutoTradePage() {
+  const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
+
   const bots = [
     { id: 1, name: "NIFTY_MOMENTUM_ALPHA", strategy: "Momentum Breakout", status: "ACTIVE", pnl: "+₹ 12,450.00", roi: "+5.2%", active: true, uptime: "14h 23m", latency: "12ms", target: "NSE:NIFTY50" },
     { id: 2, name: "BNF_SCALPER_HFT", strategy: "Orderbook Scalping", status: "PAUSED", pnl: "-₹ 2,100.00", roi: "-1.1%", active: false, uptime: "--", latency: "--", target: "NSE:BANKNIFTY" },
@@ -33,7 +35,10 @@ export default function DashboardAutoTradePage() {
               <span className="text-xs font-mono text-gray-400">SEBI OPS: 2.4/10</span>
             </div>
           </div>
-          <button className="bg-[#238636] hover:bg-[#2ea043] text-white font-bold py-2 px-6 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg">
+          <button 
+            onClick={() => setIsDeployModalOpen(true)}
+            className="bg-[#238636] hover:bg-[#2ea043] text-white font-bold py-2 px-6 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg"
+          >
             <Plus size={16} strokeWidth={3} />
             DEPLOY NEW ALGO
           </button>
@@ -140,7 +145,10 @@ export default function DashboardAutoTradePage() {
         ))}
         
         {/* Add New Bot Card */}
-        <div className="border-2 border-dashed border-[#30363D] hover:border-[#58A6FF] bg-[#161B22]/30 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all group min-h-[250px]">
+        <div 
+          onClick={() => setIsDeployModalOpen(true)}
+          className="border-2 border-dashed border-[#30363D] hover:border-[#58A6FF] bg-[#161B22]/30 rounded-xl p-6 flex flex-col items-center justify-center text-center cursor-pointer transition-all group min-h-[250px]"
+        >
           <div className="w-12 h-12 rounded-full bg-[#21262D] group-hover:bg-[#388BFD]/20 flex items-center justify-center mb-4 transition-colors">
             <Plus size={24} className="text-gray-400 group-hover:text-[#58A6FF] transition-colors" />
           </div>
@@ -148,6 +156,66 @@ export default function DashboardAutoTradePage() {
           <p className="text-sm text-gray-500 max-w-[200px]">Launch a new strategy from the builder or your template library.</p>
         </div>
       </div>
+
+      {/* Deploy Modal */}
+      {isDeployModalOpen && (
+        <div className="fixed inset-0 bg-black/60 backdrop-blur-sm z-50 flex items-center justify-center p-4">
+          <div className="bg-[#161B22] border border-[#30363D] w-full max-w-lg rounded-2xl shadow-2xl overflow-hidden p-6 animate-in fade-in zoom-in-95 duration-200">
+            <div className="flex justify-between items-center mb-6">
+              <h3 className="font-bold text-white text-xl flex items-center gap-2">
+                <Terminal size={24} className="text-[#58A6FF]" />
+                Deploy New Algorithm
+              </h3>
+              <button 
+                onClick={() => setIsDeployModalOpen(false)}
+                className="text-gray-500 hover:text-white transition-colors"
+              >
+                <AlertCircle size={20} className="opacity-0" /> {/* Spacer */}
+                <div className="absolute top-6 right-6 cursor-pointer" onClick={() => setIsDeployModalOpen(false)}>
+                  <div className="w-6 h-6 flex items-center justify-center rounded-full bg-[#30363D] hover:bg-[#F85149] text-white">✕</div>
+                </div>
+              </button>
+            </div>
+            
+            <div className="space-y-4">
+              <p className="text-sm text-gray-400 mb-6">Select a strategy from your library to deploy to the live execution engine.</p>
+              
+              <div className="space-y-3">
+                {/* Mock Strategy Selection */}
+                {['Mean Reversion V2', 'Trend Follower PRO', 'Arbitrage Scanner'].map((strat, i) => (
+                  <div key={i} className="flex justify-between items-center p-4 border border-[#30363D] rounded-xl hover:border-[#58A6FF]/50 bg-[#0D1117] transition-all cursor-pointer group">
+                    <div>
+                      <div className="font-bold text-white group-hover:text-[#58A6FF] transition-colors">{strat}</div>
+                      <div className="text-xs text-gray-500 mt-1">Status: Ready • Backtested</div>
+                    </div>
+                    <button 
+                      onClick={() => {
+                        alert(`Deployed ${strat} successfully! (Mock)`);
+                        setIsDeployModalOpen(false);
+                      }}
+                      className="px-4 py-1.5 bg-[#238636] hover:bg-[#2ea043] text-white rounded text-xs font-bold transition-colors"
+                    >
+                      Deploy
+                    </button>
+                  </div>
+                ))}
+              </div>
+            </div>
+
+            <div className="mt-8 pt-4 border-t border-[#30363D] flex justify-between items-center">
+              <div className="text-xs text-gray-500 flex items-center gap-1">
+                <ShieldCheck size={14} className="text-[#39D353]" /> Risk limits enforced
+              </div>
+              <button 
+                onClick={() => setIsDeployModalOpen(false)}
+                className="px-4 py-2 text-gray-400 hover:text-white transition-colors text-sm font-bold"
+              >
+                Close
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
     </div>
   );
 }
