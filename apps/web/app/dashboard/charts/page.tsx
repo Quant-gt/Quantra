@@ -188,6 +188,7 @@ export default function DashboardChartsPage() {
           </button>
         </div>
       </div>
+      </div>
 
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main Chart Area */}
