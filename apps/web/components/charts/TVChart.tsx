@@ -1,71 +1,58 @@
 "use client";
 
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useRef, memo } from 'react';
 
-declare global {
-  interface Window {
-    TradingView: any;
-  }
-}
-
-interface TVChartProps {
-  symbol: string;
-}
-
-export default function TVChart({ symbol }: TVChartProps) {
-  const containerId = 'tv_chart_container';
-  const isScriptLoaded = useRef(false);
+function TVChart({ symbol }: { symbol: string }) {
+  const container = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    const initWidget = () => {
-      if (typeof window.TradingView !== 'undefined') {
-        new window.TradingView.widget({
-          autosize: true,
-          symbol: `BSE:${symbol}`, // Typically Indian stocks use BSE/NSE prefixes on TradingView
-          interval: "D",
-          timezone: "Asia/Kolkata",
-          theme: "dark",
-          style: "1",
-          locale: "en",
-          enable_publishing: false,
-          backgroundColor: "#0D1117",
-          gridColor: "#30363D",
-          hide_top_toolbar: false,
-          hide_legend: false,
-          save_image: false,
-          container_id: containerId,
-          toolbar_bg: "#161B22",
-          studies: [], // Load without initial studies to keep it clean, user can add them
-          disabled_features: [
-            "header_symbol_search", // We have our own symbol search
-          ]
-        });
+    if (!container.current) return;
+    
+    // Clear container to prevent duplicate widgets on re-renders
+    container.current.innerHTML = '';
+    
+    const script = document.createElement("script");
+    script.src = "https://s.tradingview.com/external-embedding/embed-widget-advanced-chart.js";
+    script.type = "text/javascript";
+    script.async = true;
+    
+    // Append the ".NS" or "BSE:" prefix conditionally depending on whether it has it already
+    const tvSymbol = symbol.includes(":") || symbol.includes(".") ? symbol : `BSE:${symbol}`;
+
+    script.innerHTML = `
+      {
+        "autosize": true,
+        "symbol": "${tvSymbol}",
+        "interval": "D",
+        "timezone": "Asia/Kolkata",
+        "theme": "dark",
+        "style": "1",
+        "locale": "en",
+        "enable_publishing": false,
+        "backgroundColor": "#0D1117",
+        "gridColor": "#30363D",
+        "hide_top_toolbar": false,
+        "hide_legend": false,
+        "save_image": false,
+        "allow_symbol_change": true,
+        "calendar": false,
+        "support_host": "https://www.tradingview.com"
+      }`;
+      
+    container.current.appendChild(script);
+    
+    return () => {
+      if (container.current) {
+        container.current.innerHTML = '';
       }
     };
-
-    if (!isScriptLoaded.current) {
-      const script = document.createElement('script');
-      script.src = 'https://s.tradingview.com/tv.js';
-      script.async = true;
-      script.onload = () => {
-        isScriptLoaded.current = true;
-        initWidget();
-      };
-      document.head.appendChild(script);
-      
-      return () => {
-        if (script.parentNode) {
-          script.parentNode.removeChild(script);
-        }
-      };
-    } else {
-      initWidget();
-    }
   }, [symbol]);
 
   return (
-    <div className="w-full h-full relative" id={containerId}>
-      {/* Container for the TradingView Widget */}
+    <div className="w-full h-full min-h-[400px] relative" ref={container}>
+      <div className="tradingview-widget-container__widget w-full h-full"></div>
     </div>
   );
 }
+
+export default memo(TVChart);

@@ -9,7 +9,15 @@ export interface StockInfo {
   keywords: string[];
 }
 
-// A curated list of popular NSE stocks to power the search
+interface DynamicSearchResult {
+  symbol: string;
+  exchangeSymbol: string;
+  name: string;
+  exchange: string;
+  type: string;
+}
+
+// A curated list of popular NSE stocks to power the default/fallback search
 const NSE_STOCKS: StockInfo[] = [
   { symbol: 'RELIANCE', name: 'Reliance Industries Limited', keywords: ['oil', 'gas', 'telecom', 'jio', 'retail'] },
   { symbol: 'TCS', name: 'Tata Consultancy Services Limited', keywords: ['it', 'software', 'technology', 'tata'] },
@@ -31,7 +39,7 @@ const NSE_STOCKS: StockInfo[] = [
   { symbol: 'TITAN', name: 'Titan Company Limited', keywords: ['jewelry', 'watches', 'tata'] },
   { symbol: 'ASIANPAINT', name: 'Asian Paints Limited', keywords: ['paints', 'chemicals', 'home'] },
   { symbol: 'NTPC', name: 'NTPC Limited', keywords: ['power', 'energy', 'psu'] },
-  { symbol: 'TATOMOTORS', name: 'Tata Motors Limited', keywords: ['auto', 'cars', 'ev', 'tata'] },
+  { symbol: 'TATAMOTORS', name: 'Tata Motors Limited', keywords: ['auto', 'cars', 'ev', 'tata'] },
   { symbol: 'ONGC', name: 'Oil & Natural Gas Corporation', keywords: ['oil', 'gas', 'psu'] },
   { symbol: 'WIPRO', name: 'Wipro Limited', keywords: ['it', 'software', 'technology'] },
   { symbol: 'M&M', name: 'Mahindra & Mahindra Limited', keywords: ['auto', 'tractors', 'ev'] },
@@ -51,9 +59,11 @@ interface StockSearchProps {
 
 export default function StockSearch({ onSelect }: StockSearchProps) {
   const [query, setQuery] = useState('');
-  const [results, setResults] = useState<StockInfo[]>([]);
+  const [results, setResults] = useState<any[]>([]);
   const [isOpen, setIsOpen] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
   const wrapperRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
 
   useEffect(() => {
     // Click outside to close dropdown
@@ -66,6 +76,57 @@ export default function StockSearch({ onSelect }: StockSearchProps) {
     return () => document.removeEventListener("mousedown", handleClickOutside);
   }, [wrapperRef]);
 
+  const searchAPI = async (searchQuery: string) => {
+    if (!searchQuery.trim()) {
+      setResults([]);
+      setIsOpen(false);
+      return;
+    }
+
+    setIsLoading(true);
+    try {
+      const res = await fetch(`/api/v1/search?q=${encodeURIComponent(searchQuery)}`);
+      const data = await res.json();
+      
+      let fetchedResults = [];
+      if (data.results && data.results.length > 0) {
+        fetchedResults = data.results.map((r: DynamicSearchResult) => ({
+          symbol: r.symbol,
+          name: r.name,
+          keywords: [r.exchange, r.type].filter(Boolean),
+          isDynamic: true
+        }));
+      }
+
+      // Merge with hardcoded logic for immediate/local matching
+      const searchLower = searchQuery.toLowerCase();
+      const localMatches = NSE_STOCKS.filter(stock => {
+        const matchSymbol = stock.symbol.toLowerCase().includes(searchLower);
+        const matchName = stock.name.toLowerCase().includes(searchLower);
+        const matchKeyword = stock.keywords.some(k => k.toLowerCase().includes(searchLower));
+        return matchSymbol || matchName || matchKeyword;
+      });
+
+      // Combine local matches + API matches, prioritizing local ones, ensuring no duplicates by symbol
+      const combined = [...localMatches];
+      const existingSymbols = new Set(combined.map(s => s.symbol));
+      
+      for (const fr of fetchedResults) {
+        if (!existingSymbols.has(fr.symbol)) {
+          combined.push(fr);
+          existingSymbols.add(fr.symbol);
+        }
+      }
+
+      setResults(combined.slice(0, 10)); // Top 10 results
+      setIsOpen(true);
+    } catch (err) {
+      console.error("Search API failed", err);
+    } finally {
+      setIsLoading(false);
+    }
+  };
+
   const handleSearch = (e: React.ChangeEvent<HTMLInputElement>) => {
     const val = e.target.value;
     setQuery(val);
@@ -76,20 +137,26 @@ export default function StockSearch({ onSelect }: StockSearchProps) {
       return;
     }
 
+    // Fast local filter while waiting for API
     const searchLower = val.toLowerCase();
-    
-    const filtered = NSE_STOCKS.filter(stock => {
+    const localMatches = NSE_STOCKS.filter(stock => {
       const matchSymbol = stock.symbol.toLowerCase().includes(searchLower);
       const matchName = stock.name.toLowerCase().includes(searchLower);
       const matchKeyword = stock.keywords.some(k => k.toLowerCase().includes(searchLower));
       return matchSymbol || matchName || matchKeyword;
     });
-
-    setResults(filtered.slice(0, 10)); // Limit to top 10 results
+    setResults(localMatches.slice(0, 10));
     setIsOpen(true);
+
+    // Debounce the network request
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      searchAPI(val);
+    }, 400); // 400ms debounce
   };
 
   const handleSelect = (symbol: string) => {
+    // Standardize symbol format if needed
     onSelect(symbol);
     setQuery('');
     setIsOpen(false);
@@ -105,10 +172,13 @@ export default function StockSearch({ onSelect }: StockSearchProps) {
           onFocus={() => {
             if (query.trim() !== '') setIsOpen(true);
           }}
-          placeholder="Search stocks by name, symbol, or keyword..."
-          className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl pl-10 pr-4 py-2.5 text-white focus:border-[#58A6FF] outline-none transition-colors text-sm shadow-inner"
+          placeholder="Search any stock by name, symbol..."
+          className="w-full bg-[#0D1117] border border-[#30363D] rounded-xl pl-10 pr-10 py-2.5 text-white focus:border-[#58A6FF] outline-none transition-colors text-sm shadow-inner"
         />
         <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 text-gray-500" size={16} />
+        {isLoading && (
+          <Loader2 className="absolute right-3 top-1/2 transform -translate-y-1/2 text-[#58A6FF] animate-spin" size={16} />
+        )}
       </div>
 
       {/* Dropdown Results */}
@@ -128,7 +198,7 @@ export default function StockSearch({ onSelect }: StockSearchProps) {
                   </div>
                   <div className="text-xs text-gray-400 truncate">{stock.name}</div>
                   <div className="flex gap-1.5 flex-wrap mt-1">
-                    {stock.keywords.map(kw => (
+                    {stock.keywords.map((kw: string) => (
                       <span key={kw} className="text-[9px] text-[#388BFD] bg-[#388BFD]/10 px-1.5 py-0.5 rounded uppercase tracking-wider">
                         {kw}
                       </span>
@@ -139,7 +209,7 @@ export default function StockSearch({ onSelect }: StockSearchProps) {
             </ul>
           ) : (
             <div className="p-4 text-center text-sm text-gray-500">
-              No exact matches found. You can still hit "Add" to fetch it dynamically.
+              {isLoading ? "Searching global markets..." : "No matches found."}
             </div>
           )}
         </div>
