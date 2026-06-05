@@ -131,33 +131,39 @@ export default function DashboardChartsPage() {
   return (
     <div className="p-4 md:p-8 bg-[#0D1117] min-h-full flex flex-col gap-6">
       <div className="flex flex-col md:flex-row justify-between items-end gap-4">
-        <div>
-          <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
-            <div className="p-2 bg-[#58A6FF]/10 rounded-lg border border-[#58A6FF]/20">
-              <BarChart2 className="text-[#58A6FF]" size={28} />
-            </div>
-            Terminal Charts
-          </h1>
-          <p className="text-gray-400 text-sm mt-2 max-w-xl leading-relaxed">
-            Ultra-low latency price action visualization with integrated volume profiles and algorithmic overlay indicators.
-          </p>
+        <div className="flex flex-col gap-4">
+          <div>
+            <h1 className="text-3xl font-bold text-white flex items-center gap-3 tracking-tight">
+              <div className="p-2 bg-[#58A6FF]/10 rounded-lg border border-[#58A6FF]/20">
+                <BarChart2 className="text-[#58A6FF]" size={28} />
+              </div>
+              Terminal Charts
+            </h1>
+            <p className="text-gray-400 text-sm mt-2 max-w-xl leading-relaxed">
+              Ultra-low latency price action visualization with integrated volume profiles and algorithmic overlay indicators.
+            </p>
+          </div>
+          
+          {/* New Search Bar Location */}
+          <div className="w-full max-w-md">
+            <StockSearch 
+              onSelect={(symbol) => {
+                if (!watchlist[symbol]) {
+                  const updatedList = [...Object.keys(watchlist), symbol];
+                  localStorage.setItem('quantra_watchlist', JSON.stringify(updatedList));
+                  setWatchlist(prev => ({
+                    ...prev,
+                    [symbol]: { price: 100.00, change: '0.00%', positive: true }
+                  }));
+                  feed.updateSymbols(updatedList);
+                }
+                setActiveSymbol(symbol);
+              }}
+            />
+          </div>
         </div>
 
         <div className="flex flex-col md:flex-row gap-4 w-full lg:w-auto items-end">
-          <StockSearch 
-            onSelect={(symbol) => {
-              if (!watchlist[symbol]) {
-                const updatedList = [...Object.keys(watchlist), symbol];
-                localStorage.setItem('quantra_watchlist', JSON.stringify(updatedList));
-                setWatchlist(prev => ({
-                  ...prev,
-                  [symbol]: { price: 100.00, change: '0.00%', positive: true }
-                }));
-                feed.updateSymbols(updatedList);
-              }
-              setActiveSymbol(symbol);
-            }}
-          />
           <div className="flex gap-2">
           <div className="bg-[#161B22] border border-[#30363D] rounded-lg p-1 flex gap-1">
             {['1M', '5M', '15M', '1H', '1D', '1W'].map(tab => (
@@ -253,7 +259,7 @@ export default function DashboardChartsPage() {
                       {!['NIFTY 50', 'BANKNIFTY'].includes(symbol) && (
                         <button
                           onClick={(e) => handleDeleteSymbol(e, symbol)}
-                          className="opacity-0 group-hover:opacity-100 p-1 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all ml-auto shrink-0"
+                          className="opacity-50 hover:opacity-100 p-1 text-gray-500 hover:text-red-400 hover:bg-red-500/10 rounded transition-all ml-auto shrink-0 md:opacity-0 md:group-hover:opacity-100"
                           title={`Remove ${symbol}`}
                         >
                           <X size={12} />

@@ -1,130 +1,71 @@
 "use client";
 
-import { useEffect, useRef } from 'react';
-import { createChart, ColorType, ISeriesApi, Time, CandlestickSeries } from 'lightweight-charts';
-import { feed, Tick } from '@/lib/engine/feed';
+import React, { useEffect, useRef } from 'react';
+
+declare global {
+  interface Window {
+    TradingView: any;
+  }
+}
 
 interface TVChartProps {
   symbol: string;
 }
 
 export default function TVChart({ symbol }: TVChartProps) {
-  const chartContainerRef = useRef<HTMLDivElement>(null);
-  const chartRef = useRef<any>(null);
-  const candlestickSeriesRef = useRef<ISeriesApi<"Candlestick"> | null>(null);
+  const containerId = 'tv_chart_container';
+  const isScriptLoaded = useRef(false);
 
   useEffect(() => {
-    if (!chartContainerRef.current) return;
-
-    // 1. Initialize Chart
-    const chart = createChart(chartContainerRef.current, {
-      layout: {
-        background: { type: ColorType.Solid, color: 'transparent' },
-        textColor: '#8b949e',
-      },
-      grid: {
-        vertLines: { color: 'rgba(48, 54, 61, 0.5)' },
-        horzLines: { color: 'rgba(48, 54, 61, 0.5)' },
-      },
-      crosshair: {
-        mode: 1, // Normal crosshair
-        vertLine: { color: '#8b949e', style: 3, labelBackgroundColor: '#161B22' },
-        horzLine: { color: '#8b949e', style: 3, labelBackgroundColor: '#161B22' },
-      },
-      rightPriceScale: {
-        borderColor: '#30363D',
-      },
-      timeScale: {
-        borderColor: '#30363D',
-        timeVisible: true,
-        secondsVisible: true,
-      },
-      autoSize: true,
-    });
-
-    chartRef.current = chart;
-
-    // 2. Create Candlestick Series
-    const candlestickSeries = chart.addSeries(CandlestickSeries, {
-      upColor: '#39D353',
-      downColor: '#F85149',
-      borderVisible: false,
-      wickUpColor: '#39D353',
-      wickDownColor: '#F85149',
-    });
-    candlestickSeriesRef.current = candlestickSeries;
-
-    // 3. Generate Mock Historical Data (Intraday 1-minute candles)
-    const initialData = [];
-    let currentTime = Math.floor(Date.now() / 1000) - (60 * 100); // 100 minutes ago
-    // Round to nearest minute
-    currentTime = currentTime - (currentTime % 60);
-
-    let currentPrice = feed.getCurrentPrice(symbol);
-    
-    for (let i = 0; i < 100; i++) {
-      const volatility = currentPrice * 0.002;
-      const open = currentPrice + (Math.random() - 0.5) * volatility;
-      const close = open + (Math.random() - 0.5) * volatility;
-      const high = Math.max(open, close) + Math.random() * (volatility / 2);
-      const low = Math.min(open, close) - Math.random() * (volatility / 2);
-
-      initialData.push({
-        time: (currentTime + (i * 60)) as Time,
-        open,
-        high,
-        low,
-        close
-      });
-      currentPrice = close;
-    }
-
-    candlestickSeries.setData(initialData);
-
-    // 4. Subscribe to Real-Time Feed (WebSockets)
-    let lastCandle = { ...initialData[initialData.length - 1] };
-
-    const handleTick = (tick: Tick) => {
-      if (tick.symbol !== symbol) return;
-
-      const now = Math.floor(Date.now() / 1000);
-      const currentMinuteNum = now - (now % 60);
-
-      if (currentMinuteNum > (lastCandle.time as number)) {
-        // Start a new candle for the new minute
-        lastCandle = {
-          time: currentMinuteNum as Time,
-          open: tick.price,
-          high: tick.price,
-          low: tick.price,
-          close: tick.price
-        };
-      } else {
-        // Update existing candle with live price
-        lastCandle.close = tick.price;
-        lastCandle.high = Math.max(lastCandle.high as number, tick.price);
-        lastCandle.low = Math.min(lastCandle.low as number, tick.price);
+    const initWidget = () => {
+      if (typeof window.TradingView !== 'undefined') {
+        new window.TradingView.widget({
+          autosize: true,
+          symbol: `BSE:${symbol}`, // Typically Indian stocks use BSE/NSE prefixes on TradingView
+          interval: "D",
+          timezone: "Asia/Kolkata",
+          theme: "dark",
+          style: "1",
+          locale: "en",
+          enable_publishing: false,
+          backgroundColor: "#0D1117",
+          gridColor: "#30363D",
+          hide_top_toolbar: false,
+          hide_legend: false,
+          save_image: false,
+          container_id: containerId,
+          toolbar_bg: "#161B22",
+          studies: [], // Load without initial studies to keep it clean, user can add them
+          disabled_features: [
+            "header_symbol_search", // We have our own symbol search
+          ]
+        });
       }
-
-      // Instruct TradingView chart to visually "tick" the last candle
-      candlestickSeries.update(lastCandle as any);
     };
 
-    const unsubscribe = feed.subscribe(handleTick);
-
-    // Cleanup
-    return () => {
-      unsubscribe();
-      chart.remove();
-    };
+    if (!isScriptLoaded.current) {
+      const script = document.createElement('script');
+      script.src = 'https://s.tradingview.com/tv.js';
+      script.async = true;
+      script.onload = () => {
+        isScriptLoaded.current = true;
+        initWidget();
+      };
+      document.head.appendChild(script);
+      
+      return () => {
+        if (script.parentNode) {
+          script.parentNode.removeChild(script);
+        }
+      };
+    } else {
+      initWidget();
+    }
   }, [symbol]);
 
   return (
-    <div className="w-full h-full relative" ref={chartContainerRef}>
-      {/* Watermark */}
-      <div className="absolute inset-0 flex items-center justify-center opacity-[0.03] pointer-events-none z-0">
-        <img src="/logo_transparent.png" alt="Quantra" className="w-1/2 grayscale" />
-      </div>
+    <div className="w-full h-full relative" id={containerId}>
+      {/* Container for the TradingView Widget */}
     </div>
   );
 }
