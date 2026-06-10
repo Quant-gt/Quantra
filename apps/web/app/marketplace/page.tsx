@@ -43,7 +43,7 @@ export default async function MarketplacePage(props: {
     <div className="min-h-screen bg-[#0D1117] font-sans">
       <PublicNavbar />
       {/* Hero Section */}
-      <div className="bg-[#161B22] border-b border-[#30363D] relative py-20 px-4">
+      <div className="bg-[#161B22] border-b border-[#30363D] relative pt-32 pb-20 px-4">
         <div className="absolute inset-0 bg-gradient-to-b from-[#388BFD]/5 to-transparent z-0 pointer-events-none"></div>
         <div className="max-w-7xl mx-auto relative z-10 text-center">
           <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Discover Your Edge</h1>
