@@ -1,9 +1,18 @@
+import asyncio
+import json
 from fastapi import FastAPI, HTTPException
+from fastapi.responses import StreamingResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from agents.intent_parser import parse_intent, StrategySchema
+from market_data import start_fyers_websocket, get_latest_prices
 
 app = FastAPI(title="Quantra AI Engine", description="Multi-Agent Strategy Generator & Backtester")
+
+@app.on_event("startup")
+async def startup_event():
+    # Start the Fyers WebSocket connection in the background
+    start_fyers_websocket()
 
 # Allow requests from the Next.js frontend
 app.add_middleware(
@@ -37,6 +46,18 @@ async def optimize_strategy(strategy: StrategySchema):
         return results
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))
+
+@app.get("/api/v1/market/stream")
+async def market_stream():
+    async def event_generator():
+        while True:
+            # Yield the latest cached prices every second
+            prices = get_latest_prices()
+            if prices:
+                yield f"data: {json.dumps({'stocks': prices})}\n\n"
+            await asyncio.sleep(1)
+
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
 
 @app.get("/health")
 def health_check():

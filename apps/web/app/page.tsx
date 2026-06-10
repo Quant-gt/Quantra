@@ -17,14 +17,33 @@ export default function Home() {
   const [stocks, setStocks] = useState<{name: string, price: string, change: string, up: boolean}[]>([]);
 
   useEffect(() => {
-    fetch('/api/v1/market/ticker')
-      .then(res => res.json())
-      .then(data => {
-        if (data.stocks && data.stocks.length > 0) {
-          setStocks(data.stocks);
+    // In production this would point to the deployed AI engine URL
+    const ENGINE_URL = process.env.NEXT_PUBLIC_AI_ENGINE_URL || 'http://localhost:8000';
+    
+    try {
+      const eventSource = new EventSource(`${ENGINE_URL}/api/v1/market/stream`);
+      
+      eventSource.onmessage = (event) => {
+        try {
+          const data = JSON.parse(event.data);
+          if (data.stocks && data.stocks.length > 0) {
+            setStocks(data.stocks);
+          }
+        } catch (e) {
+          console.error("Error parsing ticker SSE data:", e);
         }
-      })
-      .catch(console.error);
+      };
+
+      eventSource.onerror = (err) => {
+        console.error("EventSource failed:", err);
+      };
+
+      return () => {
+        eventSource.close();
+      };
+    } catch (error) {
+      console.error("Failed to setup SSE:", error);
+    }
   }, []);
 
   // Auto-play steps in the Watch Demo simulator when open
