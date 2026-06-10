@@ -17,9 +17,21 @@ export default function Home() {
   const [stocks, setStocks] = useState<{name: string, price: string, change: string, up: boolean}[]>([]);
 
   useEffect(() => {
-    // In production this would point to the deployed AI engine URL
+    // Attempt to connect to the deployed AI Engine SSE stream
     const ENGINE_URL = process.env.NEXT_PUBLIC_AI_ENGINE_URL || 'http://localhost:8000';
+    let fallbackInterval: NodeJS.Timeout;
     
+    const useFallback = () => {
+      fetch('/api/v1/market/ticker')
+        .then(res => res.json())
+        .then(data => {
+          if (data.stocks && data.stocks.length > 0) {
+            setStocks(data.stocks);
+          }
+        })
+        .catch(console.error);
+    };
+
     try {
       const eventSource = new EventSource(`${ENGINE_URL}/api/v1/market/stream`);
       
@@ -35,14 +47,25 @@ export default function Home() {
       };
 
       eventSource.onerror = (err) => {
-        console.error("EventSource failed:", err);
+        // If SSE fails (e.g., mixed content on Vercel or backend down), fallback to Yahoo Finance polling
+        console.warn("EventSource failed, falling back to Yahoo Finance API:", err);
+        eventSource.close();
+        
+        // Immediate fallback fetch
+        useFallback();
+        // Poll every 5 seconds as a fallback
+        fallbackInterval = setInterval(useFallback, 5000);
       };
 
       return () => {
         eventSource.close();
+        if (fallbackInterval) clearInterval(fallbackInterval);
       };
     } catch (error) {
-      console.error("Failed to setup SSE:", error);
+      console.error("Failed to setup SSE, falling back:", error);
+      useFallback();
+      fallbackInterval = setInterval(useFallback, 5000);
+      return () => clearInterval(fallbackInterval);
     }
   }, []);
 
