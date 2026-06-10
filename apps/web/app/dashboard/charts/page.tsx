@@ -378,3 +378,4 @@ export default function DashboardChartsPage() {
     </div>
   );
 }
+

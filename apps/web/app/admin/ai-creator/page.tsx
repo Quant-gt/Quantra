@@ -1,4 +1,5 @@
-"use client";`nimport { toast } from "sonner";
+"use client";
+import { toast } from "sonner";
 
 import React, { useState } from 'react';
 import { Sparkles, Loader2, ArrowRight, Brain, Zap, Target, ShieldCheck } from 'lucide-react';
@@ -233,4 +234,5 @@ export default function AICreatorPage() {
     </div>
   );
 }
+
 

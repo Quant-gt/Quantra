@@ -29,36 +29,29 @@ export async function GET() {
     return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
   }
 
-  const { data: runs, error } = await supabase
-    .from('backtest_runs')
-    .select(`
-      *,
-      strategies ( name )
-    `)
+  const { data: scans, error } = await supabase
+    .from('saved_scans')
+    .select('*')
     .eq('user_id', user.id)
     .order('created_at', { ascending: false });
 
-  if (error || !runs || runs.length === 0) {
-    return NextResponse.json({ runs: [], hasData: false });
+  if (error || !scans || scans.length === 0) {
+    return NextResponse.json({ scans: [], hasData: false });
   }
 
-  // Format runs for the frontend
-  const formattedRuns = runs.map(run => ({
-    id: run.id,
-    strategy: run.strategies?.name || 'Custom Algorithm',
-    symbol: run.asset_symbol,
-    timeframe: run.timeframe,
-    period: `${new Date(run.start_date).getFullYear()} - ${new Date(run.end_date).getFullYear()}`,
-    cagr: run.cagr ? `${run.cagr}%` : '-',
-    drawdown: run.max_drawdown ? `${run.max_drawdown}%` : '-',
-    winRate: run.win_rate ? `${run.win_rate}%` : '-',
-    trades: run.total_trades || 0,
-    status: 'Completed',
-    equityCurve: run.equity_curve || []
+  // Format scans
+  const formattedScans = scans.map(scan => ({
+    id: scan.id,
+    name: scan.scan_name,
+    criteria: Array.isArray(scan.criteria) ? scan.criteria : [JSON.stringify(scan.criteria)],
+    stocks: Array.isArray(scan.results) ? scan.results.length : 0,
+    frequency: 'Manual',
+    status: 'Idle',
+    lastRun: new Date(scan.created_at).toLocaleDateString()
   }));
 
   return NextResponse.json({
-    runs: formattedRuns,
+    scans: formattedScans,
     hasData: true
   });
 }

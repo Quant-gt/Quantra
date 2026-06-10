@@ -13,13 +13,18 @@ export default function Home() {
   const [isDemoOpen, setIsDemoOpen] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
 
-  const stocks = [
-    { name: 'NIFTY 50', price: '23,537.23', change: '+0.45%', up: true },
-    { name: 'NASDAQ', price: '16,384.47', change: '+1.12%', up: true },
-    { name: 'BTC/USD', price: '68,231.00', change: '-0.21%', up: false },
-    { name: 'S&P 500', price: '5,222.68', change: '+0.11%', up: true },
-    { name: 'ETH/USD', price: '3,850.12', change: '+2.45%', up: true },
-  ];
+  const [stocks, setStocks] = useState<{name: string, price: string, change: string, up: boolean}[]>([]);
+
+  useEffect(() => {
+    fetch('/api/v1/market/ticker')
+      .then(res => res.json())
+      .then(data => {
+        if (data.stocks && data.stocks.length > 0) {
+          setStocks(data.stocks);
+        }
+      })
+      .catch(console.error);
+  }, []);
 
   // Auto-play steps in the Watch Demo simulator when open
   useEffect(() => {
@@ -103,8 +108,8 @@ export default function Home() {
       {/* Ticker Bar */}
       <div className="pt-28 bg-gradient-to-b from-[#030712] to-transparent">
         <div className="border-y border-white/5 bg-[#0B0F19]/30 backdrop-blur-sm py-3 overflow-hidden">
-          <div className="flex animate-marquee whitespace-nowrap">
-            {[...stocks, ...stocks].map((stock, i) => (
+          <div className="flex animate-marquee whitespace-nowrap min-h-[24px]">
+            {stocks.length > 0 ? [...stocks, ...stocks].map((stock, i) => (
               <div key={i} className="mx-12 flex items-center gap-3 text-xs font-bold tracking-wider">
                 <span className="text-gray-500">{stock.name}</span>
                 <span className="font-mono text-white">{stock.price}</span>
@@ -112,7 +117,7 @@ export default function Home() {
                   {stock.change}
                 </span>
               </div>
-            ))}
+            )) : <div className="mx-12 flex items-center text-xs font-bold tracking-wider text-gray-500">Connecting to live market feed...</div>}
           </div>
         </div>
       </div>
@@ -434,3 +439,4 @@ export default function Home() {
     </div>
   );
 }
+

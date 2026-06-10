@@ -1,4 +1,5 @@
-"use client";`nimport { toast } from "sonner";
+"use client";
+import { toast } from "sonner";
 
 import { useState, useEffect } from "react";
 import { AlertTriangle, Power, PowerOff, RefreshCw } from "lucide-react";
@@ -185,4 +186,5 @@ export default function DeploymentsPage() {
     </div>
   );
 }
+
 

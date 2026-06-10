@@ -1,4 +1,5 @@
-"use client";`nimport { toast } from "sonner";
+"use client";
+import { toast } from "sonner";
 
 import { useState } from "react";
 import { CreditCard, CheckCircle, XCircle, RefreshCw } from "lucide-react";
@@ -116,4 +117,5 @@ export default function SubscriptionsPage() {
     </div>
   );
 }
+
 

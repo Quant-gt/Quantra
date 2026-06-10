@@ -1,22 +1,61 @@
 "use client";
 
-import { useState } from "react";
-import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, Cell } from 'recharts';
-import { DollarSign, Users, Star, Shield, ArrowUpRight } from "lucide-react";
+import { useState, useEffect } from "react";
+import { BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer } from 'recharts';
+import { DollarSign, Users, Star, Shield, ArrowUpRight, Activity } from "lucide-react";
 import Link from "next/link";
-
-const earningsData = [
-  { name: 'Nifty Scalper', earnings: 45000 },
-  { name: 'BNF Trend', earnings: 15000 },
-  { name: 'Crude Breakout', earnings: 28000 },
-];
+import { toast } from "sonner";
 
 export default function CreatorDashboard() {
-  const [strategies] = useState([
-    { id: '1', name: 'Nifty Options Scalper', subscribers: 120, rating: 4.8, status: 'active', version: '1.4' },
-    { id: '2', name: 'BankNifty Trend Follower', subscribers: 45, rating: 4.2, status: 'active', version: '1.0' },
-    { id: '3', name: 'Crude Oil Breakout', subscribers: 85, rating: 4.5, status: 'pending_update', version: '2.1' }
-  ]);
+  const [data, setData] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    fetch('/api/v1/creator/earnings')
+      .then(res => res.json())
+      .then(d => {
+        setData(d);
+        setLoading(false);
+      })
+      .catch(err => {
+        toast.error("Failed to fetch creator earnings");
+        setLoading(false);
+      });
+  }, []);
+
+  if (loading) return <div className="p-8 text-center text-white/50 animate-pulse">Loading creator data...</div>;
+
+  const hasData = data?.hasData;
+
+  if (!hasData) {
+    return (
+      <div className="min-h-screen bg-background pb-20">
+        <div className="max-w-7xl mx-auto px-4 py-8">
+          <div className="mb-8 border-b border-white/10 pb-6 flex justify-between items-end">
+            <div>
+              <h1 className="text-3xl font-bold text-white mb-2">Creator Dashboard</h1>
+              <p className="text-white/60">Manage your strategies, subscribers, and earnings.</p>
+            </div>
+            <Link href="/creator/publish" className="bg-primary hover:bg-primary/90 text-white px-6 py-2.5 rounded-lg font-bold transition-colors flex items-center gap-2">
+              Publish New Strategy
+            </Link>
+          </div>
+          <div className="glass-panel border border-white/10 rounded-xl p-12 flex flex-col items-center justify-center text-center shadow-sm">
+            <div className="w-16 h-16 bg-[#21262D] rounded-full flex items-center justify-center mb-4 border border-[#30363D]">
+              <Star size={28} className="text-[#388BFD]" />
+            </div>
+            <h2 className="text-xl font-bold text-white mb-2">Become a Strategy Creator</h2>
+            <p className="text-gray-400 max-w-md text-sm leading-relaxed mb-6">
+              Publish your first algorithmic strategy to the Quantra Marketplace. Start earning monthly recurring revenue (MRR) from subscribers worldwide.
+            </p>
+            <Link href="/creator/publish" className="px-6 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg text-sm font-bold transition-all shadow-lg flex items-center gap-2">
+              <Activity size={16} /> Publish Your First Algorithm
+            </Link>
+          </div>
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className="min-h-screen bg-background pb-20">
@@ -41,72 +80,66 @@ export default function CreatorDashboard() {
           <div className="glass-panel p-6 rounded-xl border border-white/10">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs text-white/50 mb-1">MTD Earnings</p>
-                <p className="text-2xl font-bold text-white">₹88,000</p>
+                <p className="text-xs text-white/50 mb-1">Monthly Recurring Revenue</p>
+                <p className="text-2xl font-bold text-white">₹{data.mrr.toLocaleString()}</p>
               </div>
               <div className="p-2 bg-green-500/10 rounded-lg">
                 <DollarSign className="w-5 h-5 text-green-500" />
               </div>
             </div>
-            <p className="text-xs text-green-400 mt-2 flex items-center">
-              <ArrowUpRight className="w-3 h-3 mr-1" /> +12% from last month
-            </p>
           </div>
           
           <div className="glass-panel p-6 rounded-xl border border-white/10">
             <div className="flex justify-between items-start">
               <div>
-                <p className="text-xs text-white/50 mb-1">Total Subscribers</p>
-                <p className="text-2xl font-bold text-white">250</p>
+                <p className="text-xs text-white/50 mb-1">Active Subscribers</p>
+                <p className="text-2xl font-bold text-white">{data.activeSubscribers}</p>
               </div>
               <div className="p-2 bg-primary/10 rounded-lg">
                 <Users className="w-5 h-5 text-primary" />
               </div>
             </div>
-            <p className="text-xs text-white/40 mt-2">+15 new this week</p>
           </div>
 
           <div className="glass-panel p-6 rounded-xl border border-white/10">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs text-white/50 mb-1">Avg Rating</p>
-                <p className="text-2xl font-bold text-white">4.6</p>
+                <p className="text-2xl font-bold text-white">4.8</p>
               </div>
               <div className="p-2 bg-yellow-500/10 rounded-lg">
                 <Star className="w-5 h-5 text-yellow-500" />
               </div>
             </div>
-            <p className="text-xs text-white/40 mt-2">Based on 45 reviews</p>
           </div>
 
           <div className="glass-panel p-6 rounded-xl border border-white/10">
             <div className="flex justify-between items-start">
               <div>
                 <p className="text-xs text-white/50 mb-1">Compliance Status</p>
-                <p className="text-2xl font-bold text-green-400">Perfect</p>
+                <p className="text-2xl font-bold text-green-400">Verified</p>
               </div>
               <div className="p-2 bg-green-500/10 rounded-lg">
                 <Shield className="w-5 h-5 text-green-500" />
               </div>
             </div>
-            <p className="text-xs text-white/40 mt-2">RA License Valid</p>
           </div>
         </div>
 
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6 mb-8">
           {/* Earnings Chart */}
           <div className="lg:col-span-2 glass-panel p-6 rounded-xl border border-white/10">
-            <h3 className="text-lg font-bold text-white mb-6">Earnings by Strategy</h3>
+            <h3 className="text-lg font-bold text-white mb-6">Cumulative Earnings (YTD)</h3>
             <div className="h-[300px] w-full">
               <ResponsiveContainer width="100%" height="100%">
-                <BarChart data={earningsData}>
+                <BarChart data={data.earningsData}>
                   <CartesianGrid strokeDasharray="3 3" stroke="rgba(255,255,255,0.1)" vertical={false} />
                   <XAxis dataKey="name" stroke="rgba(255,255,255,0.5)" />
                   <YAxis stroke="rgba(255,255,255,0.5)" tickFormatter={(val) => `₹${(val/1000).toFixed(0)}k`} />
                   <Tooltip 
                     contentStyle={{ backgroundColor: 'rgba(0,0,0,0.8)', border: '1px solid rgba(255,255,255,0.1)' }}
                   />
-                  <Bar dataKey="earnings" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
+                  <Bar dataKey="amount" fill="hsl(var(--primary))" radius={[4, 4, 0, 0]} />
                 </BarChart>
               </ResponsiveContainer>
             </div>
@@ -119,16 +152,9 @@ export default function CreatorDashboard() {
               <div className="flex justify-between items-center pb-4 border-b border-white/10">
                 <div>
                   <p className="text-sm font-semibold text-white">Next Payout</p>
-                  <p className="text-xs text-white/50">June 05, 2026</p>
+                  <p className="text-xs text-white/50">1st of Next Month</p>
                 </div>
-                <p className="text-lg font-bold text-white">₹88,000</p>
-              </div>
-              <div className="flex justify-between items-center pb-4 border-b border-white/10">
-                <div>
-                  <p className="text-sm font-semibold text-white/70">Previous Payout</p>
-                  <p className="text-xs text-white/30">May 05, 2026</p>
-                </div>
-                <p className="text-lg font-bold text-white/70">₹72,500</p>
+                <p className="text-lg font-bold text-white">₹{data.mrr.toLocaleString()}</p>
               </div>
             </div>
             
@@ -137,52 +163,8 @@ export default function CreatorDashboard() {
             </button>
           </div>
         </div>
-
-        {/* Strategy Performance Table */}
-        <div className="glass-panel rounded-xl border border-white/10 overflow-hidden">
-          <div className="p-6 border-b border-white/10">
-            <h3 className="text-lg font-bold text-white">My Strategies</h3>
-          </div>
-          
-          <table className="w-full text-left text-white">
-            <thead className="text-xs text-white/50 uppercase bg-white/5">
-              <tr>
-                <th scope="col" className="px-6 py-4">Strategy</th>
-                <th scope="col" className="px-6 py-4">Subscribers</th>
-                <th scope="col" className="px-6 py-4">Rating</th>
-                <th scope="col" className="px-6 py-4">Version</th>
-                <th scope="col" className="px-6 py-4">Status</th>
-                <th scope="col" className="px-6 py-4">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
-              {strategies.map((strat) => (
-                <tr key={strat.id} className="border-b border-white/5 hover:bg-white/5 transition-colors text-sm">
-                  <td className="px-6 py-4 font-bold text-white">{strat.name}</td>
-                  <td className="px-6 py-4">{strat.subscribers}</td>
-                  <td className="px-6 py-4 flex items-center gap-1">
-                    <Star className="w-4 h-4 text-yellow-500 fill-current" /> {strat.rating}
-                  </td>
-                  <td className="px-6 py-4 text-white/50">v{strat.version}</td>
-                  <td className="px-6 py-4">
-                    <span className={`text-xs px-2 py-0.5 rounded-full border ${
-                      strat.status === 'active' ? 'border-green-500/30 bg-green-500/10 text-green-400' : 
-                      'border-amber-500/30 bg-amber-500/10 text-amber-400'
-                    }`}>
-                      {strat.status === 'active' ? 'Active' : 'Pending Update'}
-                    </span>
-                  </td>
-                  <td className="px-6 py-4">
-                    <button className="text-primary hover:underline font-medium text-sm">
-                      Manage
-                    </button>
-                  </td>
-                </tr>
-              ))}
-            </tbody>
-          </table>
-        </div>
       </div>
     </div>
   );
 }
+
