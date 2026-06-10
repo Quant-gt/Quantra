@@ -2,7 +2,7 @@ import threading
 import time
 import json
 from fyers_apiv3.FyersWebsocket import data_ws
-from .fyers_auth import get_fyers_access_token
+from fyers_auth import get_fyers_access_token
 import os
 
 # Global dictionary to cache the latest prices
