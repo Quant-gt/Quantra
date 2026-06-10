@@ -49,6 +49,11 @@ async def optimize_strategy(strategy: StrategySchema):
 
 @app.get("/api/v1/market/stream")
 async def market_stream():
+    # If the Fyers feed hasn't populated yet (or credentials are missing), 
+    # instantly return 503 so the frontend's EventSource.onerror triggers the Yahoo fallback.
+    if not get_latest_prices():
+        raise HTTPException(status_code=503, detail="Fyers live feed is not connected or missing credentials.")
+
     async def event_generator():
         while True:
             # Yield the latest cached prices every second
