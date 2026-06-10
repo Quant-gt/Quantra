@@ -7,3 +7,6 @@ pydantic==2.5.2
 yfinance==0.2.33
 openai>=1.50.0
 python-dotenv==1.0.0
+fyers-apiv3==3.1.13
+pyotp==2.9.0
+requests==2.31.0
