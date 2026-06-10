@@ -46,8 +46,8 @@ export default async function MarketplacePage(props: {
       <div className="bg-[#161B22] border-b border-[#30363D] relative pt-32 pb-20 px-4">
         <div className="absolute inset-0 bg-gradient-to-b from-[#388BFD]/5 to-transparent z-0 pointer-events-none"></div>
         <div className="max-w-7xl mx-auto relative z-10 text-center">
-          <h1 className="text-4xl md:text-5xl font-bold text-white mb-4 tracking-tight">Discover Your Edge</h1>
-          <p className="text-xl text-gray-400 max-w-2xl mx-auto mb-8">
+          <h1 className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight">Discover Your Edge</h1>
+          <p className="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium">
             Browse and subscribe to institutional-grade algorithmic strategies built by verified experts.
           </p>
           

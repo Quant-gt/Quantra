@@ -109,7 +109,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.2 }}
-          className="text-7xl md:text-8xl font-black text-white leading-[0.95] tracking-tighter mb-8"
+          className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight"
         >
           Your Algorithm.<br />
           <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-500 to-cyan-500">Your Mantra.</span><br />
@@ -120,7 +120,7 @@ export default function Home() {
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ duration: 0.8, delay: 0.4 }}
-          className="max-w-2xl mx-auto text-gray-400 text-lg mb-12 font-medium leading-relaxed"
+          className="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium"
         >
           Quantra is a hyper-visual, zero-latency terminal designed for serious traders. 
           Deploy complex strategies across global markets with institutional-grade precision.
