@@ -3,6 +3,7 @@
 import React from 'react';
 import { Shield, Check, Cpu, Zap, Globe, Flame } from 'lucide-react';
 import Link from 'next/link';
+import PublicNavbar from '@/components/PublicNavbar';
 
 export default function PricingPage() {
   const tiers = [
@@ -55,25 +56,7 @@ export default function PricingPage() {
 
   return (
     <div className="min-h-screen bg-[#0D1117] text-white font-sans">
-      {/* Header */}
-      <nav className="border-b border-[#30363D] bg-[#161B22]/80 backdrop-blur-md sticky top-0 z-50">
-        <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
-          <Link href="/" className="flex items-center gap-3">
-            <div className="w-8 h-8 bg-white flex items-center justify-center rounded-lg">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5">
-                <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                <polyline points="2 17 12 22 22 17" />
-                <polyline points="2 12 12 17 22 12" />
-              </svg>
-            </div>
-            <span className="text-xl font-bold text-white tracking-tight">Quantra</span>
-          </Link>
-          <div className="flex gap-4">
-            <Link href="/marketplace" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Marketplace</Link>
-            <Link href="/backtest" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Backtest</Link>
-          </div>
-        </div>
-      </nav>
+
 
       {/* Hero */}
       <div className="bg-[#161B22] border-b border-[#30363D] relative py-20 px-6">

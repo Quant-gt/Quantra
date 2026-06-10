@@ -1,6 +1,7 @@
 import StrategyCard, { Strategy } from "@/components/marketplace/StrategyCard";
 import MarketplaceFilters from "@/components/marketplace/MarketplaceFilters";
 import MagicFilter from "@/components/marketplace/MagicFilter";
+import PublicNavbar from "@/components/PublicNavbar";
 
 import { createClient } from "@/lib/supabase/server";
 
@@ -40,6 +41,7 @@ export default async function MarketplacePage(props: {
   
   return (
     <div className="min-h-screen bg-[#0D1117] font-sans">
+      <PublicNavbar />
       {/* Hero Section */}
       <div className="bg-[#161B22] border-b border-[#30363D] relative py-20 px-4">
         <div className="absolute inset-0 bg-gradient-to-b from-[#388BFD]/5 to-transparent z-0 pointer-events-none"></div>
