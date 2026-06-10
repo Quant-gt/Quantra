@@ -4,11 +4,10 @@ import MagicFilter from "@/components/marketplace/MagicFilter";
 
 import { createClient } from "@/lib/supabase/server";
 
-export default async function MarketplacePage({
-  searchParams,
-}: {
-  searchParams: { [key: string]: string | string[] | undefined };
+export default async function MarketplacePage(props: {
+  searchParams: Promise<{ [key: string]: string | string[] | undefined }>;
 }) {
+  const searchParams = await props.searchParams;
   const supabase = await createClient();
   const { data: rawStrategies } = await supabase
     .from('strategies')
@@ -35,7 +34,7 @@ export default async function MarketplacePage({
   }));
 
   // Apply basic mock filters
-  if (searchParams.classification && searchParams.classification !== "all") {
+  if (searchParams?.classification && searchParams.classification !== "all") {
     strategies = strategies.filter(s => s.classification === searchParams.classification);
   }
   
