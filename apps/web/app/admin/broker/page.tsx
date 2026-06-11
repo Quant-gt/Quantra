@@ -1,13 +1,12 @@
 "use client";
-import { useEffect, useState } from "react";
+import { useEffect, useState, Suspense } from "react";
 import { toast } from "sonner";
 import { ShieldCheck, LogIn, Key, Loader2 } from "lucide-react";
 import { useSearchParams, useRouter } from "next/navigation";
 
-export default function BrokerAdminPage() {
+function BrokerAuthHandler() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
   
   useEffect(() => {
     const success = searchParams.get("success");
@@ -23,6 +22,12 @@ export default function BrokerAdminPage() {
       router.replace("/admin/broker");
     }
   }, [searchParams, router]);
+
+  return null;
+}
+
+export default function BrokerAdminPage() {
+  const [loading, setLoading] = useState(false);
 
   const handleLogin = async () => {
     setLoading(true);
@@ -46,6 +51,10 @@ export default function BrokerAdminPage() {
 
   return (
     <div className="p-8 max-w-4xl mx-auto w-full">
+      <Suspense fallback={null}>
+        <BrokerAuthHandler />
+      </Suspense>
+      
       <div className="mb-8">
         <h1 className="text-3xl font-black text-white flex items-center gap-3">
           <ShieldCheck className="text-[#39D353]" size={32} />
