@@ -9,6 +9,9 @@ from market_data import start_fyers_websocket, get_latest_prices
 from fyers_auth import get_fyers_login_url, generate_token_from_auth_code
 from engine.async_executor import run_execution_loop
 
+from apscheduler.schedulers.asyncio import AsyncIOScheduler
+from auto_auth_agent import run_automated_login
+
 app = FastAPI(title="Quantra AI Engine", description="Multi-Agent Strategy Generator & Backtester")
 
 # Global In-Memory Order Queue
@@ -21,6 +24,12 @@ async def startup_event():
     
     # Spawn the persistent async execution worker
     asyncio.create_task(run_execution_loop(order_queue))
+
+    # Schedule the automated headless auth agent at 8:45 AM every day
+    scheduler = AsyncIOScheduler()
+    scheduler.add_job(run_automated_login, 'cron', hour=8, minute=45)
+    scheduler.start()
+    print("Started APScheduler for 8:45 AM Auto-Auth Agent")
 
 # Allow requests from the Next.js frontend
 app.add_middleware(
