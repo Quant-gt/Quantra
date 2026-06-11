@@ -1,8 +1,4 @@
 import { NextResponse } from 'next/server';
-import { GoogleGenerativeAI } from '@google/generative-ai';
-
-// Initialize the Google Generative AI with the API key from environment variables
-const genAI = new GoogleGenerativeAI(process.env.GEMINI_API_KEY || '');
 
 export async function POST(request: Request) {
   try {
@@ -12,12 +8,9 @@ export async function POST(request: Request) {
       return NextResponse.json({ success: false, error: 'Prompt is required' }, { status: 400 });
     }
 
-    if (!process.env.GEMINI_API_KEY) {
-      return NextResponse.json({ success: false, error: 'Gemini API key is not configured.' }, { status: 500 });
+    if (!process.env.NVIDIA_API_KEY) {
+      return NextResponse.json({ success: false, error: 'NVIDIA API key is not configured.' }, { status: 500 });
     }
-
-    // We use gemini-2.5-flash as the standard fast and highly capable model
-    const model = genAI.getGenerativeModel({ model: 'gemini-2.5-flash' });
 
     const systemPrompt = `
       You are an elite quantitative researcher and algorithmic trading expert.
@@ -45,19 +38,42 @@ export async function POST(request: Request) {
       Aim for strategies that could theoretically achieve a high strike rate (e.g. around 80-90%) by combining confirming indicators (like RSI divergence + Bollinger Band squeeze + Volume confirmation).
     `;
 
-    const result = await model.generateContent(`${systemPrompt}\n\nUser Request: ${prompt}`);
-    let textResult = result.response.text();
+    const response = await fetch("https://integrate.api.nvidia.com/v1/chat/completions", {
+      method: "POST",
+      headers: {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${process.env.NVIDIA_API_KEY}`
+      },
+      body: JSON.stringify({
+        model: "meta/llama-3.1-70b-instruct",
+        messages: [
+          { role: "system", content: systemPrompt },
+          { role: "user", content: prompt }
+        ],
+        temperature: 0.2,
+        max_tokens: 1024
+      })
+    });
+
+    if (!response.ok) {
+      const errorText = await response.text();
+      console.error("NVIDIA API Error:", errorText);
+      return NextResponse.json({ success: false, error: 'NVIDIA API request failed.' }, { status: response.status });
+    }
+
+    const result = await response.json();
+    let textResult = result.choices[0].message.content;
     
     // Clean up if it returned markdown
-    if (textResult.startsWith('\`\`\`json')) {
-      textResult = textResult.replace(/\`\`\`json/g, '').replace(/\`\`\`/g, '');
+    if (textResult.startsWith('```json')) {
+      textResult = textResult.replace(/```json/g, '').replace(/```/g, '');
     }
 
     try {
       const strategyData = JSON.parse(textResult);
       return NextResponse.json({ success: true, data: strategyData });
     } catch (parseError) {
-      console.error("Failed to parse Gemini output:", textResult);
+      console.error("Failed to parse NVIDIA output:", textResult);
       return NextResponse.json({ success: false, error: 'AI returned invalid format.' }, { status: 500 });
     }
 

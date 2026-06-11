@@ -92,7 +92,7 @@ export default function AICreatorPage() {
           AI Strategy Creator
         </h1>
         <p className="text-gray-400 mt-2">
-          Leverage Google's Gemini AI to instantly formulate high-strike-rate quantitative strategies.
+          Leverage NVIDIA's Meta Llama 3.1 70B AI to instantly formulate high-strike-rate quantitative strategies.
         </p>
       </div>
 
@@ -132,7 +132,7 @@ export default function AICreatorPage() {
               <div>
                 <div className="flex items-center gap-3 mb-2">
                   <span className="px-3 py-1 bg-purple-500/20 text-purple-400 border border-purple-500/30 text-xs font-bold rounded-full uppercase tracking-widest flex items-center gap-1">
-                    <Sparkles size={12}/> Gemini Generated
+                    <Sparkles size={12}/> NVIDIA AI Generated
                   </span>
                   <span className="px-3 py-1 bg-[#238636]/20 text-[#39D353] border border-[#238636]/30 text-xs font-bold rounded-full uppercase">
                     {strategy.classification === 'black_box' ? 'Black Box' : 'White Box'}

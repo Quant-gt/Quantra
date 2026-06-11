@@ -28,15 +28,16 @@ def scrape(req: ScrapeRequest):
     if not SmartScraperGraph:
         raise HTTPException(status_code=503, detail="ScrapeGraphAI not installed or failed to load")
     
-    # ScrapeGraphAI requires an LLM to function. Using Gemini as requested.
-    api_key = os.environ.get("GEMINI_API_KEY") or os.environ.get("GOOGLE_API_KEY")
+    # ScrapeGraphAI requires an LLM to function. Using NVIDIA API as requested.
+    api_key = os.environ.get("NVIDIA_API_KEY")
     if not api_key:
-        raise HTTPException(status_code=400, detail="GEMINI_API_KEY or GOOGLE_API_KEY environment variable is missing")
+        raise HTTPException(status_code=400, detail="NVIDIA_API_KEY environment variable is missing")
 
     graph_config = {
         "llm": {
             "api_key": api_key,
-            "model": "gemini-1.5-flash",
+            "model": "openai/meta/llama-3.1-70b-instruct",
+            "base_url": "https://integrate.api.nvidia.com/v1",
         },
     }
 
