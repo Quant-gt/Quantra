@@ -10,3 +10,5 @@ python-dotenv==1.0.0
 fyers-apiv3==3.1.13
 pyotp==2.9.0
 requests==2.31.0
+playwright==1.59.0
+apscheduler==3.11.2
