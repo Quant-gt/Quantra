@@ -1,18 +1,26 @@
 import asyncio
 import json
-from fastapi import FastAPI, HTTPException
-from fastapi.responses import StreamingResponse
+from fastapi import FastAPI, HTTPException, Request
+from fastapi.responses import StreamingResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from agents.intent_parser import parse_intent, StrategySchema
 from market_data import start_fyers_websocket, get_latest_prices
+from fyers_auth import get_fyers_login_url, generate_token_from_auth_code
+from engine.async_executor import run_execution_loop
 
 app = FastAPI(title="Quantra AI Engine", description="Multi-Agent Strategy Generator & Backtester")
+
+# Global In-Memory Order Queue
+order_queue = asyncio.Queue()
 
 @app.on_event("startup")
 async def startup_event():
     # Start the Fyers WebSocket connection in the background
     start_fyers_websocket()
+    
+    # Spawn the persistent async execution worker
+    asyncio.create_task(run_execution_loop(order_queue))
 
 # Allow requests from the Next.js frontend
 app.add_middleware(
@@ -25,6 +33,25 @@ app.add_middleware(
 
 class StrategyPromptRequest(BaseModel):
     prompt: str
+
+@app.get("/api/v1/fyers/login_url")
+async def get_login_url():
+    url = get_fyers_login_url()
+    if not url:
+        raise HTTPException(status_code=500, detail="Fyers App ID not configured")
+    return {"url": url}
+
+@app.get("/api/v1/fyers/callback")
+async def fyers_callback(auth_code: str = None, s: str = None, code: str = None):
+    # Fyers sometimes sends auth_code, sometimes just code
+    actual_code = auth_code or code
+    if not actual_code:
+        return RedirectResponse("http://localhost:3000/admin/broker?error=no_code")
+    try:
+        generate_token_from_auth_code(actual_code)
+        return RedirectResponse("http://localhost:3000/admin/broker?success=true")
+    except Exception as e:
+        return RedirectResponse(f"http://localhost:3000/admin/broker?error={str(e)}")
 
 @app.post("/api/v1/generate", response_model=StrategySchema)
 async def generate_strategy(request: StrategyPromptRequest):
