@@ -1,9 +1,9 @@
 "use client";
 
-import { CheckSquare, Square, X, Plus, Zap, Activity } from 'lucide-react';
+import { CheckSquare, Square, X, Plus, Zap, Activity, Cpu, Loader2, Save } from 'lucide-react';
 import { useState } from 'react';
 import BacktestModal from './BacktestModal';
-import OptionsBuilder from './OptionsBuilder';
+import OptionsBuilder, { Instrument, Leg } from './OptionsBuilder';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
 
@@ -20,13 +20,37 @@ export default function BlockBuilder() {
   const [sellEnabled, setSellEnabled] = useState(true);
   const [isBacktestModalOpen, setIsBacktestModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
+  const [isSaving, setIsSaving] = useState(false);
+  const [strategyId, setStrategyId] = useState<string | null>(null);
 
+  // Strategy Metadata
+  const [strategyName, setStrategyName] = useState('Dual Block Strategy');
+  const [symbol, setSymbol] = useState('RELIANCE');
+  const [timeframe, setTimeframe] = useState('1d');
+  const [baseQty, setBaseQty] = useState(100);
+
+  // Logical Operators
+  const [buyOperator, setBuyOperator] = useState<'AND' | 'OR'>('AND');
+  const [sellOperator, setSellOperator] = useState<'AND' | 'OR'>('AND');
+
+  // Condition blocks lists
   const [buyBlocks, setBuyBlocks] = useState<ConditionBlock[]>([
     { id: '1', indicator: 'Close Price', comparison: 'Greater Than', valueType: 'Number', value: '100' }
   ]);
 
   const [sellBlocks, setSellBlocks] = useState<ConditionBlock[]>([
     { id: '1', indicator: 'RSI (14)', comparison: 'Less Than', valueType: 'Number', value: '30' }
+  ]);
+
+  // Lifted OptionsBuilder states
+  const [buyInstrument, setBuyInstrument] = useState<Instrument>('EQUITY');
+  const [buyLegs, setBuyLegs] = useState<Leg[]>([
+    { id: '1', action: 'BUY', type: 'CALL', strike: 'ATM', expiry: 'Current Week', qty: 1 }
+  ]);
+
+  const [sellInstrument, setSellInstrument] = useState<Instrument>('EQUITY');
+  const [sellLegs, setSellLegs] = useState<Leg[]>([
+    { id: '1', action: 'SELL', type: 'CALL', strike: 'ATM', expiry: 'Current Week', qty: 1 }
   ]);
 
   const addBuyBlock = () => {
@@ -71,9 +95,86 @@ export default function BlockBuilder() {
     setSellBlocks(sellBlocks.map(b => b.id === id ? { ...b, [field]: value } : b));
   };
 
+  const handleSave = async () => {
+    setIsSaving(true);
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      if (!session) {
+        throw new Error("You must be logged in to save strategies.");
+      }
+
+      const logicGraph = {
+        type: 'block',
+        buyOperator,
+        buyBlocks,
+        buyInstrument,
+        buyLegs,
+        buyEnabled,
+        sellOperator,
+        sellBlocks,
+        sellInstrument,
+        sellLegs,
+        sellEnabled,
+        symbol,
+        timeframe,
+        baseQty
+      };
+
+      if (strategyId) {
+        // Update existing strategy
+        const { error } = await supabase
+          .from('strategies')
+          .update({
+            name: strategyName,
+            logic_graph: logicGraph as any,
+            updated_at: new Date().toISOString()
+          })
+          .eq('id', strategyId);
+
+        if (error) throw error;
+        toast.success("Strategy updated successfully!");
+        return strategyId;
+      } else {
+        // Insert new strategy
+        const { data, error } = await supabase
+          .from('strategies')
+          .insert({
+            creator_id: session.user.id,
+            name: strategyName,
+            logic_graph: logicGraph as any,
+            status: 'draft'
+          })
+          .select()
+          .single();
+
+        if (error) throw error;
+        if (data) {
+          setStrategyId(data.id);
+          toast.success("Strategy saved successfully!");
+          return data.id;
+        }
+      }
+    } catch (err: any) {
+      console.error("Save strategy error:", err);
+      toast.error(err.message || "Failed to save strategy.");
+      return null;
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
   const launchTrading = async () => {
     setLoading(true);
     try {
+      let currentStrategyId = strategyId;
+      // Automatically save latest changes
+      const savedId = await handleSave();
+      if (!savedId) {
+        throw new Error("Failed to save strategy configuration before launching.");
+      }
+      currentStrategyId = savedId;
+
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
@@ -87,10 +188,10 @@ export default function BlockBuilder() {
         },
         body: JSON.stringify({
           creator_id: userId,
-          strategy_id: '82d2d8a6-706c-479d-836a-a83388902a31',
-          symbol: 'RELIANCE',
+          strategy_id: currentStrategyId,
+          symbol: symbol,
           action: 'BUY',
-          base_qty: 100
+          base_qty: baseQty
         })
       });
 
@@ -99,7 +200,7 @@ export default function BlockBuilder() {
         throw new Error(data.error || "Execution engine failed");
       }
       
-      toast.success(`🚀 Fan-Out Execution: ${data.message || 'Launched successfully'} (${data.executions || 45} broker accounts fired)`);
+      toast.success(`🚀 Fan-Out Execution: ${data.message || 'Launched successfully'} (${data.executions || 0} subscriber accounts fired)`);
     } catch (e: any) {
       toast.error(e.message || 'Backend execution engine is not running or failed.');
     } finally {
@@ -109,6 +210,68 @@ export default function BlockBuilder() {
 
   return (
     <div className="p-8 max-w-5xl mx-auto flex flex-col h-full w-full">
+      {/* Strategy Configuration Header */}
+      <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between shadow-lg">
+        <div className="flex items-center gap-3 w-full md:w-auto">
+          <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-lg">
+            <Cpu size={20} className="text-white animate-pulse" />
+          </div>
+          <div className="flex-1">
+            <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider">Strategy Name</label>
+            <input 
+              type="text" 
+              value={strategyName}
+              onChange={(e) => setStrategyName(e.target.value)}
+              className="bg-transparent text-base font-bold text-white outline-none border-b border-transparent hover:border-[#30363D] focus:border-[#58A6FF] transition-colors pb-0.5 w-full md:w-64"
+            />
+          </div>
+        </div>
+
+        <div className="flex flex-wrap gap-4 w-full md:w-auto">
+          <div className="flex-1 min-w-[120px]">
+            <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">Target Symbol</label>
+            <select
+              value={symbol}
+              onChange={(e) => setSymbol(e.target.value)}
+              className="w-full bg-[#0D1117] border border-[#30363D] text-white text-sm rounded-md px-3 py-2 outline-none focus:border-[#58A6FF] cursor-pointer"
+            >
+              <option value="RELIANCE">RELIANCE</option>
+              <option value="NIFTY">NIFTY</option>
+              <option value="BANKNIFTY">BANKNIFTY</option>
+              <option value="TCS">TCS</option>
+              <option value="INFOSYS">INFOSYS</option>
+              <option value="IBM">IBM</option>
+            </select>
+          </div>
+
+          <div className="flex-1 min-w-[100px]">
+            <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">Timeframe</label>
+            <select
+              value={timeframe}
+              onChange={(e) => setTimeframe(e.target.value)}
+              className="w-full bg-[#0D1117] border border-[#30363D] text-white text-sm rounded-md px-3 py-2 outline-none focus:border-[#58A6FF] cursor-pointer"
+            >
+              <option value="1m">1 min</option>
+              <option value="5m">5 min</option>
+              <option value="15m">15 min</option>
+              <option value="1h">1 hour</option>
+              <option value="1d">1 day</option>
+            </select>
+          </div>
+
+          <div className="flex-1 min-w-[100px]">
+            <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">Base Quantity</label>
+            <input
+              type="number"
+              value={baseQty}
+              onChange={(e) => setBaseQty(Number(e.target.value))}
+              min={1}
+              className="w-full bg-[#0D1117] border border-[#30363D] text-white text-sm rounded-md px-3 py-2 outline-none focus:border-[#58A6FF]"
+            />
+          </div>
+        </div>
+      </div>
+
       <div className="bg-[#1C2128] rounded-xl border border-[#30363D] overflow-hidden shadow-2xl flex flex-col">
         {/* Title */}
         <div className="px-6 py-5 border-b border-[#30363D]">
@@ -133,6 +296,23 @@ export default function BlockBuilder() {
               </div>
               
               <div className="flex items-center gap-4">
+                {buyEnabled && buyBlocks.length > 1 && (
+                  <div className="flex items-center bg-[#0D1117] rounded-md p-0.5 border border-[#30363D]">
+                    <button 
+                      onClick={() => setBuyOperator('AND')}
+                      className={`px-2 py-1 text-xs font-bold rounded ${buyOperator === 'AND' ? 'bg-[#30363D] text-[#39D353]' : 'text-gray-500 hover:text-gray-300'}`}
+                    >
+                      ALL (AND)
+                    </button>
+                    <button 
+                      onClick={() => setBuyOperator('OR')}
+                      className={`px-2 py-1 text-xs font-bold rounded ${buyOperator === 'OR' ? 'bg-[#30363D] text-[#39D353]' : 'text-gray-500 hover:text-gray-300'}`}
+                    >
+                      ANY (OR)
+                    </button>
+                  </div>
+                )}
+
                 <div className="flex items-center gap-2">
                   <span className="text-xs font-medium text-gray-300">Allocation per trade: ₹</span>
                   <input 
@@ -216,7 +396,13 @@ export default function BlockBuilder() {
 
             {/* Action Block - Advanced Derivatives Configurator */}
             <div className={`mt-4 ${!buyEnabled && 'opacity-50 pointer-events-none'}`}>
-              <OptionsBuilder actionType="BUY" />
+              <OptionsBuilder 
+                actionType="BUY" 
+                instrument={buyInstrument}
+                setInstrument={setBuyInstrument}
+                legs={buyLegs}
+                setLegs={setBuyLegs}
+              />
             </div>
           </div>
 
@@ -235,13 +421,32 @@ export default function BlockBuilder() {
                 <h3 className={`font-bold ${sellEnabled ? 'text-red-400' : 'text-gray-500'}`}>▼ WHEN (Sell Pipeline)</h3>
               </div>
               
-              <button 
-                onClick={addSellBlock}
-                disabled={!sellEnabled}
-                className="bg-[#21262D] hover:bg-[#30363D] text-gray-300 text-xs font-bold py-1.5 px-3 rounded-md border border-[#30363D] flex items-center gap-1 disabled:opacity-50"
-              >
-                <Plus size={14} /> Block
-              </button>
+              <div className="flex items-center gap-4">
+                {sellEnabled && sellBlocks.length > 1 && (
+                  <div className="flex items-center bg-[#0D1117] rounded-md p-0.5 border border-[#30363D]">
+                    <button 
+                      onClick={() => setSellOperator('AND')}
+                      className={`px-2 py-1 text-xs font-bold rounded ${sellOperator === 'AND' ? 'bg-[#30363D] text-red-400' : 'text-gray-500 hover:text-gray-300'}`}
+                    >
+                      ALL (AND)
+                    </button>
+                    <button 
+                      onClick={() => setSellOperator('OR')}
+                      className={`px-2 py-1 text-xs font-bold rounded ${sellOperator === 'OR' ? 'bg-[#30363D] text-red-400' : 'text-gray-500 hover:text-gray-300'}`}
+                    >
+                      ANY (OR)
+                    </button>
+                  </div>
+                )}
+
+                <button 
+                  onClick={addSellBlock}
+                  disabled={!sellEnabled}
+                  className="bg-[#21262D] hover:bg-[#30363D] text-gray-300 text-xs font-bold py-1.5 px-3 rounded-md border border-[#30363D] flex items-center gap-1 disabled:opacity-50"
+                >
+                  <Plus size={14} /> Block
+                </button>
+              </div>
             </div>
             
             {sellEnabled && (
@@ -310,7 +515,13 @@ export default function BlockBuilder() {
 
                 {/* Action Block - Advanced Derivatives Configurator */}
                 <div className="mt-4">
-                  <OptionsBuilder actionType="SELL" />
+                  <OptionsBuilder 
+                    actionType="SELL" 
+                    instrument={sellInstrument}
+                    setInstrument={setSellInstrument}
+                    legs={sellLegs}
+                    setLegs={setSellLegs}
+                  />
                 </div>
               </>
             )}
@@ -348,7 +559,20 @@ export default function BlockBuilder() {
 
         <div className="px-6 py-5 border-t border-[#30363D] bg-[#0B0F19] flex justify-end gap-4">
           <button 
-            onClick={() => setIsBacktestModalOpen(true)}
+            onClick={handleSave}
+            disabled={isSaving}
+            className="bg-[#21262D] hover:bg-[#30363D] text-white border border-[#30363D] px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2 disabled:opacity-50"
+          >
+            {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Save Strategy
+          </button>
+
+          <button 
+            onClick={async () => {
+              const latestId = await handleSave();
+              if (latestId) {
+                setIsBacktestModalOpen(true);
+              }
+            }}
             className="bg-transparent border border-[#6366F1] hover:bg-[#6366F1]/10 text-[#6366F1] px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2"
           >
             <Activity size={16} /> Run Backtest
@@ -366,7 +590,7 @@ export default function BlockBuilder() {
       <BacktestModal 
         isOpen={isBacktestModalOpen} 
         onClose={() => setIsBacktestModalOpen(false)} 
-        strategyId="82d2d8a6-706c-479d-836a-a83388902a31" 
+        strategyId={strategyId || "82d2d8a6-706c-479d-836a-a83388902a31"} 
       />
     </div>
   );

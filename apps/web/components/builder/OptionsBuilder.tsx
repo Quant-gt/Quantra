@@ -3,11 +3,11 @@
 import React, { useState } from 'react';
 import { Layers, Plus, Trash2, Zap } from 'lucide-react';
 
-type Instrument = 'EQUITY' | 'FUTURES' | 'OPTIONS';
-type OptionType = 'CALL' | 'PUT';
-type Action = 'BUY' | 'SELL';
+export type Instrument = 'EQUITY' | 'FUTURES' | 'OPTIONS';
+export type OptionType = 'CALL' | 'PUT';
+export type Action = 'BUY' | 'SELL';
 
-interface Leg {
+export interface Leg {
   id: string;
   action: Action;
   type: OptionType;
@@ -16,11 +16,21 @@ interface Leg {
   qty: number;
 }
 
-export default function OptionsBuilder({ actionType = 'BUY' }: { actionType?: 'BUY' | 'SELL' }) {
-  const [instrument, setInstrument] = useState<Instrument>('EQUITY');
-  const [legs, setLegs] = useState<Leg[]>([
-    { id: '1', action: actionType, type: 'CALL', strike: 'ATM', expiry: 'Current Week', qty: 1 }
-  ]);
+interface OptionsBuilderProps {
+  actionType?: 'BUY' | 'SELL';
+  instrument: Instrument;
+  setInstrument: (inst: Instrument) => void;
+  legs: Leg[];
+  setLegs: (legs: Leg[]) => void;
+}
+
+export default function OptionsBuilder({
+  actionType = 'BUY',
+  instrument,
+  setInstrument,
+  legs,
+  setLegs
+}: OptionsBuilderProps) {
 
   const addLeg = () => {
     setLegs([...legs, { 
