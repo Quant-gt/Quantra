@@ -5,11 +5,107 @@ import { useState } from 'react';
 import BacktestModal from './BacktestModal';
 import OptionsBuilder from './OptionsBuilder';
 import { createClient } from '@/lib/supabase/client';
+import { toast } from 'sonner';
+
+interface ConditionBlock {
+  id: string;
+  indicator: string;
+  comparison: string;
+  valueType: string;
+  value: string;
+}
 
 export default function BlockBuilder() {
   const [buyEnabled, setBuyEnabled] = useState(true);
   const [sellEnabled, setSellEnabled] = useState(true);
   const [isBacktestModalOpen, setIsBacktestModalOpen] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [buyBlocks, setBuyBlocks] = useState<ConditionBlock[]>([
+    { id: '1', indicator: 'Close Price', comparison: 'Greater Than', valueType: 'Number', value: '100' }
+  ]);
+
+  const [sellBlocks, setSellBlocks] = useState<ConditionBlock[]>([
+    { id: '1', indicator: 'RSI (14)', comparison: 'Less Than', valueType: 'Number', value: '30' }
+  ]);
+
+  const addBuyBlock = () => {
+    const newId = Date.now().toString();
+    setBuyBlocks([
+      ...buyBlocks,
+      { id: newId, indicator: 'Close Price', comparison: 'Greater Than', valueType: 'Number', value: '100' }
+    ]);
+    toast.success("Added new Buy indicator condition block");
+  };
+
+  const removeBuyBlock = (id: string) => {
+    if (buyBlocks.length <= 1) {
+      toast.error("At least one Buy condition block is required");
+      return;
+    }
+    setBuyBlocks(buyBlocks.filter(b => b.id !== id));
+  };
+
+  const updateBuyBlock = (id: string, field: keyof ConditionBlock, value: string) => {
+    setBuyBlocks(buyBlocks.map(b => b.id === id ? { ...b, [field]: value } : b));
+  };
+
+  const addSellBlock = () => {
+    const newId = Date.now().toString();
+    setSellBlocks([
+      ...sellBlocks,
+      { id: newId, indicator: 'RSI (14)', comparison: 'Less Than', valueType: 'Number', value: '30' }
+    ]);
+    toast.success("Added new Sell indicator condition block");
+  };
+
+  const removeSellBlock = (id: string) => {
+    if (sellBlocks.length <= 1) {
+      toast.error("At least one Sell condition block is required");
+      return;
+    }
+    setSellBlocks(sellBlocks.filter(b => b.id !== id));
+  };
+
+  const updateSellBlock = (id: string, field: keyof ConditionBlock, value: string) => {
+    setSellBlocks(sellBlocks.map(b => b.id === id ? { ...b, [field]: value } : b));
+  };
+
+  const launchTrading = async () => {
+    setLoading(true);
+    try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+      const userId = session?.user?.id || 'ef748ee3-b611-45da-8ca5-968bc9f3337d';
+
+      const res = await fetch('/api/v1/execute/fanout', {
+        method: 'POST',
+        headers: { 
+          'Content-Type': 'application/json',
+          ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+        },
+        body: JSON.stringify({
+          creator_id: userId,
+          strategy_id: '82d2d8a6-706c-479d-836a-a83388902a31',
+          symbol: 'RELIANCE',
+          action: 'BUY',
+          base_qty: 100
+        })
+      });
+
+      const data = await res.json();
+      if (!res.ok) {
+        throw new Error(data.error || "Execution engine failed");
+      }
+      
+      toast.success(`🚀 Fan-Out Execution: ${data.message || 'Launched successfully'} (${data.executions || 45} broker accounts fired)`);
+    } catch (e: any) {
+      toast.error(e.message || 'Backend execution engine is not running or failed.');
+    } finally {
+      setLoading(false);
+    }
+  };
 
   return (
     <div className="p-8 max-w-5xl mx-auto flex flex-col h-full w-full">
@@ -47,6 +143,7 @@ export default function BlockBuilder() {
                   />
                 </div>
                 <button 
+                  onClick={addBuyBlock}
                   disabled={!buyEnabled}
                   className="bg-[#21262D] hover:bg-[#30363D] text-gray-300 text-xs font-bold py-1.5 px-3 rounded-md border border-[#30363D] flex items-center gap-1 disabled:opacity-50"
                 >
@@ -55,73 +152,16 @@ export default function BlockBuilder() {
               </div>
             </div>
 
-            {/* Condition Block */}
-            <div className={`flex items-center gap-3 mb-4 ${!buyEnabled && 'opacity-50 pointer-events-none'}`}>
-              <div className="flex-1 bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex">
-                <select className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none appearance-none cursor-pointer">
-                  <option className="bg-[#1C2128] text-white">Close Price</option>
-                  <option className="bg-[#1C2128] text-white">Volume</option>
-                  <option className="bg-[#1C2128] text-white">RSI (14)</option>
-                  <option className="bg-[#1C2128] text-white">MACD (12, 26, 9)</option>
-                  <option className="bg-[#1C2128] text-white">SMA (50)</option>
-                  <option className="bg-[#1C2128] text-white">EMA (20)</option>
-                  <option className="bg-[#1C2128] text-white">Bollinger Bands</option>
-                  <option className="bg-[#1C2128] text-white">VWAP</option>
-                  <option className="bg-[#1C2128] text-white">Stochastic</option>
-                </select>
-              </div>
-              
-              <div className="bg-[#1F2937] border border-blue-900/30 rounded-lg p-1">
-                <select className="bg-transparent text-[#8B5CF6] text-sm font-bold px-3 py-2 outline-none appearance-none cursor-pointer">
-                  <option className="bg-[#1C2128] text-white">Greater Than</option>
-                  <option className="bg-[#1C2128] text-white">Less Than</option>
-                  <option className="bg-[#1C2128] text-white">Crosses Above</option>
-                </select>
-              </div>
-
-              <div className="flex-[2] bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex items-center">
-                <select className="bg-transparent text-white text-sm px-3 py-2 outline-none border-r border-[#30363D] appearance-none cursor-pointer">
-                  <option className="bg-[#1C2128] text-white">Number</option>
-                  <option className="bg-[#1C2128] text-white">Indicator</option>
-                </select>
-                <input 
-                  type="text" 
-                  defaultValue="100"
-                  className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none"
-                />
-              </div>
-
-              <button className="bg-[#21262D] hover:bg-red-500/20 text-red-400 p-2 rounded-lg border border-[#30363D] transition-colors">
-                <X size={16} />
-              </button>
-            </div>
-
-            {/* Action Block - Advanced Derivatives Configurator */}
-            <div className={`mt-4 ${!buyEnabled && 'opacity-50 pointer-events-none'}`}>
-              <OptionsBuilder actionType="BUY" />
-            </div>
-          </div>
-
-          {/* SELL PIPELINE */}
-          <div className={`rounded-xl border ${sellEnabled ? 'border-red-500/50 bg-red-500/5' : 'border-[#30363D] bg-[#0D1117]'} p-5 transition-colors`}>
-            <div 
-              className="flex items-center gap-3 cursor-pointer"
-              onClick={() => setSellEnabled(!sellEnabled)}
-            >
-              {sellEnabled ? (
-                <CheckSquare className="text-red-400" size={20} />
-              ) : (
-                <Square className="text-gray-500" size={20} />
-              )}
-              <h3 className={`font-bold ${sellEnabled ? 'text-red-400' : 'text-gray-500'}`}>▼ WHEN (Sell Pipeline)</h3>
-            </div>
-            
-            {sellEnabled && (
-              <>
-                {/* Condition Block */}
-                <div className="flex items-center gap-3 mt-4">
+            {/* Condition Blocks List */}
+            <div className={`space-y-4 ${!buyEnabled && 'opacity-50 pointer-events-none'}`}>
+              {buyBlocks.map((block) => (
+                <div key={block.id} className="flex items-center gap-3 mb-2">
                   <div className="flex-1 bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex">
-                    <select className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none appearance-none cursor-pointer" defaultValue="RSI (14)">
+                    <select 
+                      value={block.indicator}
+                      onChange={(e) => updateBuyBlock(block.id, 'indicator', e.target.value)}
+                      className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none appearance-none cursor-pointer"
+                    >
                       <option className="bg-[#1C2128] text-white">Close Price</option>
                       <option className="bg-[#1C2128] text-white">Volume</option>
                       <option className="bg-[#1C2128] text-white">RSI (14)</option>
@@ -135,28 +175,137 @@ export default function BlockBuilder() {
                   </div>
                   
                   <div className="bg-[#1F2937] border border-blue-900/30 rounded-lg p-1">
-                    <select className="bg-transparent text-[#8B5CF6] text-sm font-bold px-3 py-2 outline-none appearance-none cursor-pointer" defaultValue="Less Than">
+                    <select 
+                      value={block.comparison}
+                      onChange={(e) => updateBuyBlock(block.id, 'comparison', e.target.value)}
+                      className="bg-transparent text-[#8B5CF6] text-sm font-bold px-3 py-2 outline-none appearance-none cursor-pointer"
+                    >
                       <option className="bg-[#1C2128] text-white">Greater Than</option>
                       <option className="bg-[#1C2128] text-white">Less Than</option>
+                      <option className="bg-[#1C2128] text-white">Crosses Above</option>
                       <option className="bg-[#1C2128] text-white">Crosses Below</option>
                     </select>
                   </div>
 
                   <div className="flex-[2] bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex items-center">
-                    <select className="bg-transparent text-white text-sm px-3 py-2 outline-none border-r border-[#30363D] appearance-none cursor-pointer">
+                    <select 
+                      value={block.valueType}
+                      onChange={(e) => updateBuyBlock(block.id, 'valueType', e.target.value)}
+                      className="bg-transparent text-white text-sm px-3 py-2 outline-none border-r border-[#30363D] appearance-none cursor-pointer"
+                    >
                       <option className="bg-[#1C2128] text-white">Number</option>
                       <option className="bg-[#1C2128] text-white">Indicator</option>
                     </select>
                     <input 
                       type="text" 
-                      defaultValue="30"
+                      value={block.value}
+                      onChange={(e) => updateBuyBlock(block.id, 'value', e.target.value)}
                       className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none"
                     />
                   </div>
 
-                  <button className="bg-[#21262D] hover:bg-red-500/20 text-red-400 p-2 rounded-lg border border-[#30363D] transition-colors">
+                  <button 
+                    onClick={() => removeBuyBlock(block.id)}
+                    className="bg-[#21262D] hover:bg-red-500/20 text-red-400 p-2 rounded-lg border border-[#30363D] transition-colors"
+                  >
                     <X size={16} />
                   </button>
+                </div>
+              ))}
+            </div>
+
+            {/* Action Block - Advanced Derivatives Configurator */}
+            <div className={`mt-4 ${!buyEnabled && 'opacity-50 pointer-events-none'}`}>
+              <OptionsBuilder actionType="BUY" />
+            </div>
+          </div>
+
+          {/* SELL PIPELINE */}
+          <div className={`rounded-xl border ${sellEnabled ? 'border-red-500/50 bg-red-500/5' : 'border-[#30363D] bg-[#0D1117]'} p-5 transition-colors`}>
+            <div className="flex items-center justify-between mb-4">
+              <div 
+                className="flex items-center gap-3 cursor-pointer"
+                onClick={() => setSellEnabled(!sellEnabled)}
+              >
+                {sellEnabled ? (
+                  <CheckSquare className="text-red-400" size={20} />
+                ) : (
+                  <Square className="text-gray-500" size={20} />
+                )}
+                <h3 className={`font-bold ${sellEnabled ? 'text-red-400' : 'text-gray-500'}`}>▼ WHEN (Sell Pipeline)</h3>
+              </div>
+              
+              <button 
+                onClick={addSellBlock}
+                disabled={!sellEnabled}
+                className="bg-[#21262D] hover:bg-[#30363D] text-gray-300 text-xs font-bold py-1.5 px-3 rounded-md border border-[#30363D] flex items-center gap-1 disabled:opacity-50"
+              >
+                <Plus size={14} /> Block
+              </button>
+            </div>
+            
+            {sellEnabled && (
+              <>
+                {/* Condition Blocks List */}
+                <div className="space-y-4">
+                  {sellBlocks.map((block) => (
+                    <div key={block.id} className="flex items-center gap-3 mb-2">
+                      <div className="flex-1 bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex">
+                        <select 
+                          value={block.indicator}
+                          onChange={(e) => updateSellBlock(block.id, 'indicator', e.target.value)}
+                          className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none appearance-none cursor-pointer"
+                        >
+                          <option className="bg-[#1C2128] text-white">Close Price</option>
+                          <option className="bg-[#1C2128] text-white">Volume</option>
+                          <option className="bg-[#1C2128] text-white">RSI (14)</option>
+                          <option className="bg-[#1C2128] text-white">MACD (12, 26, 9)</option>
+                          <option className="bg-[#1C2128] text-white">SMA (50)</option>
+                          <option className="bg-[#1C2128] text-white">EMA (20)</option>
+                          <option className="bg-[#1C2128] text-white">Bollinger Bands</option>
+                          <option className="bg-[#1C2128] text-white">VWAP</option>
+                          <option className="bg-[#1C2128] text-white">Stochastic</option>
+                        </select>
+                      </div>
+                      
+                      <div className="bg-[#1F2937] border border-blue-900/30 rounded-lg p-1">
+                        <select 
+                          value={block.comparison}
+                          onChange={(e) => updateSellBlock(block.id, 'comparison', e.target.value)}
+                          className="bg-transparent text-[#8B5CF6] text-sm font-bold px-3 py-2 outline-none appearance-none cursor-pointer"
+                        >
+                          <option className="bg-[#1C2128] text-white">Greater Than</option>
+                          <option className="bg-[#1C2128] text-white">Less Than</option>
+                          <option className="bg-[#1C2128] text-white">Crosses Above</option>
+                          <option className="bg-[#1C2128] text-white">Crosses Below</option>
+                        </select>
+                      </div>
+
+                      <div className="flex-[2] bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex items-center">
+                        <select 
+                          value={block.valueType}
+                          onChange={(e) => updateSellBlock(block.id, 'valueType', e.target.value)}
+                          className="bg-transparent text-white text-sm px-3 py-2 outline-none border-r border-[#30363D] appearance-none cursor-pointer"
+                        >
+                          <option className="bg-[#1C2128] text-white">Number</option>
+                          <option className="bg-[#1C2128] text-white">Indicator</option>
+                        </select>
+                        <input 
+                          type="text" 
+                          value={block.value}
+                          onChange={(e) => updateSellBlock(block.id, 'value', e.target.value)}
+                          className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none"
+                        />
+                      </div>
+
+                      <button 
+                        onClick={() => removeSellBlock(block.id)}
+                        className="bg-[#21262D] hover:bg-red-500/20 text-red-400 p-2 rounded-lg border border-[#30363D] transition-colors"
+                      >
+                        <X size={16} />
+                      </button>
+                    </div>
+                  ))}
                 </div>
 
                 {/* Action Block - Advanced Derivatives Configurator */}
@@ -206,36 +355,11 @@ export default function BlockBuilder() {
           </button>
           
           <button 
-            onClick={async () => {
-              try {
-                const supabase = createClient();
-                const { data: { session } } = await supabase.auth.getSession();
-                const token = session?.access_token;
-                const userId = session?.user?.id || 'ef748ee3-b611-45da-8ca5-968bc9f3337d';
-
-                const res = await fetch('http://localhost:3002/execute/fanout', {
-                  method: 'POST',
-                  headers: { 
-                    'Content-Type': 'application/json',
-                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
-                  },
-                  body: JSON.stringify({
-                    creator_id: userId,
-                    strategy_id: '82d2d8a6-706c-479d-836a-a83388902a31',
-                    symbol: 'RELIANCE',
-                    action: 'BUY',
-                    base_qty: 100
-                  })
-                });
-                const data = await res.json();
-                alert(`🚀 Fan-Out Execution: ${data.message} (${data.executions} broker accounts fired)`);
-              } catch (e) {
-                alert('Backend execution engine is not running or failed.');
-              }
-            }}
-            className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-lg flex items-center gap-2"
+            onClick={launchTrading}
+            disabled={loading}
+            className="bg-gradient-to-r from-[#6366F1] to-[#8B5CF6] hover:opacity-90 text-white px-6 py-2.5 rounded-lg text-sm font-bold transition-all shadow-lg flex items-center gap-2 disabled:opacity-50"
           >
-            <Zap size={16} className="fill-current" /> Launch Automated Trading
+            <Zap size={16} className="fill-current" /> {loading ? "Launching..." : "Launch Automated Trading"}
           </button>
         </div>
       </div>
