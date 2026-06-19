@@ -22,7 +22,20 @@ router.post('/onboard', async (req, res) => {
       return res.status(401).json({ error: 'Unauthorized. User ID missing.' });
     }
 
-    const { pan_number, sebi_registration_number, is_ria } = req.body;
+    // Check if the user already has an approved KYC status
+    const { data: existingKyc } = await supabase
+      .from('user_kyc')
+      .select('kyc_status')
+      .eq('user_id', userId)
+      .maybeSingle();
+
+    if (existingKyc && existingKyc.kyc_status === 'approved') {
+      return res.status(400).json({ error: 'Your KYC is already approved and verified.' });
+    }
+
+    const pan_number = typeof req.body.pan_number === 'string' ? req.body.pan_number : undefined;
+    const sebi_registration_number = typeof req.body.sebi_registration_number === 'string' ? req.body.sebi_registration_number : undefined;
+    const is_ria = !!req.body.is_ria;
 
     // 1. Strict Compliance Checks
     if (!pan_number || pan_number.trim().length !== 10) {
@@ -55,7 +68,7 @@ router.post('/onboard', async (req, res) => {
       .from('user_kyc')
       .upsert({ 
         user_id: userId, 
-        sebi_registration_number: is_ria ? sebi_registration_number.trim().toUpperCase() : null,
+        sebi_registration_number: is_ria && sebi_registration_number ? sebi_registration_number.trim().toUpperCase() : null,
         is_ria: !!is_ria,
         kyc_status: 'pending' 
       }, { onConflict: 'user_id' });

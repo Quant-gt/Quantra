@@ -1,18 +1,22 @@
 import pandas as pd
 import numpy as np
 import yfinance as yf
+import numexpr as ne
 from agents.intent_parser import StrategySchema
+from core.symbol_resolver import SymbolResolver
 
 class VectorBacktester:
-    def __init__(self, strategy: StrategySchema, start_date: str = "2020-01-01"):
+    def __init__(self, strategy: StrategySchema, start_date: str = "2020-01-01", df: pd.DataFrame = None):
         self.strategy = strategy
         self.start_date = start_date
-        self.df = pd.DataFrame()
+        self.df = df if df is not None else pd.DataFrame()
 
     def fetch_data(self):
         """Fetches data from Yahoo Finance."""
-        # Map NSE index name to Yahoo Finance ticker
-        ticker = "^NSEI" if self.strategy.market == "NSE_IDX" else "RELIANCE.NS" # Default fallback
+        if not self.df.empty:
+            return self.df
+        # Resolve the asset/market to a Yahoo Finance ticker dynamically
+        ticker = SymbolResolver.resolve_to_yahoo(self.strategy.market)
         print(f"Fetching data for {ticker} from {self.start_date}...")
         self.df = yf.download(ticker, start=self.start_date, interval=self.strategy.timeframe)
         # Flatten multi-level columns if any (yf returns MultiIndex sometimes)
@@ -27,8 +31,14 @@ class VectorBacktester:
         delta = series.diff()
         gain = (delta.where(delta > 0, 0)).rolling(window=period).mean()
         loss = (-delta.where(delta < 0, 0)).rolling(window=period).mean()
+        
+        # Handle division by zero safely
         rs = gain / loss
-        return 100 - (100 / (1 + rs))
+        rsi = 100 - (100 / (1 + rs))
+        
+        # Replace inf and NaN values where loss is 0
+        rsi = rsi.where(loss > 0, np.where(gain > 0, 100.0, 50.0))
+        return rsi
 
     def _calculate_atr(self, period: int = 14) -> pd.Series:
         high_low = self.df['high'] - self.df['low']
@@ -70,27 +80,49 @@ class VectorBacktester:
         if not self.strategy.entry_logic:
             return
             
-        # Parse logic into pandas eval strings (Very basic parser for demo)
-        # In a production system, a robust AST parser should map "RSI < 30" to "RSI_14 < 30"
-        # Assuming the LLM uses exact column names we generated, or we map them.
-        
-        # Example hardcoded evaluation for safety during Phase 3 setup:
-        # We will assume entry_logic contains valid python/pandas expressions referring to df columns
+        # Parse logic into pandas eval strings
         try:
-            # Combine all entry conditions with AND
-            entry_condition_str = " and ".join(self.strategy.entry_logic)
-            # Combine all exit conditions with OR
-            exit_condition_str = " or ".join(self.strategy.exit_logic) if self.strategy.exit_logic else "False"
+            # Let's map any case-insensitive variable or missing lookbacks in entry/exit logic strings to computed columns
+            # E.g. if column is 'RSI_14' and logic has 'RSI < 30', rewrite as 'RSI_14 < 30'
+            computed_cols = list(self.df.columns)
             
-            # Use pandas eval if possible, but fallback to a safe namespace
+            def normalize_logic(logic_list):
+                normalized_list = []
+                for cond in logic_list:
+                    normalized_cond = cond
+                    # Loop through columns sorted by length descending so longer column names get replaced first
+                    for col in sorted(computed_cols, key=len, reverse=True):
+                        col_base = col.split('_')[0] if '_' in col else col
+                        # Replace exact matches case-insensitively
+                        import re
+                        # Replace e.g., "RSI_14" (case-insensitive) with exact "RSI_14"
+                        normalized_cond = re.sub(re.escape(col), col, normalized_cond, flags=re.IGNORECASE)
+                        # Replace e.g., "RSI" (case-insensitive base indicator) with "RSI_14" if not already followed by lookback
+                        pattern = r'\b' + re.escape(col_base) + r'\b(?!\s*_\s*\d+)'
+                        normalized_cond = re.sub(pattern, col, normalized_cond, flags=re.IGNORECASE)
+                    normalized_list.append(normalized_cond)
+                return normalized_list
+
+            normalized_entry = normalize_logic(self.strategy.entry_logic)
+            normalized_exit = normalize_logic(self.strategy.exit_logic or [])
+            
+            entry_condition_str = " and ".join(normalized_entry)
+            exit_condition_str = " or ".join(normalized_exit) if normalized_exit else "False"
+            
+            # Use safe numexpr evaluation
             if entry_condition_str:
-                self.df['entry_signal'] = self.df.eval(entry_condition_str)
+                self.df['entry_signal'] = ne.evaluate(entry_condition_str, local_dict=self.df.to_dict('series'))
             if exit_condition_str:
-                self.df['exit_signal'] = self.df.eval(exit_condition_str)
+                self.df['exit_signal'] = ne.evaluate(exit_condition_str, local_dict=self.df.to_dict('series'))
                 
         except Exception as e:
-            print(f"Signal Evaluation Warning (using fallback): {e}")
-            pass
+            # Raise descriptive error to be caught by optimizer/API instead of silent failure
+            raise ValueError(
+                f"Signal evaluation failed: {e}. "
+                f"Original Entry Logic: {self.strategy.entry_logic}, "
+                f"Normalized Entry: {entry_condition_str if 'entry_condition_str' in locals() else 'N/A'}, "
+                f"Available Columns: {list(self.df.columns)}"
+            )
 
         # Apply Guardrail: Only allow longs when close > 200 SMA
         self.df['entry_signal'] = self.df['entry_signal'] & (self.df['close'] > self.df['regime_sma'])

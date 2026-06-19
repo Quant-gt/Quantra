@@ -10,6 +10,7 @@ class StrategyOptimizer:
     def __init__(self, base_strategy: StrategySchema, start_date: str = "2020-01-01"):
         self.base_strategy = base_strategy
         self.start_date = start_date
+        self.cached_df = None
         
     def objective(self, trial):
         # 1. Mutate parameters safely using deepcopy
@@ -33,7 +34,7 @@ class StrategyOptimizer:
         mutated_strategy.stop_loss_atr = trial.suggest_float("stop_loss_atr", 1.5, 4.0, step=0.1)
             
         # 2. Run backtest
-        bt = VectorBacktester(mutated_strategy, start_date=self.start_date)
+        bt = VectorBacktester(mutated_strategy, start_date=self.start_date, df=self.cached_df.copy() if self.cached_df is not None else None)
         
         try:
             results = bt.run_backtest()
@@ -62,6 +63,10 @@ class StrategyOptimizer:
         
     def run_optimization(self, n_trials=30) -> dict:
         """Runs the Optuna study and returns the best parameters."""
+        # Pre-download historical data once to avoid repeated network requests & rate limits
+        loader = VectorBacktester(self.base_strategy, start_date=self.start_date)
+        self.cached_df = loader.fetch_data()
+        
         study = optuna.create_study(direction="maximize")
         study.optimize(self.objective, n_trials=n_trials)
         
@@ -84,7 +89,7 @@ class StrategyOptimizer:
             optimal_strategy.stop_loss_atr = best_params["stop_loss_atr"]
             
         # Run one final backtest with best params to get full metrics
-        final_bt = VectorBacktester(optimal_strategy, start_date=self.start_date)
+        final_bt = VectorBacktester(optimal_strategy, start_date=self.start_date, df=self.cached_df.copy() if self.cached_df is not None else None)
         final_metrics = final_bt.run_backtest()
         
         return {

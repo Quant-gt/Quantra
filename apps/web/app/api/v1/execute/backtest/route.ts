@@ -5,6 +5,14 @@ export async function POST(request: Request) {
     const body = await request.json();
     const { strategy_id, symbol, initial_capital } = body;
 
+    // Validate inputs
+    if (typeof initial_capital !== 'number' || initial_capital <= 0) {
+      return NextResponse.json({ success: false, error: 'initial_capital must be a positive number' }, { status: 400 });
+    }
+    if (!strategy_id || !symbol) {
+      return NextResponse.json({ success: false, error: 'strategy_id and symbol are required' }, { status: 400 });
+    }
+
     // Simulate engine processing time
     await new Promise(resolve => setTimeout(resolve, 1500));
 

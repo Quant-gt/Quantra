@@ -8,7 +8,8 @@ export const maxDuration = 10;
 export async function GET(request: Request) {
   // Verify cron secret to prevent unauthorized execution
   const authHeader = request.headers.get('authorization');
-  if (authHeader !== `Bearer ${process.env.CRON_SECRET}`) {
+  const cronSecret = process.env.CRON_SECRET;
+  if (!cronSecret || authHeader !== `Bearer ${cronSecret}`) {
     return new NextResponse('Unauthorized', { status: 401 });
   }
 

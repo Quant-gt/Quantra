@@ -4,26 +4,21 @@ import json
 from fyers_apiv3.FyersWebsocket import data_ws
 from fyers_auth import get_fyers_access_token
 import os
+from core.symbol_resolver import SymbolResolver
 
 # Global dictionary to cache the latest prices
 LATEST_PRICES = {}
+LATEST_PRICES_LOCK = threading.Lock()
 _ws_instance = None
-
-# Mapping Fyers symbols to UI names
-SYMBOL_MAP = {
-    "NSE:NIFTY50-INDEX": "NIFTY 50",
-    "BSE:SENSEX-INDEX": "SENSEX",
-    "NSE:RELIANCE-EQ": "RELIANCE",
-    "NSE:TCS-EQ": "TCS",
-    "NSE:HDFCBANK-EQ": "HDFCBANK"
-}
+_is_connected = False
 
 def onmessage(message):
     """Callback function when a new tick is received"""
     if "symbol" in message:
         symbol = message["symbol"]
-        if symbol in SYMBOL_MAP:
-            name = SYMBOL_MAP[symbol]
+        fyers_symbol = SymbolResolver.resolve_to_fyers(symbol)
+        if fyers_symbol in SymbolResolver.MAP:
+            name = SymbolResolver.resolve_to_display(fyers_symbol)
             ltp = message.get("ltp", 0.0)
             prev_close = message.get("prev_close_price", ltp)
             
@@ -32,27 +27,36 @@ def onmessage(message):
             if prev_close > 0:
                 change_pct = ((ltp - prev_close) / prev_close) * 100
                 
-            LATEST_PRICES[name] = {
-                "name": name,
-                "price": f"{ltp:,.2f}",
-                "change": f"{'+' if change_pct >= 0 else ''}{change_pct:.2f}%",
-                "up": change_pct >= 0
-            }
+            with LATEST_PRICES_LOCK:
+                LATEST_PRICES[name] = {
+                    "name": name,
+                    "price": f"{ltp:,.2f}",
+                    "change": f"{'+' if change_pct >= 0 else ''}{change_pct:.2f}%",
+                    "up": change_pct >= 0
+                }
 
 def onerror(message):
     print(f"Fyers WebSocket Error: {message}")
 
 def onclose(message):
+    global _is_connected
+    _is_connected = False
     print(f"Fyers WebSocket Closed: {message}")
 
 def onopen():
+    global _is_connected
+    _is_connected = True
     print("Fyers WebSocket Connected. Subscribing to symbols...")
-    symbols = list(SYMBOL_MAP.keys())
+    symbols = list(SymbolResolver.MAP.keys())
     # data_type = "SymbolUpdate" -> Subscribe for live ticks
     _ws_instance.subscribe(data_type="SymbolUpdate", symbol=symbols)
 
 def start_fyers_websocket():
-    global _ws_instance
+    global _ws_instance, _is_connected
+    if _ws_instance and _is_connected:
+        print("Fyers WebSocket is already connected.")
+        return
+
     access_token = get_fyers_access_token()
     if not access_token:
         print("Could not retrieve Fyers Access Token. WebSocket will not start.")
@@ -80,4 +84,5 @@ def start_fyers_websocket():
 
 def get_latest_prices():
     """Returns the cached latest prices formatted for the frontend"""
-    return list(LATEST_PRICES.values())
+    with LATEST_PRICES_LOCK:
+        return list(LATEST_PRICES.values())

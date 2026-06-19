@@ -63,6 +63,13 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Protect admin routes
+  if (request.nextUrl.pathname.startsWith('/admin')) {
+    if (!session) {
+      return NextResponse.redirect(new URL('/auth', request.url))
+    }
+  }
+
   // Redirect logged in users away from auth pages
   if (request.nextUrl.pathname.startsWith('/auth')) {
     // Exclude callback route from this check to allow OAuth flow to complete

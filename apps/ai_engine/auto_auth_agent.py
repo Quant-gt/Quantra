@@ -25,8 +25,14 @@ async def run_automated_login():
 
     print("Launching Playwright Headless Browser...")
     async with async_playwright() as p:
-        # Launch Chromium headless
-        browser = await p.chromium.launch(headless=True)
+        try:
+            # Launch Chromium headless
+            browser = await p.chromium.launch(headless=True)
+        except Exception as launch_err:
+            print(f"Failed to launch Playwright browser: {launch_err}")
+            print("Please ensure browser binaries are installed by running: playwright install chromium")
+            return False
+
         context = await browser.new_context()
         page = await context.new_page()
 
@@ -55,8 +61,8 @@ async def run_automated_login():
                 
             await page.click('button[id="confirmOtpSubmit"]')
 
-            # Wait for PIN screen
-            await page.wait_for_selector('input[id="first"]', timeout=10000)
+            # Wait for PIN screen (Wait for verifyPinSubmit button to ensure transition finished)
+            await page.wait_for_selector('button[id="verifyPinSubmit"]', timeout=10000)
 
             # 3. Enter PIN
             print("Entering PIN...")

@@ -29,14 +29,24 @@ export const dailyAuthCheck = async (req: express.Request, res: express.Response
 
     const userId = user.id;
     req.headers['x-user-id'] = userId; // Set verified user ID for downstream middlewares
-    // Get current time in IST
+    // Get current time in IST using a robust timezone-agnostic calculation
     const now = new Date();
-    const istDateStr = now.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour12: false });
-    const parts = istDateStr.split(', ');
-    const timePart = parts[1] || "00:00:00";
-    const timeSplits = timePart.split(':').map(Number);
-    const hours = timeSplits[0] || 0;
-    const minutes = timeSplits[1] || 0;
+    const getIstDateComponents = (date: Date) => {
+      // Calculate IST time using UTC time plus the 5.5 hour offset (5 hours 30 mins)
+      const utcTime = date.getTime() + (date.getTimezoneOffset() * 60000);
+      const istTime = new Date(utcTime + 5.5 * 3600000);
+      return {
+        year: istTime.getFullYear(),
+        month: istTime.getMonth(),
+        day: istTime.getDate(),
+        hours: istTime.getHours(),
+        minutes: istTime.getMinutes(),
+      };
+    };
+
+    const nowIst = getIstDateComponents(now);
+    const hours = nowIst.hours;
+    const minutes = nowIst.minutes;
 
     // 1. Check if current time is past 16:05 IST
     if (hours > 16 || (hours === 16 && minutes >= 5)) {
@@ -63,10 +73,13 @@ export const dailyAuthCheck = async (req: express.Request, res: express.Response
 
     // 3. Check if last 2FA was today
     const last2fa = new Date(data.last_daily_2fa_at);
-    const last2faIst = last2fa.toLocaleString('en-US', { timeZone: 'Asia/Kolkata', hour12: false });
-    const [last2faDatePart] = last2faIst.split(', ');
+    const last2faIst = getIstDateComponents(last2fa);
 
-    if (parts[0] !== last2faDatePart) {
+    if (
+      nowIst.year !== last2faIst.year ||
+      nowIst.month !== last2faIst.month ||
+      nowIst.day !== last2faIst.day
+    ) {
       return res.status(403).json({
         error: 'Daily 2FA authentication required for today.',
         code: 'MANDATORY_DAILY_2FA'
@@ -88,4 +101,24 @@ export const dailyAuthCheck = async (req: express.Request, res: express.Response
     console.error('Error in dailyAuthCheck middleware:', error);
     res.status(500).json({ error: 'Internal server error during compliance check' });
   }
+};
+
+/**
+ * Middleware to check if the authenticated user has admin privileges.
+ * Must be used after dailyAuthCheck to ensure x-user-id is set.
+ */
+export const adminOnly = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const userId = req.headers['x-user-id'] as string;
+  
+  if (!userId) {
+    return res.status(401).json({ error: 'Unauthorized. User ID missing.' });
+  }
+
+  const adminIds = (process.env.ADMIN_USER_IDS || '').split(',').map(id => id.trim());
+  
+  if (!adminIds.includes(userId)) {
+    return res.status(403).json({ error: 'Forbidden. Admin privileges required.' });
+  }
+
+  next();
 };

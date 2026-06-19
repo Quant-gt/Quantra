@@ -1,6 +1,7 @@
 from fastapi import FastAPI, HTTPException
 from pydantic import BaseModel
 import os
+import asyncio
 from datetime import datetime
 
 # Import scrapegraphai lazily to avoid crash if not installed
@@ -24,7 +25,7 @@ def health():
     }
 
 @app.post("/api/scrape")
-def scrape(req: ScrapeRequest):
+async def scrape(req: ScrapeRequest):
     if not SmartScraperGraph:
         raise HTTPException(status_code=503, detail="ScrapeGraphAI not installed or failed to load")
     
@@ -47,7 +48,8 @@ def scrape(req: ScrapeRequest):
             source=req.url,
             config=graph_config
         )
-        result = smart_scraper_graph.run()
+        # Offload the heavy synchronous scraping execution to a background worker thread
+        result = await asyncio.to_thread(smart_scraper_graph.run)
         return {"success": True, "data": result}
     except Exception as e:
         raise HTTPException(status_code=500, detail=str(e))

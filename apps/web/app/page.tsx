@@ -203,24 +203,25 @@ export default function Home() {
           { icon: <Shield size={24} />, title: 'Institutional Security', desc: 'End-to-end encryption for your proprietary alpha strategies.' },
           { icon: <Globe size={24} />, title: 'Global Markets', desc: 'Seamlessly trade across 500+ major global exchanges from one view.' }
         ].map((f, i) => (
-          <motion.div 
-            key={i}
-            whileHover={{ y: -5, borderColor: 'rgba(16,185,129,0.3)' }}
-            className="p-8 rounded-3xl bg-[#0B0F19]/40 backdrop-blur-sm border border-white/5 transition-all cursor-pointer group shadow-xl"
-          >
-            <div className="text-emerald-500 mb-6 group-hover:scale-110 group-hover:text-glow transition-all duration-300">
-              {f.icon}
-            </div>
-            <h3 className="text-white text-xl font-bold mb-3 group-hover:text-emerald-400 transition-colors">
-              {f.title}
-            </h3>
-            <p className="text-gray-500 text-sm leading-relaxed">
-              {f.desc}
-            </p>
-            <div className="mt-6 flex items-center text-xs font-bold text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">
-              Learn More <ArrowUpRight size={12} className="ml-1" />
-            </div>
-          </motion.div>
+          <Link href="/auth" key={i}>
+            <motion.div 
+              whileHover={{ y: -5, borderColor: 'rgba(16,185,129,0.3)' }}
+              className="p-8 rounded-3xl bg-[#0B0F19]/40 backdrop-blur-sm border border-white/5 transition-all cursor-pointer group shadow-xl h-full"
+            >
+              <div className="text-emerald-500 mb-6 group-hover:scale-110 group-hover:text-glow transition-all duration-300">
+                {f.icon}
+              </div>
+              <h3 className="text-white text-xl font-bold mb-3 group-hover:text-emerald-400 transition-colors">
+                {f.title}
+              </h3>
+              <p className="text-gray-500 text-sm leading-relaxed">
+                {f.desc}
+              </p>
+              <div className="mt-6 flex items-center text-xs font-bold text-emerald-500 opacity-0 group-hover:opacity-100 transition-opacity">
+                Learn More <ArrowUpRight size={12} className="ml-1" />
+              </div>
+            </motion.div>
+          </Link>
         ))}
       </section>
 
@@ -425,12 +426,12 @@ export default function Home() {
                   {/* Visual controls footer */}
                   <div className="border-t border-white/5 pt-4 mt-auto flex justify-between items-center text-[10px] text-gray-500">
                     <span>Press the steps to navigate manually.</span>
-                    <button 
-                      onClick={() => setIsDemoOpen(false)}
-                      className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-lg transition-colors"
+                    <Link 
+                      href="/auth"
+                      className="px-3 py-1 bg-emerald-500 hover:bg-emerald-600 text-black font-bold rounded-lg transition-colors inline-block"
                     >
                       Access Terminal
-                    </button>
+                    </Link>
                   </div>
                 </div>
 

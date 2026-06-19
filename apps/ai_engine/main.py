@@ -1,5 +1,6 @@
 import asyncio
 import json
+import os
 from fastapi import FastAPI, HTTPException, Request
 from fastapi.responses import StreamingResponse, RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
@@ -32,9 +33,10 @@ async def startup_event():
     print("Started APScheduler for 8:45 AM Auto-Auth Agent")
 
 # Allow requests from the Next.js frontend
+allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"], # In production, restrict this to the actual Vercel domain
+    allow_origins=allowed_origins, # No wildcard when credentials are true
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -52,15 +54,18 @@ async def get_login_url():
 
 @app.get("/api/v1/fyers/callback")
 async def fyers_callback(auth_code: str = None, s: str = None, code: str = None):
+    frontend_url = os.getenv("FRONTEND_URL", "http://localhost:3000")
     # Fyers sometimes sends auth_code, sometimes just code
     actual_code = auth_code or code
     if not actual_code:
-        return RedirectResponse("http://localhost:3000/admin/broker?error=no_code")
+        return RedirectResponse(f"{frontend_url}/admin/broker?error=no_code")
     try:
         generate_token_from_auth_code(actual_code)
-        return RedirectResponse("http://localhost:3000/admin/broker?success=true")
+        # Start Fyers live WebSocket feed since we now have a valid token
+        start_fyers_websocket()
+        return RedirectResponse(f"{frontend_url}/admin/broker?success=true")
     except Exception as e:
-        return RedirectResponse(f"http://localhost:3000/admin/broker?error={str(e)}")
+        return RedirectResponse(f"{frontend_url}/admin/broker?error={str(e)}")
 
 @app.post("/api/v1/generate", response_model=StrategySchema)
 async def generate_strategy(request: StrategyPromptRequest):

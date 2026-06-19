@@ -1,6 +1,6 @@
 import express from 'express';
 import redis from './lib/redis.js';
-import { dailyAuthCheck } from './middleware/auth.js';
+import { dailyAuthCheck, adminOnly } from './middleware/auth.js';
 import { opsMonitor } from './middleware/ops.js';
 import { killSwitchCheck } from './middleware/killswitch.js';
 import creatorRoutes from './routes/creator.js';
@@ -38,6 +38,11 @@ app.get('/health', (req, res) => {
 
 // Auth webhook for logging login activity
 app.post('/webhook/auth', express.json(), async (req, res) => {
+  const webhookSecret = req.headers['x-webhook-secret'];
+  if (!process.env.WEBHOOK_SECRET || webhookSecret !== process.env.WEBHOOK_SECRET) {
+    return res.status(401).json({ error: 'Unauthorized webhook request' });
+  }
+
   const { user_id, event, ip_address, user_agent } = req.body;
   
   if (event === 'SIGNED_IN') {
@@ -55,6 +60,57 @@ app.post('/api/strategy/deploy', dailyAuthCheck, killSwitchCheck, express.json()
     message: 'Strategy deployment authorized. All SEBI daily compliance checks passed.'
   });
 });
+
+function hasCycle(nodes: any[], edges: any[]): boolean {
+  const adjList = new Map<string, string[]>();
+  for (const node of nodes) {
+    if (node && node.id) {
+      adjList.set(node.id, []);
+    }
+  }
+  for (const edge of edges) {
+    if (edge && edge.source && edge.target) {
+      if (adjList.has(edge.source)) {
+        adjList.get(edge.source)!.push(edge.target);
+      }
+    }
+  }
+
+  const visited = new Set<string>();
+  const recStack = new Set<string>();
+
+  function dfs(nodeId: string): boolean {
+    if (recStack.has(nodeId)) {
+      return true;
+    }
+    if (visited.has(nodeId)) {
+      return false;
+    }
+
+    visited.add(nodeId);
+    recStack.add(nodeId);
+
+    const neighbors = adjList.get(nodeId) || [];
+    for (const neighbor of neighbors) {
+      if (dfs(neighbor)) {
+        return true;
+      }
+    }
+
+    recStack.delete(nodeId);
+    return false;
+  }
+
+  for (const node of nodes) {
+    if (node && node.id) {
+      if (dfs(node.id)) {
+        return true;
+      }
+    }
+  }
+
+  return false;
+}
 
 // Protected route for Strategy DAG Validation (Stage 1-3 validation)
 app.post('/api/strategy/validate', dailyAuthCheck, express.json(), async (req, res) => {
@@ -75,8 +131,8 @@ app.post('/api/strategy/validate', dailyAuthCheck, express.json(), async (req, r
     });
   }
 
-  // Stage 2: Cycle Detection (Simple mock for now)
-  const isCyclic = false; // Add DFS cycle detection logic here for production
+  // Stage 2: Cycle Detection
+  const isCyclic = hasCycle(nodes, edges);
   if (isCyclic) {
     return res.status(400).json({ 
       error: 'Cycle Detected', 
@@ -109,7 +165,7 @@ app.post('/api/trade/place', dailyAuthCheck, killSwitchCheck, opsMonitor, expres
 });
 
 // Admin route to trigger Kill Switch (SEBI Compliance)
-app.post('/api/admin/killswitch', express.json(), async (req, res) => {
+app.post('/api/admin/killswitch', dailyAuthCheck, adminOnly, express.json(), async (req, res) => {
   const { action, userId } = req.body;
 
   if (!action || !['activate', 'deactivate'].includes(action)) {
