@@ -1,9 +1,4 @@
-import dynamic from 'next/dynamic';
-
-const VisualBuilder = dynamic(() => import("@/components/builder/VisualBuilder"), {
-  ssr: false,
-  loading: () => <div className="p-8 text-white/50 text-center bg-slate-950 h-full flex items-center justify-center">Loading Visual Canvas...</div>
-});
+import VisualBuilderClient from "@/components/builder/VisualBuilderClient";
 import { createClient } from "@/lib/supabase/server";
 import { notFound } from "next/navigation";
 
@@ -52,7 +47,7 @@ export default async function BuilderPage() {
         </div>
       </div>
 
-      <VisualBuilder />
+      <VisualBuilderClient />
     </div>
   );
 }
