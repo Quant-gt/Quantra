@@ -26,8 +26,8 @@ export default function StrategyPublishForm() {
       return;
     }
 
-    if (!/^(NSE|BSE)-STRAT-[A-Z0-9]{6}$/.test(algoId)) {
-      setError("Invalid Algo-ID format. Must be NSE-STRAT-XXXXXX or BSE-STRAT-XXXXXX.");
+    if (!/^(NSE|BSE)-STRAT-[A-Z0-9]{6,12}$/.test(algoId)) {
+      setError("Invalid Algo-ID format. Must start with 'NSE-STRAT-' or 'BSE-STRAT-', followed by 6 to 12 alphanumeric characters (e.g., NSE-STRAT-A1B2C3).");
       setLoading(false);
       return;
     }

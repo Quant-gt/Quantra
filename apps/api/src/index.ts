@@ -8,11 +8,15 @@ import creatorRoutes from './routes/creator.js';
 const app = express();
 const port = process.env.PORT || 3001;
 
+// Trust the first proxy hop (e.g. Render/Vercel) to parse X-Forwarded-For securely
+app.set('trust proxy', 1);
+
 // Middleware for brute-force rate limiting using Upstash Redis
 const rateLimiter = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (!process.env.UPSTASH_REDIS_REST_URL) return next();
 
-  const ip = req.headers['x-forwarded-for'] || req.socket.remoteAddress;
+  // Securely resolve client IP via Express req.ip (which respects 'trust proxy')
+  const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
   const key = `ratelimit_${ip}`;
 
   try {

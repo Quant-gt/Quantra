@@ -45,15 +45,11 @@ export async function POST(request: Request) {
       if (!nlpResponse.ok) throw new Error('NLP service failed');
       nlpData = await nlpResponse.json();
     } catch (e) {
-      console.warn('NLP Service unavailable, falling back to simulated extraction');
-      // Fallback simulation if NLP service is not running
-      nlpData = {
-        embedding: Array(384).fill(0).map(() => Math.random() - 0.5), // Dummy embedding
-        entities: [
-          { type: 'RISK_LEVEL', value: 'Medium' }
-        ],
-        tsvector_fallback: query.replace(' ', ' | ')
-      };
+      console.error('NLP Service unavailable:', e);
+      return NextResponse.json(
+        { error: 'NLP Service is currently unavailable. Please try again later.' },
+        { status: 503 }
+      );
     }
 
     // 3. Query Supabase using RPC
