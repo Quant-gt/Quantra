@@ -1,0 +1,67 @@
+"use client";
+
+import React, { useEffect, useRef } from 'react';
+
+export default function TradingViewTicker() {
+  const containerRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    // Only load the script if the container is empty to prevent duplicates (e.g. React StrictMode)
+    if (!containerRef.current || containerRef.current.children.length > 0) return;
+
+    const script = document.createElement("script");
+    script.src = "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";
+    script.type = "text/javascript";
+    script.async = true;
+    script.innerHTML = JSON.stringify({
+      symbols: [
+        {
+          proName: "NSE:NIFTY",
+          title: "NIFTY 50"
+        },
+        {
+          proName: "NSE:BANKNIFTY",
+          title: "BANK NIFTY"
+        },
+        {
+          proName: "BSE:SENSEX",
+          title: "SENSEX"
+        },
+        {
+          proName: "NSE:RELIANCE",
+          title: "RELIANCE"
+        },
+        {
+          proName: "NSE:TCS",
+          title: "TCS"
+        },
+        {
+          proName: "NSE:HDFCBANK",
+          title: "HDFCBANK"
+        }
+      ],
+      showSymbolLogo: true,
+      colorTheme: "dark",
+      isTransparent: true,
+      displayMode: "adaptive",
+      locale: "en"
+    });
+
+    containerRef.current.appendChild(script);
+
+    return () => {
+      // Clear contents on unmount
+      if (containerRef.current) {
+        containerRef.current.innerHTML = "";
+      }
+    };
+  }, []);
+
+  return (
+    <div className="w-full bg-[#030712] border-y border-white/5 py-1">
+      <div ref={containerRef} className="tradingview-widget-container">
+        <div className="tradingview-widget-container__widget"></div>
+      </div>
+    </div>
+  );
+}

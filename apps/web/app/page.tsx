@@ -8,66 +8,14 @@ import {
 } from 'lucide-react';
 import Link from 'next/link';
 import PublicNavbar from '@/components/PublicNavbar';
+import TradingViewTicker from '@/components/TradingViewTicker';
 
 export default function Home() {
   const [isHovered, setIsHovered] = useState(false);
   const [isDemoOpen, setIsDemoOpen] = useState(false);
   const [demoStep, setDemoStep] = useState(0);
 
-  const [stocks, setStocks] = useState<{name: string, price: string, change: string, up: boolean}[]>([]);
 
-  useEffect(() => {
-    // Attempt to connect to the deployed AI Engine SSE stream
-    const ENGINE_URL = process.env.NEXT_PUBLIC_AI_ENGINE_URL || 'http://localhost:8000';
-    let fallbackInterval: NodeJS.Timeout;
-    
-    const useFallback = () => {
-      fetch('/api/v1/market/ticker')
-        .then(res => res.json())
-        .then(data => {
-          if (data.stocks && data.stocks.length > 0) {
-            setStocks(data.stocks);
-          }
-        })
-        .catch(console.error);
-    };
-
-    try {
-      const eventSource = new EventSource(`${ENGINE_URL}/api/v1/market/stream`);
-      
-      eventSource.onmessage = (event) => {
-        try {
-          const data = JSON.parse(event.data);
-          if (data.stocks && data.stocks.length > 0) {
-            setStocks(data.stocks);
-          }
-        } catch (e) {
-          console.error("Error parsing ticker SSE data:", e);
-        }
-      };
-
-      eventSource.onerror = (err) => {
-        // If SSE fails (e.g., mixed content on Vercel or backend down), fallback to Yahoo Finance polling
-        console.warn("EventSource failed, falling back to Yahoo Finance API:", err);
-        eventSource.close();
-        
-        // Immediate fallback fetch
-        useFallback();
-        // Poll every 5 seconds as a fallback
-        fallbackInterval = setInterval(useFallback, 5000);
-      };
-
-      return () => {
-        eventSource.close();
-        if (fallbackInterval) clearInterval(fallbackInterval);
-      };
-    } catch (error) {
-      console.error("Failed to setup SSE, falling back:", error);
-      useFallback();
-      fallbackInterval = setInterval(useFallback, 5000);
-      return () => clearInterval(fallbackInterval);
-    }
-  }, []);
 
   // Auto-play steps in the Watch Demo simulator when open
   useEffect(() => {
@@ -120,19 +68,7 @@ export default function Home() {
 
       {/* Ticker Bar */}
       <div className="pt-28 bg-gradient-to-b from-[#030712] to-transparent">
-        <div className="border-y border-white/5 bg-[#0B0F19]/30 backdrop-blur-sm py-3 overflow-hidden">
-          <div className="flex animate-marquee whitespace-nowrap min-h-[24px]">
-            {stocks.length > 0 ? [...stocks, ...stocks].map((stock, i) => (
-              <div key={i} className="mx-12 flex items-center gap-3 text-xs font-bold tracking-wider">
-                <span className="text-gray-500">{stock.name}</span>
-                <span className="font-mono text-white">{stock.price}</span>
-                <span className={stock.up ? 'text-emerald-400 text-glow' : 'text-red-400 text-glow'}>
-                  {stock.change}
-                </span>
-              </div>
-            )) : <div className="mx-12 flex items-center text-xs font-bold tracking-wider text-gray-500">Connecting to live market feed...</div>}
-          </div>
-        </div>
+        <TradingViewTicker />
       </div>
 
       {/* Hero Section */}
