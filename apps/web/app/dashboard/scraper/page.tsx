@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import { Search, Loader2, Globe, FileText } from "lucide-react";
+import { createClient } from "@/lib/supabase/client";
 
 export default function ScraperPage() {
   const [url, setUrl] = useState("https://example.com");
@@ -16,11 +17,16 @@ export default function ScraperPage() {
     setResult(null);
 
     try {
+      const supabase = createClient();
+      const { data: { session } } = await supabase.auth.getSession();
+      const token = session?.access_token;
+
       // Calling the scraper service directly
       const response = await fetch("http://localhost:3004/api/scrape", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
+          ...(token ? { "Authorization": `Bearer ${token}` } : {})
         },
         body: JSON.stringify({ url, prompt }),
       });

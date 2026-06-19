@@ -1,5 +1,5 @@
 import asyncio
-from typing import List, Dict
+from typing import Dict
 import httpx
 from datetime import datetime
 

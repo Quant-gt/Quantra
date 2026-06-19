@@ -2,6 +2,7 @@ import pandas as pd
 import numpy as np
 import yfinance as yf
 import numexpr as ne
+import re
 from agents.intent_parser import StrategySchema
 from core.symbol_resolver import SymbolResolver
 
@@ -94,7 +95,6 @@ class VectorBacktester:
                     for col in sorted(computed_cols, key=len, reverse=True):
                         col_base = col.split('_')[0] if '_' in col else col
                         # Replace exact matches case-insensitively
-                        import re
                         # Replace e.g., "RSI_14" (case-insensitive) with exact "RSI_14"
                         normalized_cond = re.sub(re.escape(col), col, normalized_cond, flags=re.IGNORECASE)
                         # Replace e.g., "RSI" (case-insensitive base indicator) with "RSI_14" if not already followed by lookback

@@ -1,14 +1,57 @@
-from fastapi import FastAPI, HTTPException
+from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
 import os
+import json
+import urllib.request
 import asyncio
 from datetime import datetime
+from dotenv import load_dotenv
+
+# Try loading from possible locations
+load_dotenv()
+load_dotenv("../web/.env")
+load_dotenv("../api/.env")
+load_dotenv("../../apps/web/.env")
+load_dotenv("../../apps/api/.env")
 
 # Import scrapegraphai lazily to avoid crash if not installed
 try:
     from scrapegraphai.graphs import SmartScraperGraph
 except ImportError:
     SmartScraperGraph = None
+
+def verify_token(authorization: str = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+    
+    token = authorization.split(" ")[1]
+    
+    # 1. Check if token is a shared secret for internal microservice calls
+    internal_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("INTERNAL_API_KEY")
+    if internal_key and token == internal_key:
+        return
+        
+    # 2. Otherwise, verify via Supabase Auth API
+    supabase_url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL") or "https://pfkebivgqhmhlarsnjzm.supabase.co"
+    supabase_anon_key = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") or "sb_publishable_28Gakt4Of6jEOG70jwlfbw_Y8o9tFKM"
+    
+    try:
+        req_obj = urllib.request.Request(
+            f"{supabase_url.rstrip('/')}/auth/v1/user",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "apikey": supabase_anon_key
+            }
+        )
+        with urllib.request.urlopen(req_obj, timeout=5) as response:
+            if response.status == 200:
+                user_info = json.loads(response.read().decode())
+                return user_info
+            else:
+                raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        print(f"Token verification failed: {e}")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 app = FastAPI()
 
@@ -24,7 +67,7 @@ def health():
         "scrapegraph_available": SmartScraperGraph is not None
     }
 
-@app.post("/api/scrape")
+@app.post("/api/scrape", dependencies=[Depends(verify_token)])
 async def scrape(req: ScrapeRequest):
     if not SmartScraperGraph:
         raise HTTPException(status_code=503, detail="ScrapeGraphAI not installed or failed to load")

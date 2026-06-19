@@ -4,6 +4,7 @@ import { CheckSquare, Square, X, Plus, Zap, Activity } from 'lucide-react';
 import { useState } from 'react';
 import BacktestModal from './BacktestModal';
 import OptionsBuilder from './OptionsBuilder';
+import { createClient } from '@/lib/supabase/client';
 
 export default function BlockBuilder() {
   const [buyEnabled, setBuyEnabled] = useState(true);
@@ -207,11 +208,19 @@ export default function BlockBuilder() {
           <button 
             onClick={async () => {
               try {
+                const supabase = createClient();
+                const { data: { session } } = await supabase.auth.getSession();
+                const token = session?.access_token;
+                const userId = session?.user?.id || 'ef748ee3-b611-45da-8ca5-968bc9f3337d';
+
                 const res = await fetch('http://localhost:3002/execute/fanout', {
                   method: 'POST',
-                  headers: { 'Content-Type': 'application/json' },
+                  headers: { 
+                    'Content-Type': 'application/json',
+                    ...(token ? { 'Authorization': `Bearer ${token}` } : {})
+                  },
                   body: JSON.stringify({
-                    creator_id: 'ef748ee3-b611-45da-8ca5-968bc9f3337d',
+                    creator_id: userId,
                     strategy_id: '82d2d8a6-706c-479d-836a-a83388902a31',
                     symbol: 'RELIANCE',
                     action: 'BUY',

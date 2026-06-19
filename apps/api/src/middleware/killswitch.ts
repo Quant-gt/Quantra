@@ -17,7 +17,6 @@ export const killSwitchCheck = async (req: express.Request, res: express.Respons
   try {
     // 1. Check Global Kill Switch
     const globalKill = await redis.get('killswitch:global');
-    console.log('globalKill:', globalKill);
     if (globalKill === 'true' || globalKill === true || globalKill === '1' || globalKill === 1) {
       return res.status(503).json({
         error: 'Global Kill Switch activated. All trading is temporarily suspended.',

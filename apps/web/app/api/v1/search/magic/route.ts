@@ -32,13 +32,16 @@ export async function POST(request: Request) {
 
     // 2. Call NLP Service (Simulated or Local)
     // In production, this would be the Render.com URL
-    const nlpUrl = process.env.NLP_SERVICE_URL || 'http://localhost:3002'; 
+    const nlpUrl = process.env.NLP_SERVICE_URL || 'http://localhost:3003'; 
     let nlpData;
 
     try {
       const nlpResponse = await fetch(`${nlpUrl}/api/parse_query`, {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+        },
         body: JSON.stringify({ text: query }),
       });
 

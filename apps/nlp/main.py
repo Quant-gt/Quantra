@@ -1,13 +1,56 @@
-from fastapi import FastAPI, HTTPException
+import os
+import json
+import urllib.request
+from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
 import spacy
 from datetime import datetime
 import yfinance as yf
-import pandas as pd
 import numpy as np
+from dotenv import load_dotenv
+
+# Try loading from possible locations
+load_dotenv()
+load_dotenv("../web/.env")
+load_dotenv("../api/.env")
+load_dotenv("../../apps/web/.env")
+load_dotenv("../../apps/api/.env")
 
 app = FastAPI()
+
+def verify_token(authorization: str = Header(None)):
+    if not authorization or not authorization.startswith("Bearer "):
+        raise HTTPException(status_code=401, detail="Missing or invalid Authorization header")
+    
+    token = authorization.split(" ")[1]
+    
+    # 1. Check if token is a shared secret for internal microservice calls
+    internal_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("INTERNAL_API_KEY")
+    if internal_key and token == internal_key:
+        return
+        
+    # 2. Otherwise, verify via Supabase Auth API
+    supabase_url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL") or "https://pfkebivgqhmhlarsnjzm.supabase.co"
+    supabase_anon_key = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") or "sb_publishable_28Gakt4Of6jEOG70jwlfbw_Y8o9tFKM"
+    
+    try:
+        req_obj = urllib.request.Request(
+            f"{supabase_url.rstrip('/')}/auth/v1/user",
+            headers={
+                "Authorization": f"Bearer {token}",
+                "apikey": supabase_anon_key
+            }
+        )
+        with urllib.request.urlopen(req_obj, timeout=5) as response:
+            if response.status == 200:
+                user_info = json.loads(response.read().decode())
+                return user_info
+            else:
+                raise HTTPException(status_code=401, detail="Invalid token")
+    except Exception as e:
+        print(f"Token verification failed: {e}")
+        raise HTTPException(status_code=401, detail="Invalid or expired token")
 
 # Load models on startup
 try:
@@ -42,14 +85,14 @@ def health():
         "models_loaded": embedder is not None and nlp is not None
     }
 
-@app.post("/api/embed")
+@app.post("/api/embed", dependencies=[Depends(verify_token)])
 def get_embedding(req: EmbedRequest):
     if not embedder:
         raise HTTPException(status_code=503, detail="Embedder model not loaded")
     embedding = embedder.encode(req.text).tolist()
     return {"embedding": embedding}
 
-@app.post("/api/parse_query")
+@app.post("/api/parse_query", dependencies=[Depends(verify_token)])
 def parse_query(req: QueryRequest):
     if not nlp:
         raise HTTPException(status_code=503, detail="NLP model not loaded")
@@ -77,7 +120,7 @@ def parse_query(req: QueryRequest):
         "tsvector_fallback": " | ".join([e['value'].lower() for e in entities]) or text.replace(" ", " | ")
     }
 
-@app.post("/api/backtest")
+@app.post("/api/backtest", dependencies=[Depends(verify_token)])
 def run_backtest(req: BacktestRequest):
     try:
         # 1. Fetch Data

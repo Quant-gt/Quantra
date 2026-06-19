@@ -5,6 +5,7 @@ import cors from 'cors';
 import { runBacktest } from './backtester.js';
 
 const app = express();
+app.set('trust proxy', 1);
 app.use(cors());
 const port = process.env.PORT || 3002;
 
@@ -21,9 +22,35 @@ const supabase = createClient(
 
 app.use(express.json());
 
+// Authentication middleware using Supabase Auth JWT
+const authMiddleware = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
+  const authHeader = req.headers.authorization;
+  if (!authHeader || !authHeader.startsWith('Bearer ')) {
+    return res.status(401).json({ success: false, error: 'Unauthorized: Missing or invalid Authorization header' });
+  }
+
+  const token = authHeader.split(' ')[1]!;
+  try {
+    const { data: { user }, error } = await supabase.auth.getUser(token);
+    if (error || !user) {
+      return res.status(401).json({ success: false, error: 'Unauthorized: Invalid token' });
+    }
+    req.headers['x-user-id'] = user.id;
+    next();
+  } catch (err: any) {
+    console.error('Auth middleware error:', err);
+    return res.status(500).json({ success: false, error: 'Internal auth error' });
+  }
+};
+
 // Main order placement endpoint (simulated)
-app.post('/execute', async (req, res) => {
+app.post('/execute', authMiddleware, async (req, res) => {
   const { user_id, strategy_id, subscription_id, symbol, qty, price, algo_id } = req.body;
+
+  const verifiedUserId = req.headers['x-user-id'] as string;
+  if (verifiedUserId !== user_id) {
+    return res.status(403).json({ success: false, error: 'Forbidden: User ID mismatch.' });
+  }
 
   // 1. Check OPS Limit
   const timestampSecond = Math.floor(Date.now() / 1000);
@@ -76,7 +103,7 @@ app.post('/execute', async (req, res) => {
     await supabase.from('compliance_audit').insert({
       user_id,
       algo_id,
-      static_ip: req.headers['x-forwarded-for'] || req.socket.remoteAddress,
+      static_ip: req.ip || req.socket.remoteAddress || '127.0.0.1',
       api_key_hash: 'simulated_hash', // In a real app, hash the user's broker API key
       event_type: 'order_placed',
       symbol,
@@ -97,7 +124,7 @@ app.post('/execute', async (req, res) => {
 });
 
 // --- START BACKTEST EXECUTION ENGINE ---
-app.post('/execute/backtest', async (req, res) => {
+app.post('/execute/backtest', authMiddleware, async (req, res) => {
   try {
     const { strategy_id, symbol, initial_capital } = req.body;
     
@@ -117,8 +144,13 @@ app.post('/execute/backtest', async (req, res) => {
 });
 
 // --- START COPY TRADING FAN-OUT EXECUTION ENGINE ---
-app.post('/execute/fanout', async (req, res) => {
+app.post('/execute/fanout', authMiddleware, async (req, res) => {
   const { creator_id, strategy_id, symbol, action, base_qty, price, algo_id } = req.body;
+
+  const verifiedUserId = req.headers['x-user-id'] as string;
+  if (creator_id && verifiedUserId !== creator_id) {
+    return res.status(403).json({ success: false, error: 'Forbidden: Creator ID mismatch.' });
+  }
 
   if (!strategy_id || !symbol || !action || !base_qty) {
     return res.status(400).json({ success: false, error: 'Missing required payload fields.' });

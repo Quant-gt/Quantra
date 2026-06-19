@@ -1,9 +1,5 @@
 import base64
 import os
-import requests
-import pyotp
-import hashlib
-from urllib.parse import urlparse, parse_qs
 from fyers_apiv3 import fyersModel
 from dotenv import load_dotenv
 
