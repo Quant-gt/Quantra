@@ -79,16 +79,7 @@ export default function EngineTerminal() {
             logs.map((log, i) => (
               <div key={i} className="text-sm text-green-400/90 break-words flex gap-3 leading-relaxed">
                 <span className="text-gray-500 shrink-0 select-none">~</span>
-                <span dangerouslySetInnerHTML={{ 
-                  // Add simple terminal-style highlighting
-                  __html: log
-                    .replace(/\[FANOUT\]/g, '<span class="text-blue-400">[FANOUT]</span>')
-                    .replace(/\[ZERODHA\]/g, '<span class="text-orange-400 font-bold">[ZERODHA]</span>')
-                    .replace(/\[UPSTOX\]/g, '<span class="text-purple-400 font-bold">[UPSTOX]</span>')
-                    .replace(/ERROR/g, '<span class="text-red-500 font-bold">ERROR</span>')
-                    .replace(/SKIPPING/g, '<span class="text-gray-400">SKIPPING</span>')
-                    .replace(/ROUTING/g, '<span class="text-cyan-400">ROUTING</span>')
-                }} />
+                <span>{renderLogLine(log)}</span>
               </div>
             ))
           )}
@@ -96,6 +87,34 @@ export default function EngineTerminal() {
       </div>
     </div>
   );
+}
+
+// Safely parses terminal logs and injects styling nodes without dangerouslySetInnerHTML
+function renderLogLine(log: string) {
+  const regex = /(\[FANOUT\]|\[ZERODHA\]|\[UPSTOX\]|ERROR|SKIPPING|ROUTING)/g;
+  const parts = log.split(regex);
+  
+  return parts.map((part, index) => {
+    if (part === '[FANOUT]') {
+      return <span key={index} className="text-blue-400">[FANOUT]</span>;
+    }
+    if (part === '[ZERODHA]') {
+      return <span key={index} className="text-orange-400 font-bold">[ZERODHA]</span>;
+    }
+    if (part === '[UPSTOX]') {
+      return <span key={index} className="text-purple-400 font-bold">[UPSTOX]</span>;
+    }
+    if (part === 'ERROR') {
+      return <span key={index} className="text-red-500 font-bold">ERROR</span>;
+    }
+    if (part === 'SKIPPING') {
+      return <span key={index} className="text-gray-400">SKIPPING</span>;
+    }
+    if (part === 'ROUTING') {
+      return <span key={index} className="text-cyan-400">ROUTING</span>;
+    }
+    return part;
+  });
 }
 
 

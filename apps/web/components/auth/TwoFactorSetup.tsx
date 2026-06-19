@@ -78,7 +78,13 @@ export default function TwoFactorSetup() {
 
       {status === "setup" && qrCode && (
         <div className="space-y-4">
-          <div className="bg-white p-4 rounded-lg flex justify-center" dangerouslySetInnerHTML={{ __html: qrCode }} />
+          <div className="bg-white p-4 rounded-lg flex justify-center">
+            <img 
+              src={`data:image/svg+xml;utf8,${encodeURIComponent(qrCode)}`} 
+              alt="2FA QR Code" 
+              className="w-48 h-48"
+            />
+          </div>
           
           <form onSubmit={handleVerify} className="space-y-4">
             <div>
