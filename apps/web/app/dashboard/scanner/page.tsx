@@ -3,14 +3,46 @@
 import { useState } from "react";
 import { Play, Download, Share2, Search, SlidersHorizontal, LayoutGrid, Save } from "lucide-react";
 import dynamic from 'next/dynamic';
+import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 const ScannerBuilder = dynamic(() => import("@/components/scanner/ScannerBuilder"), {
   ssr: false,
   loading: () => <div className="p-8 text-white/50 text-center">Loading Scanner Builder...</div>
 });
 
+const initialNodes = [
+  {
+    id: '1',
+    type: 'filter',
+    position: { x: 100, y: 100 },
+    data: { category: 'Technical', label: 'RSI (14)', condition: '< 30 (Oversold)' }
+  },
+  {
+    id: '2',
+    type: 'filter',
+    position: { x: 100, y: 250 },
+    data: { category: 'Volume', label: 'Volume Spike', condition: '> 2x 10-day Avg' }
+  },
+  {
+    id: '3',
+    type: 'output',
+    position: { x: 400, y: 175 },
+    data: { label: 'Results' }
+  }
+];
+
+const initialEdges = [
+  { id: 'e1-3', source: '1', target: '3', animated: true, style: { stroke: '#58A6FF' } },
+  { id: 'e2-3', source: '2', target: '3', animated: true, style: { stroke: '#58A6FF' } }
+];
+
 export default function DashboardScannerPage() {
+  const router = useRouter();
   const [loading, setLoading] = useState(false);
+  const [scanName, setScanName] = useState("My Custom Scanner");
+  const [nodes, setNodes] = useState<any[]>(initialNodes);
+  const [edges, setEdges] = useState<any[]>(initialEdges);
   const [results, setResults] = useState<any[]>([
     { ticker: "RELIANCE", name: "Reliance Industries", cmp: 2540.15, change: 1.2, matched: ["RSI Oversold", "Volume Spike"], sector: "Energy" },
     { ticker: "TCS", name: "Tata Consultancy Services", cmp: 3210.45, change: -0.5, matched: ["RSI Oversold"], sector: "IT" },
@@ -22,7 +54,41 @@ export default function DashboardScannerPage() {
     // Simulate API call
     setTimeout(() => {
       setLoading(false);
+      toast.success("Scan completed successfully");
     }, 1500);
+  };
+
+  const saveScanner = async () => {
+    try {
+      const criteriaList = nodes
+        .filter((n) => n.type === 'filter')
+        .map((n) => `${n.data.label} ${n.data.condition}`);
+
+      if (criteriaList.length === 0) {
+        toast.error("Add at least one filter criterion to save");
+        return;
+      }
+
+      const response = await fetch('/api/v1/scans', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          scan_name: scanName,
+          criteria: criteriaList,
+          results: results
+        })
+      });
+
+      if (!response.ok) {
+        const data = await response.json();
+        throw new Error(data.error || "Failed to save scanner");
+      }
+
+      toast.success("Scanner saved successfully");
+      router.push('/dashboard/scans');
+    } catch (error: any) {
+      toast.error(error.message);
+    }
   };
 
   return (
@@ -41,22 +107,34 @@ export default function DashboardScannerPage() {
           </p>
         </div>
         
-        <div className="flex gap-3">
-          <button className="bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm">
-            <Save size={16} className="text-gray-400" /> Save Config
-          </button>
-          <button
-            onClick={runScan}
-            disabled={loading}
-            className="bg-[#238636] hover:bg-[#2ea043] text-white font-bold py-2 px-6 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? (
-              <span className="animate-spin">⏳</span>
-            ) : (
-              <Play size={16} fill="currentColor" />
-            )}
-            {loading ? "EXECUTING..." : "RUN SCAN"}
-          </button>
+        <div className="flex flex-col sm:flex-row gap-3 items-stretch sm:items-center">
+          <input 
+            type="text" 
+            value={scanName} 
+            onChange={(e) => setScanName(e.target.value)} 
+            className="bg-[#161B22] border border-[#30363D] text-white text-sm rounded-lg px-3 py-2 outline-none focus:border-[#58A6FF] transition-colors"
+            placeholder="Scanner Name"
+          />
+          <div className="flex gap-3">
+            <button 
+              onClick={saveScanner}
+              className="bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-white font-medium py-2 px-4 rounded-lg transition-colors flex items-center gap-2 text-sm shadow-sm"
+            >
+              <Save size={16} className="text-gray-400" /> Save Config
+            </button>
+            <button
+              onClick={runScan}
+              disabled={loading}
+              className="bg-[#238636] hover:bg-[#2ea043] text-white font-bold py-2 px-6 rounded-lg transition-all flex items-center gap-2 text-sm shadow-lg disabled:opacity-50 disabled:cursor-not-allowed"
+            >
+              {loading ? (
+                <span className="animate-spin">⏳</span>
+              ) : (
+                <Play size={16} fill="currentColor" />
+              )}
+              {loading ? "EXECUTING..." : "RUN SCAN"}
+            </button>
+          </div>
         </div>
       </div>
 
@@ -74,7 +152,7 @@ export default function DashboardScannerPage() {
         
         {/* Render React Flow component here */}
         <div className="w-full">
-          <ScannerBuilder />
+          <ScannerBuilder nodes={nodes} setNodes={setNodes} edges={edges} setEdges={setEdges} />
         </div>
       </div>
 

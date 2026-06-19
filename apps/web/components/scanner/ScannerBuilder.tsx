@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState, useCallback } from 'react';
+import React, { useCallback } from 'react';
 import ReactFlow, { 
   Controls, 
   Background, 
@@ -41,57 +41,54 @@ const nodeTypes = {
   output: OutputNode,
 };
 
-const initialNodes: Node[] = [
-  {
-    id: '1',
-    type: 'filter',
-    position: { x: 100, y: 100 },
-    data: { category: 'Technical', label: 'RSI (14)', condition: '< 30 (Oversold)' }
-  },
-  {
-    id: '2',
-    type: 'filter',
-    position: { x: 100, y: 250 },
-    data: { category: 'Volume', label: 'Volume Spike', condition: '> 2x 10-day Avg' }
-  },
-  {
-    id: '3',
-    type: 'output',
-    position: { x: 400, y: 175 },
-    data: { label: 'Results' }
-  }
-];
 
-const initialEdges: Edge[] = [
-  { id: 'e1-3', source: '1', target: '3', animated: true, style: { stroke: '#58A6FF' } },
-  { id: 'e2-3', source: '2', target: '3', animated: true, style: { stroke: '#58A6FF' } }
-];
 
-export default function ScannerBuilder() {
-  const [nodes, setNodes] = useState<Node[]>(initialNodes);
-  const [edges, setEdges] = useState<Edge[]>(initialEdges);
-
+export default function ScannerBuilder({
+  nodes,
+  setNodes,
+  edges,
+  setEdges,
+}: {
+  nodes: Node[];
+  setNodes: React.Dispatch<React.SetStateAction<Node[]>>;
+  edges: Edge[];
+  setEdges: React.Dispatch<React.SetStateAction<Edge[]>>;
+}) {
   const onNodesChange = useCallback(
     (changes: NodeChange[]) => setNodes((nds) => applyNodeChanges(changes, nds)),
-    []
+    [setNodes]
   );
   
   const onEdgesChange = useCallback(
     (changes: EdgeChange[]) => setEdges((eds) => applyEdgeChanges(changes, eds)),
-    []
+    [setEdges]
   );
 
   const onConnect = useCallback(
     (params: Connection) => setEdges((eds) => addEdge({ ...params, animated: true, style: { stroke: '#58A6FF' } }, eds)),
-    []
+    [setEdges]
   );
+
+  const addFilterNode = () => {
+    const newId = (nodes.length + 1).toString();
+    const newNode: Node = {
+      id: newId,
+      type: 'filter',
+      position: { x: 100, y: 100 + nodes.length * 40 },
+      data: { category: 'Technical', label: `Filter ${newId}`, condition: 'Value > 0' }
+    };
+    setNodes((nds) => nds.concat(newNode));
+  };
 
   return (
     <div className="h-[500px] w-full bg-[#0D1117] relative">
       {/* Top Toolbar */}
       <div className="absolute top-4 left-4 right-4 z-10 flex justify-between items-center pointer-events-none">
         <div className="flex gap-2 pointer-events-auto">
-          <button className="bg-[#1C2128]/90 backdrop-blur-md hover:bg-[#21262D] text-white border border-[#30363D] hover:border-[#8B949E] px-4 py-2 rounded-md text-sm font-medium transition-all shadow-lg flex items-center gap-2">
+          <button 
+            onClick={addFilterNode}
+            className="bg-[#1C2128]/90 backdrop-blur-md hover:bg-[#21262D] text-white border border-[#30363D] hover:border-[#8B949E] px-4 py-2 rounded-md text-sm font-medium transition-all shadow-lg flex items-center gap-2"
+          >
             <span className="text-[#58A6FF] text-lg leading-none">+</span> Add Filter Node
           </button>
           <button className="bg-[#1C2128]/90 backdrop-blur-md hover:bg-[#21262D] text-white border border-[#30363D] hover:border-[#8B949E] px-4 py-2 rounded-md text-sm font-medium transition-all shadow-lg">
