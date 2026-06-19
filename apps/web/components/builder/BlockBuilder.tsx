@@ -209,7 +209,7 @@ export default function BlockBuilder() {
   };
 
   return (
-    <div className="p-8 max-w-5xl mx-auto flex flex-col h-full w-full">
+    <div className="p-8 max-w-5xl mx-auto flex flex-col w-full">
       {/* Strategy Configuration Header */}
       <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between shadow-lg">
         <div className="flex items-center gap-3 w-full md:w-auto">
