@@ -32,8 +32,10 @@ def verify_token(authorization: str = Header(None)):
         return
         
     # 2. Otherwise, verify via Supabase Auth API
-    supabase_url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL") or "https://pfkebivgqhmhlarsnjzm.supabase.co"
-    supabase_anon_key = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY") or "sb_publishable_28Gakt4Of6jEOG70jwlfbw_Y8o9tFKM"
+    supabase_url = os.environ.get("NEXT_PUBLIC_SUPABASE_URL")
+    supabase_anon_key = os.environ.get("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    if not supabase_url or not supabase_anon_key:
+        raise HTTPException(status_code=500, detail="Supabase environment configuration missing")
     
     try:
         req_obj = urllib.request.Request(

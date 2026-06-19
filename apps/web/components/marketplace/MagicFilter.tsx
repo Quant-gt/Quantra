@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef } from "react";
 import { Search, Mic, MicOff, Loader2, X } from "lucide-react";
 import { useRouter } from "next/navigation";
+import { toast } from "sonner";
 
 export default function MagicFilter() {
   const [query, setQuery] = useState("");
@@ -33,17 +34,21 @@ export default function MagicFilter() {
   }, []);
 
   useEffect(() => {
-    if (query.length >= 2) {
-      // Filter trending searches as suggestions
-      const filtered = trendingSearches.filter(s => 
-        s.toLowerCase().includes(query.toLowerCase())
-      );
-      setSuggestions(filtered);
-      setShowDropdown(true);
-    } else {
-      setSuggestions([]);
-      setShowDropdown(false);
-    }
+    const handler = setTimeout(() => {
+      if (query.length >= 2) {
+        // Filter trending searches as suggestions
+        const filtered = trendingSearches.filter(s => 
+          s.toLowerCase().includes(query.toLowerCase())
+        );
+        setSuggestions(filtered);
+        setShowDropdown(true);
+      } else {
+        setSuggestions([]);
+        setShowDropdown(false);
+      }
+    }, 300);
+
+    return () => clearTimeout(handler);
   }, [query]);
 
   const handleSearch = async (searchQuery: string) => {
@@ -62,7 +67,7 @@ export default function MagicFilter() {
       // Simulate delay
       await new Promise(r => setTimeout(r, 1000));
       
-      alert(`AI Search triggered for: "${searchQuery}". Results would be displayed on the marketplace.`);
+      toast.success(`AI Search triggered for: "${searchQuery}". Results would be displayed on the marketplace.`);
     } catch (error) {
       console.error(error);
     } finally {
@@ -74,7 +79,7 @@ export default function MagicFilter() {
     const SpeechRecognition = (window as any).SpeechRecognition || (window as any).webkitSpeechRecognition;
     
     if (!SpeechRecognition) {
-      alert("Voice search is not supported in this browser.");
+      toast.error("Voice search is not supported in this browser.");
       return;
     }
 

@@ -2,8 +2,9 @@
 
 import Link from "next/link";
 import { Bookmark, TrendingUp, Users, Activity, ExternalLink } from "lucide-react";
-import { useState } from "react";
+import React, { useState, useCallback } from "react";
 import { createClient } from "@/lib/supabase/client";
+import { toast } from "sonner";
 import CheckoutModal from "./CheckoutModal";
 
 export interface Strategy {
@@ -30,17 +31,20 @@ interface Props {
   isWatchlisted?: boolean;
 }
 
-export default function StrategyCard({ strategy, isWatchlisted = false }: Props) {
+const StrategyCard = React.memo(({ strategy, isWatchlisted = false }: Props) => {
   const [bookmarked, setBookmarked] = useState(isWatchlisted);
   const [showCheckout, setShowCheckout] = useState(false);
-  const supabase = createClient();
 
-  const toggleBookmark = async (e: React.MouseEvent) => {
+  const toggleBookmark = useCallback(async (e: React.MouseEvent) => {
     e.preventDefault();
     e.stopPropagation();
     
+    const supabase = createClient();
     const { data: { user } } = await supabase.auth.getUser();
-    if (!user) return alert("Please sign in to bookmark strategies");
+    if (!user) {
+      toast.error("Please sign in to bookmark strategies");
+      return;
+    }
 
     if (bookmarked) {
       await supabase.from("user_watchlist").delete().match({ user_id: user.id, strategy_id: strategy.id });
@@ -49,7 +53,13 @@ export default function StrategyCard({ strategy, isWatchlisted = false }: Props)
       await supabase.from("user_watchlist").insert({ user_id: user.id, strategy_id: strategy.id });
       setBookmarked(true);
     }
-  };
+  }, [bookmarked, strategy.id]);
+
+  const handleSubscribe = useCallback((e: React.MouseEvent) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setShowCheckout(true);
+  }, []);
 
   return (
     <>
@@ -128,7 +138,7 @@ export default function StrategyCard({ strategy, isWatchlisted = false }: Props)
           
           <div className="px-5 pb-5 bg-[#161B22]">
             <button 
-              onClick={(e) => { e.preventDefault(); e.stopPropagation(); setShowCheckout(true); }}
+              onClick={handleSubscribe}
               className="w-full bg-[#58A6FF]/10 hover:bg-[#58A6FF]/20 text-[#58A6FF] font-bold py-2.5 px-4 rounded-lg transition-colors border border-[#58A6FF]/20"
             >
               Subscribe
@@ -140,4 +150,7 @@ export default function StrategyCard({ strategy, isWatchlisted = false }: Props)
       <CheckoutModal strategy={strategy} isOpen={showCheckout} onClose={() => setShowCheckout(false)} />
     </>
   );
-}
+});
+
+StrategyCard.displayName = "StrategyCard";
+export default StrategyCard;

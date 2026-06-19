@@ -189,49 +189,64 @@ app.post('/execute/fanout', authMiddleware, async (req, res) => {
 
     // 4. Process each subscriber (Simulating simultaneous broker execution)
     const promises = subscribers.map(async (sub) => {
-      const risk = riskMap[sub.user_id];
-      let tradeStatus = 'success';
-      let broker_order_id = `FAN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      try {
+        const risk = riskMap[sub.user_id];
+        let tradeStatus = 'success';
+        let broker_order_id = `FAN-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
 
-      // --- RISK INTERCEPTOR: Max Daily Drawdown ---
-      if (risk) {
-        const totalPnl = Number(risk.today_unrealised_pnl) + Number(risk.today_realised_pnl);
-        if (totalPnl <= Number(risk.max_daily_drawdown_limit)) {
-          tradeStatus = 'rejected';
-          broker_order_id = 'RISK_GUARD_DRAWDOWN';
-          console.warn(`[RISK GUARD] Blocked trade for ${sub.user_id} due to Max Drawdown breach.`);
+        // --- RISK INTERCEPTOR: Max Daily Drawdown ---
+        if (risk) {
+          const totalPnl = Number(risk.today_unrealised_pnl) + Number(risk.today_realised_pnl);
+          if (totalPnl <= Number(risk.max_daily_drawdown_limit)) {
+            tradeStatus = 'rejected';
+            broker_order_id = 'RISK_GUARD_DRAWDOWN';
+            console.warn(`[RISK GUARD] Blocked trade for ${sub.user_id} due to Max Drawdown breach.`);
+          }
         }
-      }
 
-      // Calculate specific quantity based on subscriber's multiplier
-      let multiplier = sub.allocation_multiplier || 1.0;
-      
-      // --- RISK INTERCEPTOR: Dynamic Position Sizing (Kelly Criterion) ---
-      if (risk && risk.position_sizing_model === 'kelly_criterion') {
-        // In a real app, calculate Kelly = W - [(1 - W) / R]. We simulate a dynamic aggressive size.
-        multiplier = multiplier * 1.5; 
-      }
-      
-      const finalQty = Math.max(1, Math.floor(base_qty * multiplier)); // Minimum 1 share
+        // Calculate specific quantity based on subscriber's multiplier
+        let multiplier = sub.allocation_multiplier || 1.0;
+        
+        // --- RISK INTERCEPTOR: Dynamic Position Sizing (Kelly Criterion) ---
+        if (risk && risk.position_sizing_model === 'kelly_criterion') {
+          // In a real app, calculate Kelly = W - [(1 - W) / R]. We simulate a dynamic aggressive size.
+          multiplier = multiplier * 1.5; 
+        }
+        
+        const finalQty = Math.max(1, Math.floor(base_qty * multiplier)); // Minimum 1 share
 
-      // If rejected by risk guards, skip the actual API call
-      if (tradeStatus === 'success') {
-        // In production, we would fetch broker API keys here and fire the actual HTTP request to Fyers/Zerodha
-        // const keys = await getBrokerKeys(sub.user_id);
-      }
+        // If rejected by risk guards, skip the actual API call
+        if (tradeStatus === 'success') {
+          // In production, we would fetch broker API keys here and fire the actual HTTP request to Fyers/Zerodha
+          // const keys = await getBrokerKeys(sub.user_id);
+        }
 
-      // Build execution log record
-      executionLogs.push({
-        user_id: sub.user_id,
-        strategy_id,
-        symbol,
-        action,
-        quantity: finalQty,
-        price,
-        execution_type: 'live', // assuming live for copy trade
-        status: tradeStatus,
-        broker_order_id
-      });
+        // Build execution log record
+        executionLogs.push({
+          user_id: sub.user_id,
+          strategy_id,
+          symbol,
+          action,
+          quantity: finalQty,
+          price,
+          execution_type: 'live', // assuming live for copy trade
+          status: tradeStatus,
+          broker_order_id
+        });
+      } catch (err: any) {
+        console.error(`[FAN-OUT ERROR] Failed for subscriber ${sub.user_id}:`, err);
+        executionLogs.push({
+          user_id: sub.user_id,
+          strategy_id,
+          symbol,
+          action,
+          quantity: Math.max(1, Math.floor(base_qty * (sub.allocation_multiplier || 1.0))),
+          price,
+          execution_type: 'live',
+          status: 'failed',
+          broker_order_id: 'FAN_OUT_EXECUTION_FAILED'
+        });
+      }
     });
 
     // Execute all broker API calls simultaneously

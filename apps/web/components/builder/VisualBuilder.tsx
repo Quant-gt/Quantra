@@ -20,10 +20,11 @@ import 'reactflow/dist/style.css';
 import { Play, Settings2, ShieldAlert, Target, Save, Zap, Clock, Activity, Cpu, GripHorizontal, Loader2, SaveAll } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
+import { toast } from 'sonner';
 
 // --- CUSTOM NODES ---
 
-const CustomTriggerNode = ({ data }: NodeProps) => (
+const CustomTriggerNode = React.memo(({ data }: NodeProps) => (
   <div className="bg-[#1C2128] border border-[#388BFD] rounded-xl shadow-lg w-[240px] overflow-hidden group">
     <div className="bg-[#388BFD]/10 px-4 py-2 border-b border-[#388BFD]/30 flex items-center gap-2">
       <Clock size={14} className="text-[#58A6FF]" />
@@ -39,9 +40,10 @@ const CustomTriggerNode = ({ data }: NodeProps) => (
     </div>
     <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-[#58A6FF] border-2 border-[#1C2128]" />
   </div>
-);
+));
+CustomTriggerNode.displayName = 'CustomTriggerNode';
 
-const CustomConditionNode = ({ data }: NodeProps) => (
+const CustomConditionNode = React.memo(({ data }: NodeProps) => (
   <div className="bg-[#161B22] border border-[#30363D] rounded-xl shadow-lg w-[240px] overflow-hidden group hover:border-[#8B949E] transition-colors">
     <Handle type="target" position={Position.Top} className="w-3 h-3 bg-[#8B949E] border-2 border-[#161B22]" />
     <div className="bg-[#21262D] px-4 py-2 border-b border-[#30363D] flex items-center gap-2">
@@ -73,9 +75,10 @@ const CustomConditionNode = ({ data }: NodeProps) => (
     </div>
     <Handle type="source" position={Position.Bottom} className="w-3 h-3 bg-[#8B949E] border-2 border-[#161B22]" />
   </div>
-);
+));
+CustomConditionNode.displayName = 'CustomConditionNode';
 
-const CustomActionNode = ({ data }: NodeProps) => (
+const CustomActionNode = React.memo(({ data }: NodeProps) => (
   <div className="bg-[#0F1713] border border-[#238636] rounded-xl shadow-[0_0_15px_rgba(35,134,54,0.15)] w-[240px] overflow-hidden">
     <Handle type="target" position={Position.Top} className="w-3 h-3 bg-[#39D353] border-2 border-[#0F1713]" />
     <div className="bg-[#238636]/20 px-4 py-2 border-b border-[#238636]/40 flex items-center gap-2">
@@ -101,7 +104,8 @@ const CustomActionNode = ({ data }: NodeProps) => (
       />
     </div>
   </div>
-);
+));
+CustomActionNode.displayName = 'CustomActionNode';
 
 const nodeTypes = {
   triggerNode: CustomTriggerNode,
@@ -191,11 +195,11 @@ function BuilderFlow() {
 
       if (error) throw error;
       
-      alert(`Strategy saved successfully! ID: ${data.id}`);
+      toast.success('Strategy saved successfully!');
       
     } catch (err: any) {
       console.error("Save error:", JSON.stringify(err, null, 2));
-      alert(`Failed to save strategy.\nMessage: ${err.message}\nDetails: ${err.details || 'None'}\nHint: ${err.hint || 'None'}`);
+      toast.error(`Failed to save strategy: ${err.message || 'Unknown error'}`);
     } finally {
       setIsSaving(false);
     }

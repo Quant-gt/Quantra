@@ -32,15 +32,28 @@ export const dailyAuthCheck = async (req: express.Request, res: express.Response
     // Get current time in IST using a robust timezone-agnostic calculation
     const now = new Date();
     const getIstDateComponents = (date: Date) => {
-      // Calculate IST time using UTC time plus the 5.5 hour offset (5 hours 30 mins)
-      const utcTime = date.getTime() + (date.getTimezoneOffset() * 60000);
-      const istTime = new Date(utcTime + 5.5 * 3600000);
+      const formatter = new Intl.DateTimeFormat('en-US', {
+        timeZone: 'Asia/Kolkata',
+        year: 'numeric',
+        month: 'numeric',
+        day: 'numeric',
+        hour: 'numeric',
+        minute: 'numeric',
+        hour12: false
+      });
+      const parts = formatter.formatToParts(date);
+      const components: Record<string, number> = {};
+      for (const part of parts) {
+        if (part.type !== 'literal') {
+          components[part.type] = parseInt(part.value, 10);
+        }
+      }
       return {
-        year: istTime.getFullYear(),
-        month: istTime.getMonth(),
-        day: istTime.getDate(),
-        hours: istTime.getHours(),
-        minutes: istTime.getMinutes(),
+        year: components.year || date.getFullYear(),
+        month: (components.month ? components.month - 1 : date.getMonth()),
+        day: components.day || date.getDate(),
+        hours: components.hour === 24 ? 0 : (components.hour || 0),
+        minutes: components.minute || 0,
       };
     };
 

@@ -11,9 +11,18 @@ const port = process.env.PORT || 3001;
 // Trust the first proxy hop (e.g. Render/Vercel) to parse X-Forwarded-For securely
 app.set('trust proxy', 1);
 
+// Circuit breaker state for rate limiter
+let redisFailCount = 0;
+let redisDisabledUntil = 0;
+
 // Middleware for brute-force rate limiting using Upstash Redis
 const rateLimiter = async (req: express.Request, res: express.Response, next: express.NextFunction) => {
   if (!process.env.UPSTASH_REDIS_REST_URL) return next();
+
+  // Circuit Breaker Check: Fail-open if Redis rate limiting is temporarily disabled
+  if (Date.now() < redisDisabledUntil) {
+    return next();
+  }
 
   // Securely resolve client IP via Express req.ip (which respects 'trust proxy')
   const ip = req.ip || req.socket.remoteAddress || '127.0.0.1';
@@ -25,12 +34,24 @@ const rateLimiter = async (req: express.Request, res: express.Response, next: ex
       await redis.expire(key, 60); // 1 minute window
     }
 
+    // Reset failure counter on successful Redis interaction
+    redisFailCount = 0;
+
     if (current > 100) {
       return res.status(429).json({ error: 'Too many requests. Please try again later.' });
     }
     next();
   } catch (error) {
-    next();
+    redisFailCount++;
+    console.error(`[RATELIMIT REDIS ERROR #${redisFailCount}]:`, error);
+    
+    // Trip the circuit breaker if we hit 5 consecutive Redis failures
+    if (redisFailCount >= 5) {
+      console.warn(`[RATELIMIT CIRCUIT BREAKER]: Tripped. Disabling Redis rate-limiting for 30 seconds.`);
+      redisDisabledUntil = Date.now() + 30000; // Disable for 30s
+    }
+
+    next(); // Fail-open gracefully
   }
 };
 

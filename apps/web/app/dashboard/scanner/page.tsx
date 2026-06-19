@@ -2,7 +2,12 @@
 
 import { useState } from "react";
 import { Play, Download, Share2, Search, SlidersHorizontal, LayoutGrid, Save } from "lucide-react";
-import ScannerBuilder from "@/components/scanner/ScannerBuilder";
+import dynamic from 'next/dynamic';
+
+const ScannerBuilder = dynamic(() => import("@/components/scanner/ScannerBuilder"), {
+  ssr: false,
+  loading: () => <div className="p-8 text-white/50 text-center">Loading Scanner Builder...</div>
+});
 
 export default function DashboardScannerPage() {
   const [loading, setLoading] = useState(false);

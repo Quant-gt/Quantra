@@ -1,7 +1,12 @@
 "use client";
 
 import { useState } from 'react';
-import VisualBuilder from '@/components/builder/VisualBuilder';
+import dynamic from 'next/dynamic';
+
+const VisualBuilder = dynamic(() => import('@/components/builder/VisualBuilder'), {
+  ssr: false,
+  loading: () => <div className="p-8 text-white/50 text-center">Loading Visual Canvas...</div>
+});
 import BlockBuilder from '@/components/builder/BlockBuilder';
 import MagicScanner from '@/components/builder/MagicScanner';
 import { Sparkles, Zap, Network } from 'lucide-react';
