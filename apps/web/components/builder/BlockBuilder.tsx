@@ -1,11 +1,117 @@
 "use client";
 
-import { CheckSquare, Square, X, Plus, Zap, Activity, Cpu, Loader2, Save } from 'lucide-react';
-import { useState } from 'react';
+import { CheckSquare, Square, X, Plus, Zap, Activity, Cpu, Loader2, Save, Search, ChevronDown } from 'lucide-react';
+import { useState, useRef, useEffect } from 'react';
 import BacktestModal from './BacktestModal';
 import OptionsBuilder, { Instrument, Leg } from './OptionsBuilder';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+
+const STOCK_UNIVERSE = [
+  { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', sector: 'Energy' },
+  { symbol: 'NIFTY', name: 'Nifty 50 Index', sector: 'Indices' },
+  { symbol: 'BANKNIFTY', name: 'Nifty Bank Index', sector: 'Indices' },
+  { symbol: 'TCS', name: 'Tata Consultancy Services Ltd.', sector: 'Technology' },
+  { symbol: 'INFOSYS', name: 'Infosys Ltd.', sector: 'Technology' },
+  { symbol: 'IBM', name: 'International Business Machines', sector: 'Technology' },
+  { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd.', sector: 'Financial Services' },
+  { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd.', sector: 'Financial Services' },
+  { symbol: 'BHARTIALRT', name: 'Bharti Airtel Ltd.', sector: 'Telecommunications' },
+  { symbol: 'SBIN', name: 'State Bank of India', sector: 'Financial Services' },
+  { symbol: 'LICI', name: 'Life Insurance Corporation of India', sector: 'Financial Services' },
+  { symbol: 'LT', name: 'Larsen & Toubro Ltd.', sector: 'Construction' },
+  { symbol: 'ITC', name: 'ITC Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'HINDUNILVR', name: 'Hindustan Unilever Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'KOTAKBANK', name: 'Kotak Mahindra Bank Ltd.', sector: 'Financial Services' },
+  { symbol: 'AXISBANK', name: 'Axis Bank Ltd.', sector: 'Financial Services' },
+  { symbol: 'NTPC', name: 'NTPC Ltd.', sector: 'Utilities' },
+  { symbol: 'ADANIPORTS', name: 'Adani Ports & SEZ Ltd.', sector: 'Services' },
+  { symbol: 'TATAMOTORS', name: 'Tata Motors Ltd.', sector: 'Automobile' },
+  { symbol: 'SUNPHARMA', name: 'Sun Pharmaceutical Industries Ltd.', sector: 'Healthcare' },
+  { symbol: 'ONGC', name: 'Oil & Natural Gas Corporation Ltd.', sector: 'Energy' },
+  { symbol: 'POWERGRID', name: 'Power Grid Corporation of India Ltd.', sector: 'Utilities' },
+  { symbol: 'TITAN', name: 'Titan Company Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'MARUTI', name: 'Maruti Suzuki India Ltd.', sector: 'Automobile' },
+  { symbol: 'BAJFINANCE', name: 'Bajaj Finance Ltd.', sector: 'Financial Services' },
+  { symbol: 'COALINDIA', name: 'Coal India Ltd.', sector: 'Energy' },
+  { symbol: 'ADANIENT', name: 'Adani Enterprises Ltd.', sector: 'Metals & Mining' },
+  { symbol: 'JIOFIN', name: 'Jio Financial Services Ltd.', sector: 'Financial Services' },
+  { symbol: 'ULTRACEMCO', name: 'UltraTech Cement Ltd.', sector: 'Materials' },
+  { symbol: 'WIPRO', name: 'Wipro Ltd.', sector: 'Technology' },
+  { symbol: 'BPCL', name: 'Bharat Petroleum Corporation Ltd.', sector: 'Energy' },
+  { symbol: 'HCLTECH', name: 'HCL Technologies Ltd.', sector: 'Technology' },
+  { symbol: 'ASIANPAINT', name: 'Asian Paints Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'JSWSTEEL', name: 'JSW Steel Ltd.', sector: 'Metals & Mining' },
+  { symbol: 'TATASTEEL', name: 'Tata Steel Ltd.', sector: 'Metals & Mining' },
+  { symbol: 'ADANIPOWER', name: 'Adani Power Ltd.', sector: 'Utilities' },
+  { symbol: 'GRASIM', name: 'Grasim Industries Ltd.', sector: 'Materials' },
+  { symbol: 'LTIM', name: 'LTIMindtree Ltd.', sector: 'Technology' },
+  { symbol: 'BAJAJFINSV', name: 'Bajaj Finserv Ltd.', sector: 'Financial Services' },
+  { symbol: 'HINDALCO', name: 'Hindalco Industries Ltd.', sector: 'Metals & Mining' },
+  { symbol: 'IOC', name: 'Indian Oil Corporation Ltd.', sector: 'Energy' },
+  { symbol: 'INDUSINDBK', name: 'IndusInd Bank Ltd.', sector: 'Financial Services' },
+  { symbol: 'HAL', name: 'Hindustan Aeronautics Ltd.', sector: 'Industrial' },
+  { symbol: 'DLF', name: 'DLF Ltd.', sector: 'Real Estate' },
+  { symbol: 'NESTLEIND', name: 'Nestle India Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'TECHM', name: 'Tech Mahindra Ltd.', sector: 'Technology' },
+  { symbol: 'HDFCLIFE', name: 'HDFC Life Insurance Company Ltd.', sector: 'Financial Services' },
+  { symbol: 'SBILIFE', name: 'SBI Life Insurance Company Ltd.', sector: 'Financial Services' },
+  { symbol: 'EICHERMOT', name: 'Eicher Motors Ltd.', sector: 'Automobile' },
+  { symbol: 'SHRIRAMFIN', name: 'Shriram Finance Ltd.', sector: 'Financial Services' },
+  { symbol: 'M&M', name: 'Mahindra & Mahindra Ltd.', sector: 'Automobile' },
+  { symbol: 'BEL', name: 'Bharat Electronics Ltd.', sector: 'Industrial' },
+  { symbol: 'DIVISLAB', name: 'Divi\'s Laboratories Ltd.', sector: 'Healthcare' },
+  { symbol: 'PNB', name: 'Punjab National Bank', sector: 'Financial Services' },
+  { symbol: 'IDFCFIRSTB', name: 'IDFC First Bank Ltd.', sector: 'Financial Services' },
+  { symbol: 'YESBANK', name: 'Yes Bank Ltd.', sector: 'Financial Services' },
+  { symbol: 'CANBK', name: 'Canara Bank', sector: 'Financial Services' },
+  { symbol: 'UNIONBANK', name: 'Union Bank of India', sector: 'Financial Services' },
+  { symbol: 'LICHSGFIN', name: 'LIC Housing Finance Ltd.', sector: 'Financial Services' },
+  { symbol: 'HEROMOTOCO', name: 'Hero MotoCorp Ltd.', sector: 'Automobile' },
+  { symbol: 'TVSMOTOR', name: 'TVS Motor Company Ltd.', sector: 'Automobile' },
+  { symbol: 'BALKRISIND', name: 'Balkrishna Industries Ltd.', sector: 'Automobile' },
+  { symbol: 'ASHOKLEY', name: 'Ashok Leyland Ltd.', sector: 'Automobile' },
+  { symbol: 'GAIL', name: 'GAIL India Ltd.', sector: 'Utilities' },
+  { symbol: 'RECLTD', name: 'REC Ltd.', sector: 'Financial Services' },
+  { symbol: 'PFC', name: 'Power Finance Corporation Ltd.', sector: 'Financial Services' },
+  { symbol: 'NHPC', name: 'NHPC Ltd.', sector: 'Utilities' },
+  { symbol: 'SJVN', name: 'SJVN Ltd.', sector: 'Utilities' },
+  { symbol: 'SAIL', name: 'Steel Authority of India Ltd.', sector: 'Metals & Mining' },
+  { symbol: 'NMDC', name: 'NMDC Ltd.', sector: 'Metals & Mining' },
+  { symbol: 'VEDL', name: 'Vedanta Ltd.', sector: 'Metals & Mining' },
+  { symbol: 'JINDALSTEL', name: 'Jindal Steel & Power Ltd.', sector: 'Metals & Mining' },
+  { symbol: 'HINDZINC', name: 'Hindustan Zinc Ltd.', sector: 'Metals & Mining' },
+  { symbol: 'DMART', name: 'Avenue Supermarts Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'TATAELXSI', name: 'Tata Elxsi Ltd.', sector: 'Technology' },
+  { symbol: 'PIDILITIND', name: 'Pidilite Industries Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'BRITANNIA', name: 'Britannia Industries Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'GODREJCP', name: 'Godrej Consumer Products Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'DABUR', name: 'Dabur India Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'COLPAL', name: 'Colgate-Palmolive India Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'MARICO', name: 'Marico Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'TRENT', name: 'Trent Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'PAGEIND', name: 'Page Industries Ltd.', sector: 'Consumer Goods' },
+  { symbol: 'CIPLA', name: 'Cipla Ltd.', sector: 'Healthcare' },
+  { symbol: 'DRREDDY', name: 'Dr. Reddy\'s Laboratories Ltd.', sector: 'Healthcare' },
+  { symbol: 'APOLLOHOSP', name: 'Apollo Hospitals Enterprise Ltd.', sector: 'Healthcare' },
+  { symbol: 'LUPIN', name: 'Lupin Ltd.', sector: 'Healthcare' },
+  { symbol: 'AUROPHARMA', name: 'Aurobindo Pharma Ltd.', sector: 'Healthcare' },
+  { symbol: 'BIOCON', name: 'Biocon Ltd.', sector: 'Healthcare' },
+  { symbol: 'IRCTC', name: 'Indian Railway Catering & Tourism Corp.', sector: 'Services' },
+  { symbol: 'ZOMATO', name: 'Zomato Ltd.', sector: 'Services' },
+  { symbol: 'PAYTM', name: 'One97 Communications Ltd.', sector: 'Services' },
+  { symbol: 'NYKAA', name: 'FSN E-Commerce Ventures Ltd.', sector: 'Services' },
+  { symbol: 'KPITTECH', name: 'KPIT Technologies Ltd.', sector: 'Technology' },
+  { symbol: 'PERSISTENT', name: 'Persistent Systems Ltd.', sector: 'Technology' },
+  { symbol: 'COFORGE', name: 'Coforge Ltd.', sector: 'Technology' },
+  { symbol: 'DIXON', name: 'Dixon Technologies India Ltd.', sector: 'Technology' },
+  { symbol: 'SRF', name: 'SRF Ltd.', sector: 'Materials' },
+  { symbol: 'ASTRAL', name: 'Astral Ltd.', sector: 'Materials' },
+  { symbol: 'CONCOR', name: 'Container Corporation of India Ltd.', sector: 'Services' },
+  { symbol: 'GMRINFRA', name: 'GMR Airports Infrastructure Ltd.', sector: 'Services' },
+  { symbol: 'IRFC', name: 'Indian Railway Finance Corp.', sector: 'Financial Services' },
+  { symbol: 'HUDCO', name: 'Housing & Urban Development Corp.', sector: 'Financial Services' }
+];
 
 interface ConditionBlock {
   id: string;
@@ -28,6 +134,24 @@ export default function BlockBuilder() {
   const [symbol, setSymbol] = useState('RELIANCE');
   const [timeframe, setTimeframe] = useState('1d');
   const [baseQty, setBaseQty] = useState(100);
+
+  // Searchable stock dropdown state
+  const [isDropdownOpen, setIsDropdownOpen] = useState(false);
+  const [searchQuery, setSearchQuery] = useState('');
+  const dropdownRef = useRef<HTMLDivElement>(null);
+
+  // Close dropdown on click outside
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (dropdownRef.current && !dropdownRef.current.contains(event.target as Node)) {
+        setIsDropdownOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => {
+      document.removeEventListener('mousedown', handleClickOutside);
+    };
+  }, []);
 
   // Logical Operators
   const [buyOperator, setBuyOperator] = useState<'AND' | 'OR'>('AND');
@@ -228,20 +352,84 @@ export default function BlockBuilder() {
         </div>
 
         <div className="flex flex-wrap gap-4 w-full md:w-auto">
-          <div className="flex-1 min-w-[120px]">
+          <div className="flex-1 min-w-[120px] relative" ref={dropdownRef}>
             <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">Target Symbol</label>
-            <select
-              value={symbol}
-              onChange={(e) => setSymbol(e.target.value)}
-              className="w-full bg-[#0D1117] border border-[#30363D] text-white text-sm rounded-md px-3 py-2 outline-none focus:border-[#58A6FF] cursor-pointer"
+            <button
+              type="button"
+              onClick={() => setIsDropdownOpen(!isDropdownOpen)}
+              className="w-full bg-[#0D1117] border border-[#30363D] hover:border-[#8B5CF6]/50 text-white text-sm rounded-md px-3 py-2 outline-none focus:border-[#58A6FF] flex items-center justify-between cursor-pointer transition-colors h-[38px]"
             >
-              <option value="RELIANCE">RELIANCE</option>
-              <option value="NIFTY">NIFTY</option>
-              <option value="BANKNIFTY">BANKNIFTY</option>
-              <option value="TCS">TCS</option>
-              <option value="INFOSYS">INFOSYS</option>
-              <option value="IBM">IBM</option>
-            </select>
+              <span className="truncate">
+                {symbol}
+              </span>
+              <ChevronDown size={14} className={`text-gray-400 transition-transform ${isDropdownOpen ? 'rotate-180' : ''}`} />
+            </button>
+
+            {isDropdownOpen && (
+              <div className="absolute z-50 left-0 right-0 mt-1 bg-[#161B22] border border-[#30363D] rounded-md shadow-2xl overflow-hidden flex flex-col max-h-64 animate-in fade-in slide-in-from-top-1 w-[260px] md:w-[300px]">
+                {/* Search Input Bar */}
+                <div className="p-2 border-b border-[#30363D] flex items-center gap-2 bg-[#0D1117]">
+                  <Search size={14} className="text-gray-500 shrink-0" />
+                  <input
+                    type="text"
+                    placeholder="Search stocks..."
+                    value={searchQuery}
+                    onChange={(e) => setSearchQuery(e.target.value)}
+                    className="w-full bg-transparent text-white text-xs outline-none"
+                    autoFocus
+                  />
+                  {searchQuery && (
+                    <button
+                      type="button"
+                      onClick={() => setSearchQuery('')}
+                      className="text-gray-500 hover:text-gray-300"
+                    >
+                      <X size={12} />
+                    </button>
+                  )}
+                </div>
+
+                {/* Scrollable list */}
+                <div className="overflow-y-auto flex-1 divide-y divide-[#21262D]">
+                  {STOCK_UNIVERSE.filter(stock => 
+                    stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                    stock.sector.toLowerCase().includes(searchQuery.toLowerCase())
+                  ).length > 0 ? (
+                    STOCK_UNIVERSE.filter(stock => 
+                      stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                      stock.sector.toLowerCase().includes(searchQuery.toLowerCase())
+                    ).map((stock) => (
+                      <button
+                        key={stock.symbol}
+                        type="button"
+                        onClick={() => {
+                          setSymbol(stock.symbol);
+                          setIsDropdownOpen(false);
+                          setSearchQuery('');
+                        }}
+                        className={`w-full text-left px-3 py-2 text-xs hover:bg-[#30363D]/40 transition-colors flex items-center justify-between ${
+                          symbol === stock.symbol ? 'bg-[#30363D]/20 text-[#58A6FF]' : 'text-gray-300'
+                        }`}
+                      >
+                        <div className="truncate pr-2">
+                          <span className="font-bold text-white block text-left">{stock.symbol}</span>
+                          <span className="text-[10px] text-gray-500 block truncate text-left">{stock.name}</span>
+                        </div>
+                        <span className="text-[8px] shrink-0 bg-[#21262D] text-gray-400 px-1.5 py-0.5 rounded font-mono uppercase">
+                          {stock.sector}
+                        </span>
+                      </button>
+                    ))
+                  ) : (
+                    <div className="p-4 text-center text-xs text-gray-500">
+                      No stocks found matching "{searchQuery}"
+                    </div>
+                  )}
+                </div>
+              </div>
+            )}
           </div>
 
           <div className="flex-1 min-w-[100px]">
