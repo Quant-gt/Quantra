@@ -24,13 +24,13 @@ export default function PublicNavbar() {
           <Link href="/pricing" className="hover:text-white hover:text-glow transition-all">Pricing</Link>
         </div>
 
-        <div className="flex items-center gap-4">
-          <Link href="/auth" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Sign In</Link>
+        <div className="flex items-center gap-5">
+          <Link href="/auth?mode=signin" className="text-sm font-medium text-gray-400 hover:text-white transition-colors">Sign In</Link>
           <Link 
-            href="/auth" 
+            href="/auth?mode=signup" 
             className="bg-gradient-to-r from-emerald-500 to-emerald-600 text-white px-5 py-2.5 rounded-xl text-sm font-bold hover:shadow-[0_0_20px_-5px_rgba(16,185,129,0.5)] transition-all active:scale-95 flex items-center gap-2"
           >
-            Access Terminal <ChevronRight size={16} />
+            Sign Up <ChevronRight size={16} />
           </Link>
         </div>
       </div>
