@@ -27,8 +27,8 @@ CREATE TABLE IF NOT EXISTS strategy_metrics (
   updated_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
 
--- Create marketplace_strategies VIEW
-CREATE OR REPLACE VIEW marketplace_strategies AS
+-- Create marketplace_strategies VIEW (with SECURITY INVOKER to enforce RLS)
+CREATE OR REPLACE VIEW public.marketplace_strategies WITH (security_invoker = true) AS
 SELECT 
   s.id,
   s.name,
