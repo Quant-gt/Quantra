@@ -1,0 +1,4 @@
+project_id = "tksqjksuijekmmsvxhpe"
+
+[functions.todos]
+verify_jwt = true # Set to false if you change auth mode to "none", "secret" or "publishable"
