@@ -1,0 +1,32 @@
+name: Supabase Keep-Alive Ping
+
+on:
+  schedule:
+    # Runs at 00:00 UTC (5:30 AM IST) every day
+    - cron: '0 0 * * *'
+  workflow_dispatch: # Allows manual triggering from the GitHub Actions UI
+
+jobs:
+  ping:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Ping Supabase REST API
+        run: |
+          if [ -z "${{ secrets.SUPABASE_URL }}" ] || [ -z "${{ secrets.SUPABASE_ANON_KEY }}" ]; then
+            echo "Error: SUPABASE_URL or SUPABASE_ANON_KEY secret is not set."
+            exit 1
+          fi
+          
+          echo "Pinging Supabase REST API..."
+          STATUS_CODE=$(curl -s -o /dev/null -w "%{http_code}" -X GET "${{ secrets.SUPABASE_URL }}/rest/v1/" \
+            -H "apikey: ${{ secrets.SUPABASE_ANON_KEY }}" \
+            -H "Authorization: Bearer ${{ secrets.SUPABASE_ANON_KEY }}")
+          
+          echo "Response HTTP Status Code: $STATUS_CODE"
+          
+          if [ "$STATUS_CODE" -eq 200 ] || [ "$STATUS_CODE" -eq 201 ] || [ "$STATUS_CODE" -eq 204 ]; then
+            echo "Ping successful! Supabase project is active."
+          else
+            echo "Ping returned unexpected status code: $STATUS_CODE"
+            exit 1
+          fi
