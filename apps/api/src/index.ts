@@ -10,6 +10,7 @@ const port = process.env.PORT || 3001;
 
 // Trust the first proxy hop (e.g. Render/Vercel) to parse X-Forwarded-For securely
 app.set('trust proxy', 1);
+app.disable('x-powered-by');
 
 // Circuit breaker state for rate limiter
 let redisFailCount = 0;
