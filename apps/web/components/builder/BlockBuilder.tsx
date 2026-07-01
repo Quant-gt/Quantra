@@ -138,7 +138,47 @@ export default function BlockBuilder() {
   // Searchable stock dropdown state
   const [isDropdownOpen, setIsDropdownOpen] = useState(false);
   const [searchQuery, setSearchQuery] = useState('');
+  const [dynamicResults, setDynamicResults] = useState<any[]>([]);
+  const [isSearchLoading, setIsSearchLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
+  const debounceRef = useRef<NodeJS.Timeout | null>(null);
+
+  const searchAPI = async (queryStr: string) => {
+    if (!queryStr.trim()) {
+      setDynamicResults([]);
+      return;
+    }
+    setIsSearchLoading(true);
+    try {
+      const res = await fetch(`/api/v1/search?q=${encodeURIComponent(queryStr)}`);
+      const data = await res.json();
+      if (data.results) {
+        setDynamicResults(data.results.map((r: any) => ({
+          symbol: r.symbol,
+          name: r.name,
+          sector: r.exchange || 'EQUITY'
+        })));
+      }
+    } catch (err) {
+      console.error("Failed to query stock search API", err);
+    } finally {
+      setIsSearchLoading(false);
+    }
+  };
+
+  const handleSearchChange = (val: string) => {
+    setSearchQuery(val);
+    if (!val.trim()) {
+      setDynamicResults([]);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
+      return;
+    }
+    
+    if (debounceRef.current) clearTimeout(debounceRef.current);
+    debounceRef.current = setTimeout(() => {
+      searchAPI(val);
+    }, 400);
+  };
 
   // Close dropdown on click outside
   useEffect(() => {
@@ -150,6 +190,7 @@ export default function BlockBuilder() {
     document.addEventListener('mousedown', handleClickOutside);
     return () => {
       document.removeEventListener('mousedown', handleClickOutside);
+      if (debounceRef.current) clearTimeout(debounceRef.current);
     };
   }, []);
 
@@ -374,14 +415,17 @@ export default function BlockBuilder() {
                     type="text"
                     placeholder="Search stocks..."
                     value={searchQuery}
-                    onChange={(e) => setSearchQuery(e.target.value)}
+                    onChange={(e) => handleSearchChange(e.target.value)}
                     className="w-full bg-transparent text-white text-xs outline-none"
                     autoFocus
                   />
                   {searchQuery && (
                     <button
                       type="button"
-                      onClick={() => setSearchQuery('')}
+                      onClick={() => {
+                        setSearchQuery('');
+                        setDynamicResults([]);
+                      }}
                       className="text-gray-500 hover:text-gray-300"
                     >
                       <X size={12} />
@@ -391,41 +435,61 @@ export default function BlockBuilder() {
 
                 {/* Scrollable list */}
                 <div className="overflow-y-auto flex-1 divide-y divide-[#21262D]">
-                  {STOCK_UNIVERSE.filter(stock => 
-                    stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                    stock.sector.toLowerCase().includes(searchQuery.toLowerCase())
-                  ).length > 0 ? (
-                    STOCK_UNIVERSE.filter(stock => 
-                      stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      stock.name.toLowerCase().includes(searchQuery.toLowerCase()) ||
-                      stock.sector.toLowerCase().includes(searchQuery.toLowerCase())
-                    ).map((stock) => (
-                      <button
-                        key={stock.symbol}
-                        type="button"
-                        onClick={() => {
-                          setSymbol(stock.symbol);
-                          setIsDropdownOpen(false);
-                          setSearchQuery('');
-                        }}
-                        className={`w-full text-left px-3 py-2 text-xs hover:bg-[#30363D]/40 transition-colors flex items-center justify-between ${
-                          symbol === stock.symbol ? 'bg-[#30363D]/20 text-[#58A6FF]' : 'text-gray-300'
-                        }`}
-                      >
-                        <div className="truncate pr-2">
-                          <span className="font-bold text-white block text-left">{stock.symbol}</span>
-                          <span className="text-[10px] text-gray-500 block truncate text-left">{stock.name}</span>
-                        </div>
-                        <span className="text-[8px] shrink-0 bg-[#21262D] text-gray-400 px-1.5 py-0.5 rounded font-mono uppercase">
-                          {stock.sector}
-                        </span>
-                      </button>
-                    ))
-                  ) : (
-                    <div className="p-4 text-center text-xs text-gray-500">
-                      No stocks found matching "{searchQuery}"
+                  {isSearchLoading ? (
+                    <div className="p-4 text-center text-xs text-gray-500 flex items-center justify-center gap-2">
+                      <Loader2 size={12} className="animate-spin text-[#58A6FF]" />
+                      <span>Searching cash segment...</span>
                     </div>
+                  ) : (
+                    (() => {
+                      const list = searchQuery.trim() === '' ? STOCK_UNIVERSE : (() => {
+                        const localMatches = STOCK_UNIVERSE.filter(stock => 
+                          stock.symbol.toLowerCase().includes(searchQuery.toLowerCase()) ||
+                          stock.name.toLowerCase().includes(searchQuery.toLowerCase())
+                        );
+                        const combined = [...localMatches];
+                        const existingSymbols = new Set(combined.map(s => s.symbol));
+                        for (const r of dynamicResults) {
+                          if (!existingSymbols.has(r.symbol)) {
+                            combined.push(r);
+                            existingSymbols.add(r.symbol);
+                          }
+                        }
+                        return combined;
+                      })();
+
+                      if (list.length > 0) {
+                        return list.map((stock) => (
+                          <button
+                            key={stock.symbol}
+                            type="button"
+                            onClick={() => {
+                              setSymbol(stock.symbol);
+                              setIsDropdownOpen(false);
+                              setSearchQuery('');
+                              setDynamicResults([]);
+                            }}
+                            className={`w-full text-left px-3 py-2 text-xs hover:bg-[#30363D]/40 transition-colors flex items-center justify-between ${
+                              symbol === stock.symbol ? 'bg-[#30363D]/20 text-[#58A6FF]' : 'text-gray-300'
+                            }`}
+                          >
+                            <div className="truncate pr-2">
+                              <span className="font-bold text-white block text-left">{stock.symbol}</span>
+                              <span className="text-[10px] text-gray-500 block truncate text-left">{stock.name}</span>
+                            </div>
+                            <span className="text-[8px] shrink-0 bg-[#21262D] text-gray-400 px-1.5 py-0.5 rounded font-mono uppercase">
+                              {stock.sector}
+                            </span>
+                          </button>
+                        ));
+                      } else {
+                        return (
+                          <div className="p-4 text-center text-xs text-gray-500">
+                            No stocks found matching "{searchQuery}"
+                          </div>
+                        );
+                      }
+                    })()
                   )}
                 </div>
               </div>

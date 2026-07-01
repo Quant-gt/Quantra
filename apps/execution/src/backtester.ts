@@ -36,8 +36,18 @@ export async function runBacktest(req: BacktestRequest): Promise<BacktestResult>
   }
 
   // 1. Fetch Historical Data from AlphaVantage
+  // Format standard exchange symbols to AlphaVantage standard (e.g. RELIANCE or RELIANCE.NS -> RELIANCE.NSE)
+  let avSymbol = req.symbol.toUpperCase();
+  if (!avSymbol.includes('.')) {
+    if (avSymbol !== 'NIFTY' && avSymbol !== 'BANKNIFTY' && avSymbol !== 'SENSEX') {
+      avSymbol = `${avSymbol}.NSE`;
+    }
+  } else if (avSymbol.endsWith('.NS')) {
+    avSymbol = avSymbol.replace('.NS', '.NSE');
+  }
+
   // Using TIME_SERIES_DAILY to get roughly the last 100 days by default
-  const res = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${req.symbol}&apikey=${apiKey}`);
+  const res = await fetch(`https://www.alphavantage.co/query?function=TIME_SERIES_DAILY&symbol=${avSymbol}&apikey=${apiKey}`);
   const data = await res.json();
   
   if (data['Error Message'] || !data['Time Series (Daily)']) {

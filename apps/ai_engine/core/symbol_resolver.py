@@ -44,4 +44,13 @@ class SymbolResolver:
         for fyers_sym, data in cls.MAP.items():
             if symbol == fyers_sym or symbol == data["yahoo"] or symbol.upper() == data["display"].upper():
                 return fyers_sym
-        return symbol
+        
+        # Dynamic fallback for Fyers cash segment symbols
+        clean = symbol.replace(".NS", "").replace("^", "").upper()
+        if ":" in clean:
+            return clean
+        if clean == "SENSEX":
+            return "BSE:SENSEX-INDEX"
+        if clean == "NIFTY" or clean == "NIFTY50" or clean == "NIFTY 50":
+            return "NSE:NIFTY50-INDEX"
+        return f"NSE:{clean}-EQ"
