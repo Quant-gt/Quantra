@@ -72,6 +72,34 @@ class VectorBacktester:
 
         self.df.dropna(inplace=True)
 
+    def _is_safe_expression(self, expr: str) -> bool:
+        """Validates that expression strings contain only safe variables, operators, and constants."""
+        expr = expr.strip()
+        if not expr:
+            return True
+
+        # Extract all word tokens (variables / identifiers)
+        words = re.findall(r'\b[a-zA-Z_][a-zA-Z0-9_]*\b', expr)
+        
+        # Allowed keywords in numexpr logical operations
+        allowed_keywords = {'and', 'or', 'not', 'True', 'False'}
+        allowed_columns = set(self.df.columns)
+
+        for word in words:
+            if word in allowed_keywords:
+                continue
+            if word in allowed_columns:
+                continue
+            # If the token is not an allowed column or a logical operator, reject it!
+            return False
+
+        # Only allow safe mathematical and comparison symbols.
+        # Explicitly ban dots, quotes, brackets, braces, semicolons, and double underscores.
+        if not re.match(r'^[a-zA-Z0-9_\s<>=!&|~()\-+*/]+$', expr):
+            return False
+
+        return True
+
     def generate_signals(self):
         """Evaluates entry and exit logic using vectorized operations."""
         # Default all signals to False
@@ -103,12 +131,18 @@ class VectorBacktester:
                     normalized_list.append(normalized_cond)
                 return normalized_list
 
-            normalized_entry = normalize_logic(self.strategy.entry_logic)
-            normalized_exit = normalize_logic(self.strategy.exit_logic or [])
+            normalized_entry = [f"({cond})" for cond in normalize_logic(self.strategy.entry_logic)]
+            normalized_exit = [f"({cond})" for cond in normalize_logic(self.strategy.exit_logic or [])]
             
-            entry_condition_str = " and ".join(normalized_entry)
-            exit_condition_str = " or ".join(normalized_exit) if normalized_exit else "False"
+            entry_condition_str = " & ".join(normalized_entry)
+            exit_condition_str = " | ".join(normalized_exit) if normalized_exit else "False"
             
+            # Security check: prevent expression injection
+            if not self._is_safe_expression(entry_condition_str):
+                raise ValueError(f"Security Alert: Unsafe characters or unrecognized identifiers detected in entry logic: {entry_condition_str}")
+            if not self._is_safe_expression(exit_condition_str):
+                raise ValueError(f"Security Alert: Unsafe characters or unrecognized identifiers detected in exit logic: {exit_condition_str}")
+
             # Use safe numexpr evaluation
             if entry_condition_str:
                 self.df['entry_signal'] = ne.evaluate(entry_condition_str, local_dict=self.df.to_dict('series'))
