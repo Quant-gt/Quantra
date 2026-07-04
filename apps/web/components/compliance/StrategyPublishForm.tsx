@@ -15,6 +15,33 @@ export default function StrategyPublishForm() {
 
   // In a real app, we'd fetch `userRaVerified` inside useEffect.
 
+  const isValidAlgoId = (id: string): { valid: boolean; message?: string } => {
+    const clean = id.trim().toUpperCase();
+    if (!/^(NSE|BSE)-STRAT-[A-Z0-9]{6,12}$/.test(clean)) {
+      return { valid: false, message: "Invalid Algo-ID format. Must start with 'NSE-STRAT-' or 'BSE-STRAT-', followed by 6 to 12 alphanumeric characters (e.g., NSE-STRAT-A1B2C3)." };
+    }
+    
+    const suffix = clean.split("-STRAT-")[1];
+    if (!suffix) {
+      return { valid: false, message: "Invalid Algo-ID format. Must contain a valid suffix." };
+    }
+    
+    if (suffix.includes("XXX")) {
+      return { valid: false, message: "Algo-ID cannot contain 'XXX' placeholders. Please enter your actual approved Exchange Algo-ID." };
+    }
+    
+    const dummySequences = ["123456", "654321", "12345678", "123456789", "000000", "111111", "999999"];
+    if (dummySequences.includes(suffix)) {
+      return { valid: false, message: "Generic sequential/placeholder values (e.g., 123456) are not allowed." };
+    }
+    
+    if (/^(.)\1+$/.test(suffix)) {
+      return { valid: false, message: "Repeating dummy patterns (e.g., AAAAAA) are not allowed." };
+    }
+    
+    return { valid: true };
+  };
+
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     setLoading(true);
@@ -26,8 +53,9 @@ export default function StrategyPublishForm() {
       return;
     }
 
-    if (!/^(NSE|BSE)-STRAT-[A-Z0-9]{6,12}$/.test(algoId)) {
-      setError("Invalid Algo-ID format. Must start with 'NSE-STRAT-' or 'BSE-STRAT-', followed by 6 to 12 alphanumeric characters (e.g., NSE-STRAT-A1B2C3).");
+    const validation = isValidAlgoId(algoId);
+    if (!validation.valid) {
+      setError(validation.message || "Invalid Algo-ID.");
       setLoading(false);
       return;
     }
