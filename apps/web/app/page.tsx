@@ -184,6 +184,7 @@ export default function Home() {
             <div className="flex flex-col gap-2.5">
               <Link href="/marketplace" className="hover:text-white transition-colors">Marketplace</Link>
               <Link href="/backtest" className="hover:text-white transition-colors">Strategy Backtesting</Link>
+              <Link href="/blog" className="hover:text-white transition-colors">Blog Articles</Link>
               <Link href="/pricing" className="hover:text-white transition-colors">Pricing Plans</Link>
               <Link href="/dashboard/charts" className="hover:text-white transition-colors">Live Terminals</Link>
             </div>

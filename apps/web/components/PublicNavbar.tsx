@@ -21,6 +21,7 @@ export default function PublicNavbar() {
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
           <Link href="/marketplace" className="hover:text-white hover:text-glow transition-all">Marketplace</Link>
           <Link href="/backtest" className="hover:text-white hover:text-glow transition-all">Backtest</Link>
+          <Link href="/blog" className="hover:text-white hover:text-glow transition-all">Blog</Link>
           <Link href="/pricing" className="hover:text-white hover:text-glow transition-all">Pricing</Link>
         </div>
 
