@@ -10,12 +10,16 @@ scope:
     - "apps/web/components/**/*"
     - "apps/web/app/**/*"
     - "apps/web/hooks/**/*"
+    - "apps/api/src/**/*"
+    - "apps/ai_engine/**/*.py"
+    - "apps/execution/src/**/*"
   exclude:
     - "apps/web/public/**/*"
     - "**/*.test.ts"
     - "**/*.test.tsx"
     - "node_modules"
     - ".next"
+    - "apps/ai_engine/venv/**/*"
 
 optimization_goals:
   # Primary focus for React Flow and visual node builders
@@ -31,6 +35,13 @@ optimization_goals:
     suggest_dynamic_imports: true
     analyze_heavy_dependencies: true
 
+  # Focus for Node APIs and Python AI services
+  backend_performance:
+    optimize_async_loops: true
+    minimize_network_latency: true
+    secure_expression_evaluation: true
+    memory_footprint_reduction: true
+
   # General code health
   readability: true
   complexity_reduction: true
@@ -39,3 +50,5 @@ rules:
   - "Never suggest removing error boundaries."
   - "When suggesting React.memo, always verify that props are shallow-equatable."
   - "Prefer CSS modules or Tailwind over heavy runtime-in-JS libraries if replacements are suggested."
+  - "Always sanitize and validate user-supplied custom logic strings before passing to evaluate/numexpr."
+  - "Enforce role-based access checks (adminOnly) on all configuration and state-altering endpoints."
