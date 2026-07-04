@@ -108,3 +108,7 @@ async def market_stream():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "ai_engine"}
+
+@app.get("/")
+def read_root():
+    return RedirectResponse(url="/health")

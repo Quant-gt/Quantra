@@ -73,6 +73,52 @@ def generate_token_from_auth_code(auth_code: str):
         except Exception as write_err:
             print(f"Warning: could not write token to file: {write_err}")
             
+        # Save to Supabase
+        supabase_url = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+        supabase_key = os.getenv("SUPABASE_SECRET_KEY") or os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+        if supabase_url and supabase_key:
+            try:
+                import urllib.request
+                import json
+                
+                # Fetch first user_id
+                user_id = None
+                req = urllib.request.Request(
+                    f"{supabase_url}/rest/v1/users?select=id&limit=1",
+                    headers={
+                        "apikey": supabase_key,
+                        "Authorization": f"Bearer {supabase_key}"
+                    }
+                )
+                with urllib.request.urlopen(req) as resp:
+                    users = json.loads(resp.read().decode("utf-8"))
+                    if users:
+                        user_id = users[0]["id"]
+                
+                if user_id:
+                    # Upsert connection details
+                    payload = {
+                        "user_id": user_id,
+                        "broker_name": "fyers",
+                        "encrypted_access_token": encrypted,
+                        "status": "connected"
+                    }
+                    upsert_req = urllib.request.Request(
+                        f"{supabase_url}/rest/v1/broker_connections",
+                        headers={
+                            "apikey": supabase_key,
+                            "Authorization": f"Bearer {supabase_key}",
+                            "Content-Type": "application/json",
+                            "Prefer": "resolution=merge-duplicates"
+                        },
+                        data=json.dumps(payload).encode("utf-8"),
+                        method="POST"
+                    )
+                    with urllib.request.urlopen(upsert_req) as resp:
+                        print("Successfully saved Fyers Access Token to Supabase.")
+            except Exception as db_err:
+                print(f"Warning: could not write token to Supabase: {db_err}")
+            
         print("Successfully generated and saved Fyers Access Token (encrypted on disk).")
         return token
     else:
@@ -94,6 +140,39 @@ def get_fyers_access_token():
                 return decrypted
         except Exception as read_err:
             print(f"Warning: could not read/decrypt Fyers token from file: {read_err}")
+            
+    # Fallback to Supabase
+    supabase_url = os.getenv("SUPABASE_URL") or os.getenv("NEXT_PUBLIC_SUPABASE_URL")
+    supabase_key = os.getenv("SUPABASE_SECRET_KEY") or os.getenv("SUPABASE_SERVICE_ROLE_KEY") or os.getenv("NEXT_PUBLIC_SUPABASE_ANON_KEY")
+    if supabase_url and supabase_key:
+        try:
+            import urllib.request
+            import json
+            req = urllib.request.Request(
+                f"{supabase_url}/rest/v1/broker_connections?broker_name=eq.fyers&select=encrypted_access_token&limit=1",
+                headers={
+                    "apikey": supabase_key,
+                    "Authorization": f"Bearer {supabase_key}"
+                }
+            )
+            with urllib.request.urlopen(req) as resp:
+                conns = json.loads(resp.read().decode("utf-8"))
+                if conns:
+                    encrypted_token = conns[0]["encrypted_access_token"]
+                    app_secret = os.getenv("FYERS_APP_SECRET")
+                    decrypted = decrypt_token(encrypted_token, app_secret)
+                    if decrypted:
+                        _IN_MEMORY_TOKEN = decrypted
+                        # Save it locally for future fast lookups
+                        try:
+                            with open(TOKEN_FILE, "w") as f:
+                                f.write(encrypted_token)
+                        except Exception:
+                            pass
+                        return decrypted
+        except Exception as db_err:
+            print(f"Warning: could not read Fyers token from Supabase: {db_err}")
+            
     return None
 
 if __name__ == "__main__":
