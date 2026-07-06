@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import { createClient } from '@/lib/supabase/server';
 
 export async function POST(request: Request) {
   try {
@@ -15,8 +16,30 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'SEBI Registration number is required for RIAs.' }, { status: 400 });
     }
 
-    // Since this is a demo environment with mocked auth, we will simulate a successful insertion
-    // into the user_kyc table without hitting Supabase (because auth.uid() would fail).
+    const supabase = await createClient();
+    const { data: { user } } = await supabase.auth.getUser();
+
+    if (user) {
+      const updateData: any = {
+        ra_license_no: sebi_registration_number || null,
+        ra_verified: false
+      };
+      
+      if (sebi_registration_number) {
+        // Default to a 5-year registration validity from now
+        updateData.ra_expiry_date = new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000).toISOString();
+      }
+
+      const { error } = await supabase
+        .from('users')
+        .update(updateData)
+        .eq('id', user.id);
+
+      if (error) {
+        console.error('Error updating SEBI compliance on user:', error);
+        return NextResponse.json({ error: 'Failed to update compliance details.' }, { status: 500 });
+      }
+    }
 
     // Simulate backend processing delay
     await new Promise((resolve) => setTimeout(resolve, 1500));

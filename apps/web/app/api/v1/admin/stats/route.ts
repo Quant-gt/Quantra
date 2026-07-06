@@ -11,8 +11,7 @@ export async function GET() {
     const { count: publishedAlgos } = await supabase.from('strategies').select('*', { count: 'exact', head: true }).eq('status', 'published');
     const { count: pendingKyc } = await supabase.from('user_kyc').select('*', { count: 'exact', head: true }).eq('kyc_status', 'pending');
 
-    // Calculate MRR from subscriptions (mocking price as each strategy has different monthly_fee, 
-    // but we can query it by joining or just mock the aggregation if join is complex via JS)
+    // Calculate MRR from subscriptions by joining and aggregating monthly strategy fees
     
     // For exact MRR, we'd need to fetch all active subs and sum up the strategy fees
     const { data: subsData } = await supabase

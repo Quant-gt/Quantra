@@ -43,12 +43,14 @@ export default function MarketplaceFilters() {
     window.history.replaceState(null, '', `/marketplace${queryStr}`);
     
     // Also store in localStorage
-    localStorage.setItem("marketplace_filters", JSON.stringify(debouncedFilters));
+    if (typeof window !== 'undefined') {
+      localStorage.setItem("marketplace_filters", JSON.stringify(debouncedFilters));
+    }
   }, [debouncedFilters, searchParams]);
 
   useEffect(() => {
     // Restore from localStorage on first mount if no URL params
-    if (!searchParams.toString()) {
+    if (typeof window !== 'undefined' && !searchParams.toString()) {
       const saved = localStorage.getItem("marketplace_filters");
       if (saved) {
         try {

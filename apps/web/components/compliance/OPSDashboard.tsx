@@ -8,16 +8,29 @@ export default function OPSDashboard() {
   const supabase = createClient();
 
   useEffect(() => {
-    // In a real implementation, this would connect to a websocket or poll the API
-    // which internally reads from Upstash Redis `ops:{subscription_id}:{timestamp_second}`
-    const interval = setInterval(async () => {
-      // Mocking OPS variation between 0 and 10
-      const randomOps = Math.random() * 8 + (Math.random() > 0.9 ? 2 : 0);
-      setOps(Number(randomOps.toFixed(1)));
-    }, 1000);
+    const fetchOps = async () => {
+      try {
+        const { data } = await supabase
+          .from('marketplace_subscriptions')
+          .select('current_ops')
+          .eq('status', 'active')
+          .limit(1);
+        
+        if (data && data[0]) {
+          setOps(Number(data[0].current_ops) || 0);
+        } else {
+          // If no active subscriptions, defaults to 0 OPS
+          setOps(0);
+        }
+      } catch (err) {
+        // ignore fetch errors on unmounted component
+      }
+    };
 
+    fetchOps();
+    const interval = setInterval(fetchOps, 2000);
     return () => clearInterval(interval);
-  }, []);
+  }, [supabase]);
 
   const getStatusColor = () => {
     if (ops >= 9.5) return "text-red-500 bg-red-500/10 border-red-500/30";
