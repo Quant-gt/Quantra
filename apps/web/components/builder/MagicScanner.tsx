@@ -1,6 +1,6 @@
 "use client";
 
-import { Sparkles, Navigation } from 'lucide-react';
+import { Sparkles, Navigation, Info } from 'lucide-react';
 import { useState } from 'react';
 
 // Real expanded broad market universe of 100 stocks for dynamic scanning (including Nifty Next 50 and Midcaps)
@@ -107,7 +107,6 @@ const STOCK_UNIVERSE = [
   { symbol: 'HUDCO', name: 'Housing & Urban Development Corp.', sector: 'Financial Services' }
 ];
 
-// Helper to generate a deterministic seed based on symbol
 function getSymbolSeed(symbol: string) {
   let hash = 0;
   for (let i = 0; i < symbol.length; i++) {
@@ -122,6 +121,48 @@ export default function MagicScanner() {
   const [hasScanned, setHasScanned] = useState(false);
   const [results, setResults] = useState<any[]>([]);
 
+  const evaluateCustomExpression = (expr: string, stock: any): boolean => {
+    let cleanExpr = expr.toLowerCase();
+    
+    // Map common indicator variables to stock values
+    const vars: { [key: string]: number } = {
+      close: stock.closeVal,
+      open: stock.openVal,
+      high: stock.highVal,
+      low: stock.lowVal,
+      volume: stock.volumeVal,
+      rsi: stock.rsi,
+      adx: stock.adx,
+      supertrend: stock.supertrendVal,
+      fvg: stock.fvgBullVal
+    };
+    
+    // Replace variables in expression
+    Object.keys(vars).forEach(v => {
+      const regex = new RegExp(`\\b${v}\\b`, 'g');
+      const val = vars[v];
+      cleanExpr = cleanExpr.replace(regex, (val ?? 0).toString());
+    });
+    
+    // Remove spaces
+    cleanExpr = cleanExpr.replace(/\s+/g, '');
+    
+    // Replace logical operators with JS equivalents
+    cleanExpr = cleanExpr.replace(/\band\b/g, '&&').replace(/\bor\b/g, '||').replace(/\bnot\b/g, '!');
+    
+    // Sanitization check: ONLY allow numbers, operators, logic signs, comparison signs, parentheses
+    if (!/^[0-9.+\-*/()&|!><=]+$/.test(cleanExpr)) {
+      return false;
+    }
+    
+    try {
+      const evalFn = new Function(`return !!(${cleanExpr});`);
+      return evalFn();
+    } catch (err) {
+      return false;
+    }
+  };
+
   const handleScan = () => {
     if (!prompt.trim()) return;
     setIsScanning(true);
@@ -130,18 +171,26 @@ export default function MagicScanner() {
     
     setTimeout(() => {
       const query = prompt.toLowerCase().trim();
+      const isMathExpression = /[><=+\-*/()]/.test(query);
       
-      // Dynamically generate realistic indicator conditions seeded by symbol
       const matched = STOCK_UNIVERSE.map(stock => {
         const seed = getSymbolSeed(stock.symbol);
-        const priceVal = (seed % 4800) + 150; // Price between ₹150 and ₹4950
-        const changeVal = ((seed % 120) - 60) / 10; // Change between -6.0% and +6.0%
-        const rsi = (seed % 75) + 12; // RSI between 12 and 87
+        const closeVal = (seed % 4800) + 150; // ₹150 to ₹4950
+        const changeVal = ((seed % 120) - 60) / 10; // -6.0% to +6.0%
+        const openVal = closeVal * (1 - changeVal / 100);
+        const highVal = Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
+        const lowVal = Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
+        
+        const rsi = (seed % 75) + 12; // 12 to 87
+        const adx = (seed % 45) + 10; // 10 to 55
+        const volumeVal = (seed % 900000) + 100000;
+        const supertrendVal = closeVal * (changeVal >= 0 ? 0.96 : 1.04);
+        const fvgBullVal = (seed % 7) === 0 ? (closeVal * 0.012) : 0.0;
         const hasMacd = (seed % 3) === 0;
         const hasGoldenCross = (seed % 4) === 0;
-        const hasVolumeSurge = (seed % 5) === 0;
-        
-        const formattedPrice = `₹${priceVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+        const hasVolumeSurge = volumeVal > 600000;
+
+        const formattedPrice = `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const formattedChange = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;
         
         return {
@@ -150,13 +199,26 @@ export default function MagicScanner() {
           sector: stock.sector,
           price: formattedPrice,
           change: formattedChange,
+          closeVal,
+          openVal,
+          highVal,
+          lowVal,
           rsi,
+          adx,
+          volumeVal,
+          supertrendVal,
+          fvgBullVal,
           hasMacd,
           hasGoldenCross,
           hasVolumeSurge,
           rawChange: changeVal
         };
       }).filter(stock => {
+        if (isMathExpression) {
+          return evaluateCustomExpression(query, stock);
+        }
+
+        // Conversational NLP matchers
         if (query.includes('rsi') && (query.includes('oversold') || query.includes('under') || query.includes('below') || query.includes('30'))) {
           return stock.rsi < 30;
         }
@@ -172,20 +234,30 @@ export default function MagicScanner() {
         if (query.includes('volume') || query.includes('surge') || query.includes('spike')) {
           return stock.hasVolumeSurge;
         }
-        
-        // Generic search fallback: match text with symbol, company name, or sector
+        if (query.includes('supertrend') && (query.includes('bullish') || query.includes('buy') || query.includes('above'))) {
+          return stock.closeVal > stock.supertrendVal;
+        }
+        if (query.includes('adx') && (query.includes('strong') || query.includes('trend') || query.includes('25'))) {
+          return stock.adx > 25;
+        }
+        if (query.includes('fvg') || query.includes('fair value gap') || query.includes('imbalance')) {
+          return stock.fvgBullVal > 0;
+        }
+        if (query.includes('orb') || query.includes('opening range')) {
+          return stock.closeVal > stock.openVal;
+        }
+
         return stock.symbol.toLowerCase().includes(query) || 
                stock.company.toLowerCase().includes(query) || 
                stock.sector.toLowerCase().includes(query);
       });
 
-      // If no custom filters matched, fallback to a seeded selection
       if (matched.length === 0) {
         const fallbackList = STOCK_UNIVERSE.filter((_, idx) => (idx % 6) === 0).map(stock => {
           const seed = getSymbolSeed(stock.symbol);
-          const priceVal = (seed % 4800) + 150;
+          const closeVal = (seed % 4800) + 150;
           const changeVal = ((seed % 120) - 60) / 10;
-          const formattedPrice = `₹${priceVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+          const formattedPrice = `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
           const formattedChange = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;
           return {
             symbol: stock.symbol,
@@ -193,6 +265,7 @@ export default function MagicScanner() {
             sector: stock.sector,
             price: formattedPrice,
             change: formattedChange,
+            closeVal,
             rawChange: changeVal
           };
         });
@@ -210,17 +283,20 @@ export default function MagicScanner() {
       <div className="bg-[#1C2128]/50 border border-[#30363D] rounded-xl overflow-hidden shadow-xl backdrop-blur-sm">
         
         {/* Header */}
-        <div className="px-6 py-4 flex items-center gap-2">
-          <div className="text-cyan-400">
-            <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-            </svg>
+        <div className="px-6 py-4 flex items-center justify-between border-b border-[#30363D] bg-[#1F242C]/50">
+          <div className="flex items-center gap-2">
+            <div className="text-cyan-400">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+              </svg>
+            </div>
+            <h3 className="text-sm font-bold text-cyan-400 tracking-wider">MAGIC FILTERS (Screener Only)</h3>
           </div>
-          <h3 className="text-sm font-bold text-cyan-400 tracking-wider">MAGIC FILTERS (Scanner Only)</h3>
+          <span className="text-[10px] bg-cyan-900/30 text-cyan-400 px-2 py-0.5 rounded font-mono border border-cyan-800/30">MATH ENGINE ENHANCED</span>
         </div>
 
         {/* Input Area */}
-        <div className="px-6 pb-6">
+        <div className="px-6 py-6">
           <div className="flex gap-4">
             <div className="flex-1 relative">
               <input 
@@ -228,7 +304,7 @@ export default function MagicScanner() {
                 value={prompt}
                 onChange={(e) => setPrompt(e.target.value)}
                 onKeyDown={(e) => e.key === 'Enter' && handleScan()}
-                placeholder="Scan stocks using simple language like 'rsi oversold' or 'macd bullish crossover'"
+                placeholder="Type filters like 'rsi oversold' or math formulas like '(close - open) / (high - low) * 100 > 50'"
                 className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-4 pr-10 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors shadow-inner"
               />
             </div>
@@ -242,16 +318,17 @@ export default function MagicScanner() {
           </div>
 
           {/* Prompt Chips */}
-          <div className="flex gap-3 mt-4">
+          <div className="flex flex-wrap gap-2.5 mt-4">
             {[
               'RSI oversold',
-              'MACD bullish crossover',
-              'Golden cross'
+              'supertrend buy',
+              '(close - open) / (high - low) * 100 > 50',
+              'close > supertrend and rsi < 40'
             ].map((chip) => (
               <button 
                 key={chip}
                 onClick={() => { setPrompt(chip); }}
-                className="bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-gray-300 text-xs px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-colors"
+                className="bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-gray-300 text-[11px] px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-colors font-mono"
               >
                 {chip} <Navigation size={10} className="rotate-45" />
               </button>
@@ -274,7 +351,7 @@ export default function MagicScanner() {
           </div>
           <div className="divide-y divide-[#30363D]">
             {results.map((r, i) => (
-              <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-[#30363D]/30 transition-colors">
+              <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-[#30363D]/30 transition-colors group">
                 <div>
                   <div className="flex items-center gap-2">
                     <h4 className="text-lg font-bold text-white">{r.symbol}</h4>
@@ -282,9 +359,26 @@ export default function MagicScanner() {
                   </div>
                   <p className="text-xs text-gray-400">{r.company}</p>
                 </div>
-                <div className="text-right">
-                  <p className="text-sm font-bold text-cyan-400">{r.price}</p>
-                  <p className={`text-xs ${r.change.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{r.change}</p>
+                
+                {/* Dynamically display parsed values on hover */}
+                {r.rsi !== undefined && (
+                  <div className="hidden group-hover:flex items-center gap-4 text-xs text-gray-400 transition-all">
+                    <span>Open: ₹{r.openVal?.toFixed(1)}</span>
+                    <span>High: ₹{r.highVal?.toFixed(1)}</span>
+                    <span>Low: ₹{r.lowVal?.toFixed(1)}</span>
+                    <span>RSI: {r.rsi}</span>
+                    <span>ADX: {r.adx}</span>
+                  </div>
+                )}
+                
+                <div className="text-right flex items-center gap-4">
+                  <div>
+                    <p className="text-sm font-bold text-cyan-400">{r.price}</p>
+                    <p className={`text-xs ${r.change && r.change.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{r.change || ''}</p>
+                  </div>
+                  <div className="text-gray-600 hover:text-cyan-400 cursor-help pr-1" title="Metric Tooltip">
+                    <Info size={14} />
+                  </div>
                 </div>
               </div>
             ))}
