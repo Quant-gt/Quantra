@@ -1,5 +1,4 @@
 import React from 'react';
-import { ShieldAlert } from 'lucide-react';
 
 export interface BlogPost {
   id: string;
@@ -13,58 +12,6 @@ export interface BlogPost {
 }
 
 export const BLOG_POSTS: BlogPost[] = [
-  {
-    id: "unlocking-alpha",
-    title: "Unlocking Alpha: A Guide to Low-Latency Execution",
-    excerpt: "Explore the architecture of modern direct market access (DMA) systems, including order routing, tick processing, and microsecond-level execution optimization.",
-    date: "July 4, 2026",
-    readTime: "6 min read",
-    category: "Systematic Trading",
-    tags: ["DMA", "Low-Latency", "C++", "Order Routing"],
-    content: (
-      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
-        <p>
-          In quantitative finance, alpha is a shrinking commodity. While signal quality is crucial, the mechanism of 
-          execution—how quickly and cleanly you can route an order to an exchange—often determines whether a strategy 
-          is profitable or drag-heavy. This guide explores the engineering principles behind direct market access (DMA) terminals.
-        </p>
-        <p>
-          To win in systematic trading, a firm must look beyond standard statistical models and focus deeply on infrastructure. 
-          When multiple participants receive the same market signal, the profits belong exclusively to the participant who 
-          reaches the exchange order matching engine first. Let’s break down the execution lifecycle, order matching optimization, 
-          and jitter mitigation.
-        </p>
-
-        <h3 className="text-xl font-bold text-white mt-8 mb-4">1. The Execution Lifecycle</h3>
-        <p>
-          A standard retail execution loop traverses multiple network hops, web servers, and third-party APIs. For professional 
-          systematic desks, this layout is collapsed:
-        </p>
-        <ul className="list-disc pl-6 space-y-2">
-          <li><strong>Tick Feed Ingestion:</strong> Subscribing directly to multicast market data feeds via UDP.</li>
-          <li><strong>Order Matching Pipeline:</strong> Processing signals in-memory using lock-free rings and ring buffers (such as the LMAX Disruptor pattern).</li>
-          <li><strong>Fix Protocol Routing:</strong> Translating logic commands directly into binary FIX (Financial Information eXchange) frames.</li>
-        </ul>
-
-        <h3 className="text-xl font-bold text-white mt-8 mb-4">2. Mitigating Jitter in Python Services</h3>
-        <p>
-          While core low-latency engines are built in C++ or Rust, Python is heavily utilized for signal generation. To maintain 
-          speed, follow these rules:
-        </p>
-        <div className="bg-[#161B22] p-4 rounded-xl font-mono text-xs text-emerald-400 space-y-1 my-4 overflow-x-auto border border-white/5">
-          <div><span className="text-purple-400">import</span> gc</div>
-          <div className="text-gray-500"># Disable automatic garbage collection during market hours</div>
-          <div>gc.disable()</div>
-          <div className="text-gray-500"># Pre-allocate memory blocks for streaming tickers</div>
-          <div>ticker_pool = [TickerFrame() <span className="text-purple-400">for</span> _ <span className="text-purple-400">in</span> range(<span className="text-amber-500">10000</span>)]</div>
-        </div>
-
-        <p>
-          By avoiding runtime allocations and garbage collector pauses (GC sweeps), execution services can sustain sub-millisecond latency.
-        </p>
-      </div>
-    )
-  },
   {
     id: "instant-kill-switch",
     title: "How to Instantly Stop or Pause an Active Strategy if the Market Crashes",
@@ -180,46 +127,6 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "fyers-api-fallback",
-    title: "Fyers API Integration: Mastering Live Auth Fallbacks",
-    excerpt: "How to handle broker connection token persistence on ephemeral cloud container platforms by building Supabase Postgres fallbacks for secure daily auth checking.",
-    date: "June 28, 2026",
-    readTime: "5 min read",
-    category: "Engineering",
-    tags: ["Fyers API", "Supabase", "Token Auth", "FastAPI"],
-    content: (
-      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
-        <p>
-          Ephemeral hosting environments (such as Render, Fly.io, or serverless functions) wipe out local filesystems upon redeployments, 
-          causing cached session tokens to disappear. If your systematic execution worker relies on a local file to store access keys, 
-          redeploying your app will instantly lock you out.
-        </p>
-
-        <h3 className="text-xl font-bold text-white mt-8 mb-4">1. Redundant Database Syncing</h3>
-        <p>
-          A modern solution is to couple local file reading (for speed) with an encrypted fallback inside a relational database 
-          like Supabase:
-        </p>
-        <div className="bg-[#161B22] p-4 rounded-xl font-mono text-xs text-emerald-400 space-y-1 my-4 overflow-x-auto border border-white/5">
-          <div><span className="text-purple-400">def</span> <span className="text-cyan-400">get_access_token</span>():</div>
-          <div className="pl-4">token = read_local_cache()</div>
-          <div className="pl-4"><span className="text-purple-400">if</span> <span className="text-purple-400">not</span> token:</div>
-          <div className="pl-8 text-gray-500"># Fallback to Supabase REST endpoint</div>
-          <div className="pl-8">token = fetch_from_supabase_db()</div>
-          <div className="pl-8">write_local_cache(token)</div>
-          <div className="pl-4"><span className="text-purple-400">return</span> token</div>
-        </div>
-
-        <h3 className="text-xl font-bold text-white mt-8 mb-4">2. Enforcing Encryption</h3>
-        <p>
-          Never store tokens in plain text in your database. Utilize symmetric XOR ciphering or AES-256 encryption using your 
-          App Secret as a private salt. This guarantees that if your database is ever compromised, your trading execution keys 
-          remain safe.
-        </p>
-      </div>
-    )
-  },
-  {
     id: "verifying-algo-performance",
     title: "How to Verify if a Trading Algorithm's Performance is Real or Fake",
     excerpt: "A practical checklist for identifying curve-fitted backtests, hidden drawdowns, and unrealistic slippage assumptions.",
@@ -248,55 +155,6 @@ export const BLOG_POSTS: BlogPost[] = [
         <h3 className="text-xl font-bold text-white mt-8 mb-4">2. How to Verify Real-World Performance</h3>
         <p>
           Look for platforms that separate backtesting reports from live verification metrics. Live tracking (such as out-of-sample forward testing) verifies that the strategy continues to perform as expected against live feeds, ensuring full transparency.
-        </p>
-      </div>
-    )
-  },
-  {
-    id: "sebi-compliance-rules",
-    title: "SEBI Compliance: Hardening Strategy Validation Rules",
-    excerpt: "An audit checklist for systematic retail trading setups in India, outlining SEBI RA limits, compliance kill switches, and anti-dummy algo verification.",
-    date: "June 18, 2026",
-    readTime: "4 min read",
-    category: "Compliance",
-    tags: ["SEBI Regulations", "Algo Validation", "Risk Management", "Daily 2FA"],
-    content: (
-      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
-        <p>
-          Systematic trading platforms operating in retail environments must conform strictly to regulatory frameworks. In India, 
-          the Securities and Exchange Board of India (SEBI) imposes tight rules to protect retail investors from misleading 
-          algorithmic performance figures and unauthorized trade triggers.
-        </p>
-
-        <h3 className="text-xl font-bold text-white mt-8 mb-4">1. Algorithmic Id Validation</h3>
-        <p>
-          Regulatory validation checks must reject test patterns or placeholders. Simple checks should scan for:
-        </p>
-        <ul className="list-disc pl-6 space-y-2">
-          <li>Placeholder strings containing test patterns like 'XXX' or 'TEMP'.</li>
-          <li>Repeating characters (e.g. 'AAAAAA') and simple sequential counts (e.g. '123456').</li>
-          <li>Verification of a valid registered SEBI RA license suffix on strategy publisher accounts.</li>
-        </ul>
-
-        <h3 className="text-xl font-bold text-white mt-8 mb-4">2. The Mandatory Compliance Kill Switch</h3>
-        <p>
-          Every trading terminal must provide a master compliance kill switch that can be triggered by either the user or 
-          the platform's administrator:
-        </p>
-        <div className="bg-[#161B22]/80 border border-red-500/20 p-4 rounded-xl flex items-start gap-4 my-6">
-          <ShieldAlert className="text-red-400 shrink-0 mt-0.5" size={20} />
-          <div>
-            <h4 className="font-bold text-white text-sm">Administrative Kill Switch Trigger</h4>
-            <p className="text-xs text-gray-400 mt-1">
-              Upon activation, all active WebSocket feeds are disconnected, and open market positions are immediately 
-              closed or set to exit-only mode across all connected brokers.
-            </p>
-          </div>
-        </div>
-
-        <p>
-          By embedding these validations natively in your Next.js frontend and Express/FastAPI backends, you ensure full 
-          auditability during review passes.
         </p>
       </div>
     )
@@ -433,7 +291,7 @@ export const BLOG_POSTS: BlogPost[] = [
           strategies and view performance curves without risking real capital. 
         </p>
         <p>
-          However, experienced traders often warn that paper trading results can be deceptive. A strategy that shows a 80% win rate 
+          However, experienced traders often warn that paper trading results can be deceptive. A strategy that shows an 80% win rate 
           in a sandbox might struggle in the live market. Let’s analyze why paper trading differs from live execution and how 
           to close the gap.
         </p>
