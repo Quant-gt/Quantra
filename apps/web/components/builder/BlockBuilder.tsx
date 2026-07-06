@@ -603,6 +603,11 @@ export default function BlockBuilder() {
                       <option className="bg-[#1C2128] text-white">Bollinger Bands</option>
                       <option className="bg-[#1C2128] text-white">VWAP</option>
                       <option className="bg-[#1C2128] text-white">Stochastic</option>
+                      <option className="bg-[#1C2128] text-white">Supertrend</option>
+                      <option className="bg-[#1C2128] text-white">ADX (14)</option>
+                      <option className="bg-[#1C2128] text-white">Donchian Channels</option>
+                      <option className="bg-[#1C2128] text-white">OBV (On-Balance Volume)</option>
+                      <option className="bg-[#1C2128] text-white">Pivot Points (Standard)</option>
                     </select>
                   </div>
                   
@@ -722,6 +727,11 @@ export default function BlockBuilder() {
                           <option className="bg-[#1C2128] text-white">Bollinger Bands</option>
                           <option className="bg-[#1C2128] text-white">VWAP</option>
                           <option className="bg-[#1C2128] text-white">Stochastic</option>
+                          <option className="bg-[#1C2128] text-white">Supertrend</option>
+                          <option className="bg-[#1C2128] text-white">ADX (14)</option>
+                          <option className="bg-[#1C2128] text-white">Donchian Channels</option>
+                          <option className="bg-[#1C2128] text-white">OBV (On-Balance Volume)</option>
+                          <option className="bg-[#1C2128] text-white">Pivot Points (Standard)</option>
                         </select>
                       </div>
                       

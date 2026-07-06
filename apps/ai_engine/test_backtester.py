@@ -19,16 +19,24 @@ def test_run():
         timeframe="1d",
         indicators=[
             Indicator(name="SMA", period=50),
-            Indicator(name="RSI", period=14)
+            Indicator(name="RSI", period=14),
+            Indicator(name="SUPERTREND", period=10),
+            Indicator(name="ADX", period=14),
+            Indicator(name="DONCHIAN", period=20),
+            Indicator(name="OBV", period=1),
+            Indicator(name="PIVOTS", period=1),
+            Indicator(name="BOLLINGER", period=20),
+            Indicator(name="VWAP", period=1),
+            Indicator(name="STOCHASTIC", period=14)
         ],
-        entry_logic=["close > SMA_50", "RSI_14 < 30"],
+        entry_logic=["close > SMA_50", "RSI_14 < 30", "ADX_14 > 25", "close > SUPERTREND_10"],
         exit_logic=["RSI_14 > 70"],
         stop_loss_atr=2.5
     )
     
     print(f"Running backtest with parameters: {schema.model_dump()}")
     
-    bt = VectorBacktester(strategy=schema, df=df)
+    bt = VectorBacktester(strategy=schema, df=df.copy())
     metrics = bt.run_backtest()
     
     print("\nBacktest Results:")
@@ -44,7 +52,7 @@ def test_run():
         stop_loss_atr=2.5
     )
     print("\nVerifying security sanitizer on malicious prompt...")
-    bt_malicious = VectorBacktester(strategy=schema_malicious, df=df)
+    bt_malicious = VectorBacktester(strategy=schema_malicious, df=df.copy())
     try:
         bt_malicious.run_backtest()
         print("FAIL: Malicious logic was not blocked!")

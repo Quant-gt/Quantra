@@ -49,6 +49,84 @@ class VectorBacktester:
         true_range = np.max(ranges, axis=1)
         return true_range.rolling(period).mean()
 
+    def _calculate_supertrend(self, period: int = 10, multiplier: float = 3.0) -> pd.Series:
+        hl2 = (self.df['high'] + self.df['low']) / 2
+        atr = self._calculate_atr(period)
+        
+        basic_ub = hl2 + multiplier * atr
+        basic_lb = hl2 - multiplier * atr
+        
+        final_ub = basic_ub.copy()
+        final_lb = basic_lb.copy()
+        
+        for i in range(1, len(self.df)):
+            if basic_ub.iloc[i] < final_ub.iloc[i-1] or self.df['close'].iloc[i-1] > final_ub.iloc[i-1]:
+                final_ub.iloc[i] = basic_ub.iloc[i]
+            else:
+                final_ub.iloc[i] = final_ub.iloc[i-1]
+                
+            if basic_lb.iloc[i] > final_lb.iloc[i-1] or self.df['close'].iloc[i-1] < final_lb.iloc[i-1]:
+                final_lb.iloc[i] = basic_lb.iloc[i]
+            else:
+                final_lb.iloc[i] = final_lb.iloc[i-1]
+                
+        supertrend = pd.Series(index=self.df.index, dtype=float)
+        for i in range(0, len(self.df)):
+            if i == 0:
+                supertrend.iloc[i] = final_ub.iloc[i]
+                continue
+                
+            if supertrend.iloc[i-1] == final_ub.iloc[i-1]:
+                if self.df['close'].iloc[i] > final_ub.iloc[i]:
+                    supertrend.iloc[i] = final_lb.iloc[i]
+                else:
+                    supertrend.iloc[i] = final_ub.iloc[i]
+            else:
+                if self.df['close'].iloc[i] < final_lb.iloc[i]:
+                    supertrend.iloc[i] = final_ub.iloc[i]
+                else:
+                    supertrend.iloc[i] = final_lb.iloc[i]
+        return supertrend
+
+    def _calculate_adx(self, period: int = 14) -> pd.Series:
+        upmove = self.df['high'] - self.df['high'].shift(1)
+        downmove = self.df['low'].shift(1) - self.df['low']
+        
+        plus_dm = np.where((upmove > downmove) & (upmove > 0), upmove, 0.0)
+        minus_dm = np.where((downmove > upmove) & (downmove > 0), downmove, 0.0)
+        
+        tr = self._calculate_atr(1)
+        tr_smooth = pd.Series(tr).ewm(alpha=1/period, adjust=False).mean()
+        
+        plus_di = 100 * pd.Series(plus_dm).ewm(alpha=1/period, adjust=False).mean() / tr_smooth
+        minus_di = 100 * pd.Series(minus_dm).ewm(alpha=1/period, adjust=False).mean() / tr_smooth
+        
+        dx = 100 * np.abs(plus_di - minus_di) / (plus_di + minus_di)
+        adx = pd.Series(dx).ewm(alpha=1/period, adjust=False).mean()
+        return adx
+
+    def _calculate_donchian(self, period: int = 20) -> tuple:
+        upper = self.df['high'].rolling(window=period).max()
+        lower = self.df['low'].rolling(window=period).min()
+        return upper, lower
+
+    def _calculate_obv(self) -> pd.Series:
+        direction = np.sign(self.df['close'].diff())
+        if len(direction) > 0:
+            direction.iloc[0] = 0
+        obv = (direction * self.df['volume']).cumsum()
+        return obv
+
+    def _calculate_pivots(self) -> tuple:
+        prev_high = self.df['high'].shift(1)
+        prev_low = self.df['low'].shift(1)
+        prev_close = self.df['close'].shift(1)
+        
+        pivot = (prev_high + prev_low + prev_close) / 3
+        r1 = 2 * pivot - prev_low
+        s1 = 2 * pivot - prev_high
+        return pivot, r1, s1
+
     def apply_indicators(self):
         """Computes technical indicators requested by the LLM."""
         # 1. Guardrail: Market Regime Filter (200 SMA)
@@ -69,6 +147,37 @@ class VectorBacktester:
                 self.df[col_name] = self.df['close'].ewm(span=period, adjust=False).mean()
             elif name == 'RSI':
                 self.df[col_name] = self._calculate_rsi(self.df['close'], period)
+            elif name == 'SUPERTREND':
+                self.df[col_name] = self._calculate_supertrend(period)
+            elif name == 'ADX':
+                self.df[col_name] = self._calculate_adx(period)
+            elif name == 'DONCHIAN':
+                upper, lower = self._calculate_donchian(period)
+                self.df[f"DONCHIAN_UPPER_{period}"] = upper
+                self.df[f"DONCHIAN_LOWER_{period}"] = lower
+                self.df[col_name] = (upper + lower) / 2 # Mid channel
+            elif name == 'OBV':
+                self.df[col_name] = self._calculate_obv()
+            elif name == 'PIVOTS':
+                pivot, r1, s1 = self._calculate_pivots()
+                self.df[f"PIVOT_P_{period}"] = pivot
+                self.df[f"PIVOT_R1_{period}"] = r1
+                self.df[f"PIVOT_S1_{period}"] = s1
+                self.df[col_name] = pivot
+            elif name == 'BOLLINGER' or name == 'BOLLINGER BANDS':
+                sma = self.df['close'].rolling(window=period).mean()
+                std = self.df['close'].rolling(window=period).std()
+                self.df[f"BOLLINGER_UPPER_{period}"] = sma + 2 * std
+                self.df[f"BOLLINGER_LOWER_{period}"] = sma - 2 * std
+                self.df[col_name] = sma
+            elif name == 'VWAP':
+                cum_vol = self.df['volume'].cumsum()
+                cum_pv = (self.df['close'] * self.df['volume']).cumsum()
+                self.df[col_name] = cum_pv / cum_vol
+            elif name == 'STOCHASTIC':
+                low_min = self.df['low'].rolling(window=period).min()
+                high_max = self.df['high'].rolling(window=period).max()
+                self.df[col_name] = 100 * (self.df['close'] - low_min) / (high_max - low_min)
 
         self.df.dropna(inplace=True)
 
