@@ -25,28 +25,28 @@ export default function Wizard() {
 
   useEffect(() => {
     const fetchProgress = async () => {
-      const { data: { user } } = await supabase.auth.getUser();
-      if (!user) {
-        router.push('/auth');
-        return;
-      }
-      const { data: profile } = await supabase
-        .from('users')
-        .select('profile_wizard_step, preferences')
-        .eq('id', user.id)
-        .single();
-        
-      if (profile) {
-        setCurrentStep(profile.profile_wizard_step || 0);
-        if (profile.profile_wizard_step >= 5) {
-          router.push('/dashboard');
+      try {
+        const res = await fetch('/api/v1/onboarding/load');
+        if (res.status === 401) {
+          router.push('/auth');
+          return;
         }
-        setData(profile.preferences || {});
+        if (res.ok) {
+          const profile = await res.json();
+          setCurrentStep(profile.profile_wizard_step || 0);
+          if (profile.profile_wizard_step >= 5) {
+            router.push('/dashboard');
+          }
+          setData(profile.preferences || {});
+        }
+      } catch (err) {
+        console.error("Failed to load onboarding progress:", err);
+      } finally {
+        setLoading(false);
       }
-      setLoading(false);
     };
     fetchProgress();
-  }, [supabase, router]);
+  }, [router]);
 
   const handleNext = async (skip = false) => {
     const step = STEPS[currentStep];
@@ -56,20 +56,30 @@ export default function Wizard() {
     setSaving(true);
     const nextStep = currentStep + 1;
     
-    const { data: { user } } = await supabase.auth.getUser();
-    if (user) {
-      await supabase.from('users').update({
-        profile_wizard_step: nextStep,
-        preferences: data
-      }).eq('id', user.id);
-    }
+    try {
+      const res = await fetch('/api/v1/onboarding/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentStep: nextStep,
+          data
+        })
+      });
 
-    if (nextStep >= STEPS.length) {
-      router.push('/dashboard');
-    } else {
-      setCurrentStep(nextStep);
+      if (!res.ok) {
+        throw new Error('Failed to save progress');
+      }
+
+      if (nextStep >= STEPS.length) {
+        router.push('/dashboard');
+      } else {
+        setCurrentStep(nextStep);
+      }
+    } catch (err) {
+      console.error("Failed to save onboarding step:", err);
+    } finally {
+      setSaving(false);
     }
-    setSaving(false);
   };
 
   const handleSelect = (key: string, value: string) => setData({ ...data, [key]: value });
