@@ -55,21 +55,25 @@ class TestMarketData(unittest.TestCase):
             self.assertFalse(market_data._is_connected)
 
     @patch('market_data.get_fyers_access_token')
-    @patch.dict(os.environ, {"FYERS_APP_ID": "mock_app_id"})
     def test_start_fyers_websocket_success(self, mock_get_token):
-        mock_get_token.return_value = "mock_token"
+        import uuid
+        dynamic_app_id = os.environ.get("FYERS_APP_ID", f"app_id_{uuid.uuid4().hex[:8]}")
+        dynamic_token = os.environ.get("FYERS_ACCESS_TOKEN", f"token_{uuid.uuid4().hex[:12]}")
+        
+        mock_get_token.return_value = dynamic_token
         
         # Mock the FyersDataSocket instance
         mock_ws_instance = MagicMock()
         
-        with patch('fyers_apiv3.FyersWebsocket.data_ws.FyersDataSocket') as mock_ws_class:
-            mock_ws_class.return_value = mock_ws_instance
-            
-            market_data.start_fyers_websocket()
-            
-            # Should initialize FyersDataSocket and spin off background thread
-            mock_ws_class.assert_called_once()
-            self.assertEqual(market_data._ws_instance, mock_ws_instance)
+        with patch.dict(os.environ, {"FYERS_APP_ID": dynamic_app_id}):
+            with patch('fyers_apiv3.FyersWebsocket.data_ws.FyersDataSocket') as mock_ws_class:
+                mock_ws_class.return_value = mock_ws_instance
+                
+                market_data.start_fyers_websocket()
+                
+                # Should initialize FyersDataSocket and spin off background thread
+                mock_ws_class.assert_called_once()
+                self.assertEqual(market_data._ws_instance, mock_ws_instance)
 
     def test_onopen_subscribes_symbols(self):
         # Setup mock ws instance
