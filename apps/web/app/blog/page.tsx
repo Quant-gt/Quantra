@@ -152,6 +152,117 @@ const BLOG_POSTS: BlogPost[] = [
         </p>
       </div>
     )
+  },
+  {
+    id: "retail-algo-legality",
+    title: "Is Algorithmic Trading Legal for Retail Investors in India?",
+    excerpt: "Demystifying the regulations around retail API access and institutional prop-desk systems under the SEBI framework.",
+    date: "May 14, 2026",
+    readTime: "4 min read",
+    category: "Compliance",
+    tags: ["Regulations", "Retail Trading", "APIs", "SEBI"],
+    content: (
+      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
+        <p>
+          There is a massive amount of confusion surrounding the legality of algorithmic trading for retail investors in India. 
+          If you browse online forums, check Reddit discussions, or read news reports, you will find highly conflicting opinions. 
+          Some claim that retail algorithmic trading is illegal, while others argue it is perfectly fine. Let's separate the facts 
+          from the rumors.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">1. The Institutional vs. Retail Split</h3>
+        <p>
+          The confusion stems from a failure to distinguish between two completely different types of trading setups:
+        </p>
+        <ul className="list-disc pl-6 space-y-2">
+          <li><strong>Institutional Proprietary Desks:</strong> These setups run fully automated algorithms directly connected to high-speed exchanges (colocation servers). They are subject to rigorous SEBI testing, audit logs, and approval processes.</li>
+          <li><strong>Retail Personal API Access:</strong> This is when a retail trader uses an API key provided by their broker (such as Zerodha Kite Connect, Fyers API, or Angel One SmartAPI) to execute trades through custom software or platforms.</li>
+        </ul>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">2. Is Retail API Access Legal?</h3>
+        <p>
+          Yes. Under current SEBI guidelines, retail investors are allowed to use personal APIs to place trades. The broker is responsible for enforcing client-level risk management (like checking margin availability). Since the broker validates every order before sending it to the exchange, using personal APIs is 100% legal.
+        </p>
+
+        <p>
+          However, where things become illegal is when someone hosts a shared database or runs a public portal that automates orders for multiple clients without holding a SEBI Registered Research Analyst (RA) or Investment Adviser (IA) license. Offering automated trading as a service to others without authorization violates SEBI's advisory regulations.
+        </p>
+      </div>
+    )
+  },
+  {
+    id: "sebi-ra-requirement",
+    title: "What is a SEBI Registered Research Analyst (RA), and Why Does It Matter?",
+    excerpt: "Why retail traders should rely on certified advisors rather than Telegram or YouTube channel execution groups.",
+    date: "June 4, 2026",
+    readTime: "4 min read",
+    category: "Compliance",
+    tags: ["SEBI RA", "Investor Protection", "Strategy Creators", "Ethics"],
+    content: (
+      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
+        <p>
+          With the rise of retail algorithmic trading, a new breed of "strategy creators" has emerged. Many operate through 
+          Telegram channels, YouTube tutorials, or WhatsApp groups, promising overnight wealth through automated bots. 
+          But how do you distinguish professional, regulated strategy publishers from unauthorized advisors?
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">1. The Role of a SEBI Research Analyst (RA)</h3>
+        <p>
+          A SEBI Registered Research Analyst (RA) is a certified professional authorized by the Securities and Exchange Board of 
+          India to publish recommendations, strategies, and systematic models. RAs are bound by strict code-of-conduct guidelines:
+        </p>
+        <ul className="list-disc pl-6 space-y-2">
+          <li><strong>Qualification & Auditing:</strong> RAs must hold specific financial qualifications and are subject to periodic regulatory compliance audits.</li>
+          <li><strong>No Performance Hype:</strong> RAs are prohibited from showing exaggerated, unverified backtest statistics or promising guaranteed returns.</li>
+          <li><strong>Conflict of Interest Disclosure:</strong> RAs must declare any personal holdings or financial interests in the strategies they publish.</li>
+        </ul>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">2. Why You Shouldn't Rely on Unregulated Advisors</h3>
+        <p>
+          Relying on unregulated Telegram channel bots exposes your capital to extreme risks:
+        </p>
+        <ul className="list-disc pl-6 space-y-2">
+          <li><strong>Lack of Accountability:</strong> If an unregulated bot glitches or executes erroneous orders, you have no legal recourse or protection.</li>
+          <li><strong>Hidden Incentives:</strong> Unregulated publishers often make money from affiliate commissions or proprietary trade front-running rather than strategy performance.</li>
+        </ul>
+        <p>
+          Platforms like Quantra enforce that all public creators list their verified SEBI RA credentials, ensuring a safe, transparent marketplace for retail subscribers.
+        </p>
+      </div>
+    )
+  },
+  {
+    id: "verifying-algo-performance",
+    title: "How to Verify if a Trading Algorithm's Performance is Real or Fake",
+    excerpt: "A practical checklist for identifying curve-fitted backtests, hidden drawdowns, and unrealistic slippage assumptions.",
+    date: "June 24, 2026",
+    readTime: "5 min read",
+    category: "Systematic Trading",
+    tags: ["Backtesting", "Metrics Verification", "Slippage", "CAGR"],
+    content: (
+      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
+        <p>
+          In systematic trading, backtesting is the foundation of strategy design. A backtest lets you evaluate how a set of 
+          trading rules would have performed in historical market conditions. However, a beautiful backtest curve does not 
+          always translate to real-world profitability.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">1. Common Backtesting Pitfalls</h3>
+        <p>
+          Here is a checklist of critical factors to inspect when verifying strategy performance metrics:
+        </p>
+        <ul className="list-disc pl-6 space-y-2">
+          <li><strong>Curve Fitting (Overfitting):</strong> Optimizing the strategy parameters to match historical data perfectly. An overfitted model performs exceptionally well in backtests but fails immediately in live execution.</li>
+          <li><strong>Neglecting Slippage and Brokerage Fees:</strong> In live trading, you will rarely execute at the exact closing price. Slippage (difference between expected and executed price) and transaction taxes (STT, stamp duty) can turn a winning backtest into a losing live strategy.</li>
+          <li><strong>Look-Ahead Bias:</strong> When a model accidentally incorporates future data (e.g. using today's closing price to calculate entry criteria at the open) during backtesting.</li>
+        </ul>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">2. How to Verify Real-World Performance</h3>
+        <p>
+          Look for platforms that separate backtesting reports from live verification metrics. Live tracking (such as out-of-sample forward testing) verifies that the strategy continues to perform as expected against live feeds, ensuring full transparency.
+        </p>
+      </div>
+    )
   }
 ];
 
