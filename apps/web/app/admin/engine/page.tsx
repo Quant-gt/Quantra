@@ -2,10 +2,31 @@
 import { toast } from "sonner";
 import React, { useState, useEffect } from 'react';
 import { Terminal, Play, Server, Activity } from 'lucide-react';
+import { createClient } from "@/lib/supabase/client";
 
 export default function EngineTerminal() {
   const [logs, setLogs] = useState<string[]>([]);
   const [loading, setLoading] = useState(false);
+  const [activeStrategyId, setActiveStrategyId] = useState<string | null>(null);
+  const supabase = createClient();
+
+  // Load an active strategy for diagnostic webhook tests
+  useEffect(() => {
+    const fetchActiveStrategy = async () => {
+      try {
+        const { data } = await supabase
+          .from('strategies')
+          .select('id')
+          .limit(1);
+        if (data && data[0]) {
+          setActiveStrategyId(data[0].id);
+        }
+      } catch (err) {
+        console.error("Failed to load active strategy for diagnostics:", err);
+      }
+    };
+    fetchActiveStrategy();
+  }, [supabase]);
 
   // Poll logs every second
   useEffect(() => {
@@ -22,13 +43,18 @@ export default function EngineTerminal() {
   }, []);
 
   const triggerTestSignal = async () => {
+    if (!activeStrategyId) {
+      toast.error("No active strategies found in database. Please register/seed strategies first.");
+      return;
+    }
+    
     setLoading(true);
     try {
       await fetch('/api/v1/engine/webhook', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
-          strategyId: 'STRAT_MOCK_001',
+          strategyId: activeStrategyId,
           action: 'BUY',
           asset: 'NIFTY_BANK_CE_48000'
         })
