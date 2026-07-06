@@ -30,8 +30,20 @@ export default function StrategyPublishForm() {
       return { valid: false, message: "Algo-ID cannot contain 'XXX' placeholders. Please enter your actual approved Exchange Algo-ID." };
     }
     
-    const dummySequences = ["123456", "654321", "12345678", "123456789", "000000", "111111", "999999"];
-    if (dummySequences.includes(suffix)) {
+    const isSequential = (str: string): boolean => {
+      if (!/^\d+$/.test(str)) return false;
+      let ascending = true;
+      let descending = true;
+      for (let i = 1; i < str.length; i++) {
+        const prev = parseInt(str.charAt(i - 1));
+        const curr = parseInt(str.charAt(i));
+        if (curr !== prev + 1) ascending = false;
+        if (curr !== prev - 1) descending = false;
+      }
+      return ascending || descending;
+    };
+
+    if (isSequential(suffix)) {
       return { valid: false, message: "Generic sequential/placeholder values (e.g., 123456) are not allowed." };
     }
     
