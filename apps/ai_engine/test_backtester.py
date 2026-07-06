@@ -27,9 +27,11 @@ def test_run():
             Indicator(name="PIVOTS", period=1),
             Indicator(name="BOLLINGER", period=20),
             Indicator(name="VWAP", period=1),
-            Indicator(name="STOCHASTIC", period=14)
+            Indicator(name="STOCHASTIC", period=14),
+            Indicator(name="ORB", period=15),
+            Indicator(name="FVG", period=3)
         ],
-        entry_logic=["close > SMA_50", "RSI_14 < 30", "ADX_14 > 25", "close > SUPERTREND_10"],
+        entry_logic=["close > SMA_50", "RSI_14 < 30", "ADX_14 > 25", "close > SUPERTREND_10", "close > ORB_15", "FVG_3 > 0"],
         exit_logic=["RSI_14 > 70"],
         stop_loss_atr=2.5
     )

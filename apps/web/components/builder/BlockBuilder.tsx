@@ -608,6 +608,8 @@ export default function BlockBuilder() {
                       <option className="bg-[#1C2128] text-white">Donchian Channels</option>
                       <option className="bg-[#1C2128] text-white">OBV (On-Balance Volume)</option>
                       <option className="bg-[#1C2128] text-white">Pivot Points (Standard)</option>
+                      <option className="bg-[#1C2128] text-white">ORB (Opening Range Breakout)</option>
+                      <option className="bg-[#1C2128] text-white">FVG (Fair Value Gap)</option>
                     </select>
                   </div>
                   
@@ -732,6 +734,8 @@ export default function BlockBuilder() {
                           <option className="bg-[#1C2128] text-white">Donchian Channels</option>
                           <option className="bg-[#1C2128] text-white">OBV (On-Balance Volume)</option>
                           <option className="bg-[#1C2128] text-white">Pivot Points (Standard)</option>
+                          <option className="bg-[#1C2128] text-white">ORB (Opening Range Breakout)</option>
+                          <option className="bg-[#1C2128] text-white">FVG (Fair Value Gap)</option>
                         </select>
                       </div>
                       

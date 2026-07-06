@@ -127,6 +127,29 @@ class VectorBacktester:
         s1 = 2 * pivot - prev_high
         return pivot, r1, s1
 
+    def _calculate_orb(self, period: int = 15) -> tuple:
+        dates = self.df.index.date
+        orb_high = pd.Series(index=self.df.index, dtype=float)
+        orb_low = pd.Series(index=self.df.index, dtype=float)
+        
+        for d in np.unique(dates):
+            day_mask = (dates == d)
+            day_df = self.df[day_mask]
+            if not day_df.empty:
+                val_high = day_df['high'].iloc[0]
+                val_low = day_df['low'].iloc[0]
+                orb_high.loc[day_mask] = val_high
+                orb_low.loc[day_mask] = val_low
+        return orb_high, orb_low
+
+    def _calculate_fvg(self) -> tuple:
+        bullish_gap = self.df['low'] - self.df['high'].shift(2)
+        bearish_gap = self.df['low'].shift(2) - self.df['high']
+        
+        fvg_bull = np.where(bullish_gap > 0, bullish_gap, 0.0)
+        fvg_bear = np.where(bearish_gap > 0, bearish_gap, 0.0)
+        return pd.Series(fvg_bull, index=self.df.index), pd.Series(fvg_bear, index=self.df.index)
+
     def apply_indicators(self):
         """Computes technical indicators requested by the LLM."""
         # 1. Guardrail: Market Regime Filter (200 SMA)
@@ -155,7 +178,7 @@ class VectorBacktester:
                 upper, lower = self._calculate_donchian(period)
                 self.df[f"DONCHIAN_UPPER_{period}"] = upper
                 self.df[f"DONCHIAN_LOWER_{period}"] = lower
-                self.df[col_name] = (upper + lower) / 2 # Mid channel
+                self.df[col_name] = (upper + lower) / 2
             elif name == 'OBV':
                 self.df[col_name] = self._calculate_obv()
             elif name == 'PIVOTS':
@@ -178,6 +201,16 @@ class VectorBacktester:
                 low_min = self.df['low'].rolling(window=period).min()
                 high_max = self.df['high'].rolling(window=period).max()
                 self.df[col_name] = 100 * (self.df['close'] - low_min) / (high_max - low_min)
+            elif name == 'ORB' or name == 'ORB (OPENING RANGE BREAKOUT)':
+                upper, lower = self._calculate_orb(period)
+                self.df[f"ORB_HIGH_{period}"] = upper
+                self.df[f"ORB_LOW_{period}"] = lower
+                self.df[col_name] = upper
+            elif name == 'FVG' or name == 'FVG (FAIR VALUE GAP)':
+                bull, bear = self._calculate_fvg()
+                self.df[f"FVG_BULL_{period}"] = bull
+                self.df[f"FVG_BEAR_{period}"] = bear
+                self.df[col_name] = bull
 
         self.df.dropna(inplace=True)
 
