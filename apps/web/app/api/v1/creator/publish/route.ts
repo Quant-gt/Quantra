@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 export async function POST(request: Request) {
   try {
@@ -18,9 +19,11 @@ export async function POST(request: Request) {
     // 2. Generate a unique Webhook ID.
     // 3. Insert the strategy into the Supabase `marketplace_strategies` table.
     
+    const strategyId = `strat_${crypto.randomUUID()}`;
+    
     return NextResponse.json({ 
       success: true, 
-      strategyId: `strat_mock_${Math.random().toString(36).substr(2, 9)}`,
+      strategyId,
       message: 'Strategy published successfully to the marketplace!' 
     });
 

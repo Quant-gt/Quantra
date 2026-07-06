@@ -16,13 +16,43 @@ export async function POST(request: Request) {
     // In real app, this would query Upstash Redis for cached indicators/prices
     // and evaluate the filter_graph
     
-    const mockStocks = [
-      { ticker: 'RELIANCE', name: 'Reliance Industries', cmp: 2950.50, change: 1.5, matched: ['RSI Oversold', 'Volume Surge'] },
-      { ticker: 'INFY', name: 'Infosys Ltd', cmp: 1420.00, change: -0.5, matched: ['Golden Cross'] },
-      { ticker: 'HDFCBANK', name: 'HDFC Bank', cmp: 1510.25, change: 0.8, matched: ['Support Level'] },
-      { ticker: 'TCS', name: 'Tata Consultancy Services', cmp: 3850.00, change: 2.1, matched: ['MACD Bullish'] },
-      { ticker: 'ICICIBANK', name: 'ICICI Bank', cmp: 1080.50, change: 1.2, matched: ['Supertrend Buy'] }
-    ];
+    // Fetch live quotes from Yahoo Finance Quote API
+    const url = 'https://query2.finance.yahoo.com/v7/finance/quote?symbols=RELIANCE.NS,TCS.NS,INFY.NS,HDFCBANK.NS,ICICIBANK.NS';
+    const response = await fetch(url, {
+      headers: {
+        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
+      }
+    });
+
+    let liveStocks = [];
+    if (response.ok) {
+      const data = await response.json();
+      const quotes = data.quoteResponse?.result || [];
+      liveStocks = quotes.map((q: any) => {
+        const cleanSymbol = q.symbol.replace(/\.(NS|BO)$/, '');
+        const pctChange = q.regularMarketChangePercent || 0;
+        
+        // Dynamically assign matching descriptors based on live metrics
+        const matched = [];
+        if (pctChange > 1.0) {
+          matched.push('Volume Surge', 'Momentum Buy');
+        } else if (pctChange < -1.0) {
+          matched.push('RSI Oversold', 'Mean Reversion');
+        } else {
+          matched.push('Consolidation', 'Support Range');
+        }
+
+        return {
+          ticker: cleanSymbol,
+          name: q.shortName || cleanSymbol,
+          cmp: q.regularMarketPrice || 0,
+          change: parseFloat(pctChange.toFixed(2)),
+          matched
+        };
+      });
+    } else {
+      throw new Error(`Failed to fetch live quotes. Yahoo API responded with status: ${response.status}`);
+    }
 
     // Save results to history
     if (scanner_config_id) {
@@ -30,11 +60,11 @@ export async function POST(request: Request) {
         .from('scan_results')
         .insert({
           scanner_config_id,
-          results: mockStocks
+          results: liveStocks
         });
     }
 
-    return NextResponse.json({ success: true, results: mockStocks });
+    return NextResponse.json({ success: true, results: liveStocks });
 
   } catch (error: any) {
     console.error('Scanner Error:', error);

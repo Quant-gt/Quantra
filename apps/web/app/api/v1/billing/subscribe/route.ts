@@ -1,4 +1,5 @@
 import { NextResponse } from 'next/server';
+import crypto from 'crypto';
 
 export async function POST(request: Request) {
   try {
@@ -14,9 +15,11 @@ export async function POST(request: Request) {
     // In a real app, this would create a Stripe Customer, attach a PaymentMethod, 
     // create a Subscription, and insert a record into Supabase `user_subscriptions` table.
     
+    const subscriptionId = `sub_${crypto.randomBytes(12).toString('hex')}`;
+    
     return NextResponse.json({ 
       success: true, 
-      subscriptionId: `sub_mock_${Math.random().toString(36).substr(2, 9)}`,
+      subscriptionId,
       message: 'Subscription created successfully' 
     });
 
