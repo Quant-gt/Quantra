@@ -21,6 +21,7 @@ import {
 import { useState, useEffect } from 'react';
 import LiveTickerTape from '@/components/dashboard/LiveTickerTape';
 import { ScreenerProvider } from '@/context/ScreenerContext';
+import { BYOBGatewayModal } from '@/components/dashboard/byob-gateway-modal';
 
 export default function DashboardLayout({
   children,
@@ -29,6 +30,19 @@ export default function DashboardLayout({
 }) {
   const pathname = usePathname();
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
+  const [activeBroker, setActiveBroker] = useState<string | null>(null);
+  const [isSandbox, setIsSandbox] = useState<boolean>(false);
+
+  const fetchBrokerStatus = () => {
+    const broker = localStorage.getItem("quantra_broker_name");
+    const sandbox = localStorage.getItem("quantra_broker_sandbox") === "true";
+    setActiveBroker(broker);
+    setIsSandbox(sandbox);
+  };
+
+  useEffect(() => {
+    fetchBrokerStatus();
+  }, []);
 
   // Close mobile menu on route change
   useEffect(() => {
@@ -69,7 +83,25 @@ export default function DashboardLayout({
                 <polyline points="2 12 12 17 22 12" />
               </svg>
             </div>
-            <span className="text-xl font-bold text-white tracking-tight">Quantra</span>
+            <div className="flex flex-col">
+              <span className="text-xl font-bold text-white tracking-tight">Quantra</span>
+              {isSandbox ? (
+                <span className="text-[10px] text-cyan-400 font-bold flex items-center gap-1 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                  Sandbox (Active)
+                </span>
+              ) : activeBroker ? (
+                <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 mt-0.5 uppercase">
+                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                  {activeBroker} (Linked)
+                </span>
+              ) : (
+                <span className="text-[10px] text-red-400 font-bold flex items-center gap-1 mt-0.5">
+                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                  Broker Unlinked
+                </span>
+              )}
+            </div>
           </div>
 
           <nav className="flex-1 py-4 overflow-y-auto">
@@ -167,6 +199,7 @@ export default function DashboardLayout({
           </div>
         </div>
       </div>
+      <BYOBGatewayModal onSuccess={fetchBrokerStatus} />
     </ScreenerProvider>
   );
 }

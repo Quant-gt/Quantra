@@ -213,3 +213,57 @@ export function checkVolumeSurge(candles: Candle[]): boolean {
   const avgVol20 = candles.slice(candles.length - 21, candles.length - 1).reduce((sum, c) => sum + (c ? c.volume : 0), 0) / 20;
   return currentVol > avgVol20 * 1.5;
 }
+
+export function isDoji(candles: Candle[]): boolean {
+  if (candles.length === 0) return false;
+  const last = candles[candles.length - 1]!;
+  const body = Math.abs(last.close - last.open);
+  const range = last.high - last.low;
+  if (range === 0) return true;
+  return body / range < 0.1;
+}
+
+export function isBullishEngulfing(candles: Candle[]): boolean {
+  if (candles.length < 2) return false;
+  const prev = candles[candles.length - 2]!;
+  const last = candles[candles.length - 1]!;
+  const prevIsBearish = prev.close < prev.open;
+  const lastIsBullish = last.close > last.open;
+  if (!prevIsBearish || !lastIsBullish) return false;
+  return last.close >= prev.open && last.open <= prev.close;
+}
+
+export function isHammer(candles: Candle[]): boolean {
+  if (candles.length === 0) return false;
+  const last = candles[candles.length - 1]!;
+  const body = Math.abs(last.close - last.open);
+  const range = last.high - last.low;
+  if (range === 0) return false;
+  
+  const lowerShadow = Math.min(last.open, last.close) - last.low;
+  const upperShadow = last.high - Math.max(last.open, last.close);
+  
+  return lowerShadow > 2 * body && upperShadow < 0.2 * body;
+}
+
+export function isShootingStar(candles: Candle[]): boolean {
+  if (candles.length === 0) return false;
+  const last = candles[candles.length - 1]!;
+  const body = Math.abs(last.close - last.open);
+  const range = last.high - last.low;
+  if (range === 0) return false;
+  
+  const lowerShadow = Math.min(last.open, last.close) - last.low;
+  const upperShadow = last.high - Math.max(last.open, last.close);
+  
+  return upperShadow > 2 * body && lowerShadow < 0.2 * body;
+}
+
+export function isMarubozu(candles: Candle[]): boolean {
+  if (candles.length === 0) return false;
+  const last = candles[candles.length - 1]!;
+  const body = Math.abs(last.close - last.open);
+  const range = last.high - last.low;
+  if (range === 0) return false;
+  return body / range > 0.95;
+}

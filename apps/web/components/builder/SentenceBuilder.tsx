@@ -61,10 +61,16 @@ export const SentenceBuilder: React.FC<SentenceBuilderProps> = ({
   };
 
   const offsets = ['Latest', '1 day ago', '2 days ago', '3 bars ago', '5 bars ago'];
-  const indicators = ['Close Price', 'Volume', 'RSI', 'SMA', 'EMA', 'VWAP', 'Candlestick Pattern'];
+  const indicators = [
+    'Close Price', 'Volume', 'RSI', 'SMA', 'EMA', 'VWAP', 'Candlestick Pattern',
+    'P/E Ratio', 'P/B Ratio', 'EV/EBITDA', 'Debt to Equity', 'Current Ratio',
+    'Net Margin', 'ROCE', 'ROE', 'YoY Profit Growth', 'QoQ Profit Growth',
+    'YoY Sales Growth', 'QoQ Sales Growth', 'Promoter Holding %', 'Inst Holding %',
+    'Pledged Ratio %', 'Open Interest', 'OI Change %', 'PCR', 'Cost of Carry'
+  ];
   const comparisons = ['Greater Than', 'Less Than', 'Crosses Above', 'Crosses Below', 'Is'];
   const valueTypes = ['Number', 'Indicator'];
-  const patterns = ['Doji', 'Bullish Engulfing', 'Hammer', 'Shooting Star'];
+  const patterns = ['Doji', 'Bullish Engulfing', 'Hammer', 'Shooting Star', 'Marubozu'];
 
   return (
     <div className="space-y-4">

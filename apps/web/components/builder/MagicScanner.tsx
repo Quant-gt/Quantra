@@ -15,7 +15,9 @@ import {
   Trash2,
   Bookmark,
   RefreshCw,
-  Plus
+  Plus,
+  Calendar,
+  Clock
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { 
@@ -33,6 +35,7 @@ import {
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
 import { useScreener } from '@/context/ScreenerContext';
+import { ClickToChartModal } from '../workspace/click-to-chart-modal';
 
 // Real expanded broad market universe of 100 stocks for dynamic scanning (including Nifty Next 50 and Midcaps)
 const STOCK_UNIVERSE = [
@@ -181,6 +184,26 @@ export default function MagicScanner() {
   const [results, setResults] = useState<any[]>([]);
   const [activeExchanges, setActiveExchanges] = useState<Record<string, 'NSE' | 'BSE'>>({});
   const [liveQuotesMap, setLiveQuotesMap] = useState<Record<string, any>>({});
+  const [showDatePicker, setShowDatePicker] = useState(false);
+  const [tempDate, setTempDate] = useState('');
+  const [watchlist, setWatchlist] = useState<any[]>([]);
+
+  // Load watchlist on mount
+  useEffect(() => {
+    const saved = localStorage.getItem('WatchlistStore');
+    if (saved) {
+      try {
+        setWatchlist(JSON.parse(saved));
+      } catch (e) {
+        console.error(e);
+      }
+    }
+  }, []);
+
+  // Save watchlist on change
+  useEffect(() => {
+    localStorage.setItem('WatchlistStore', JSON.stringify(watchlist));
+  }, [watchlist]);
 
   // Workspace Layout view integration states
   const [viewMode, setViewMode] = useState<'single' | 'workspace'>('single');
@@ -256,9 +279,42 @@ export default function MagicScanner() {
           let highVal = liveQuote ? liveQuote.high : Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
           let lowVal = liveQuote ? liveQuote.low : Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
           let volumeVal = liveQuote ? liveQuote.volume : (seed % 900000) + 100000;
+          
           let rsiVal = liveQuote?.rsi !== undefined ? liveQuote.rsi : Math.min(Math.max(Math.round(50 + changeVal * 6), 10), 90);
-          let peVal = parseFloat((10 + (seed % 65)).toFixed(1)); 
-          let oichangeVal = liveQuote?.oichange !== undefined ? liveQuote.oichange : parseFloat((((seed % 60) - 30)).toFixed(1)); 
+          let adxVal = liveQuote?.adx !== undefined ? liveQuote.adx : Math.min(Math.max(Math.round(20 + Math.abs(changeVal) * 8), 10), 60);
+          let supertrendVal = liveQuote?.supertrend !== undefined ? liveQuote.supertrend : (changeVal >= 0 
+            ? (lowVal - (highVal - lowVal) * 1.5) 
+            : (highVal + (highVal - lowVal) * 1.5));
+          let fvgBullVal = liveQuote?.fvgBull !== undefined ? liveQuote.fvgBull : ((closeVal > openVal && (highVal - lowVal) > (closeVal * 0.02)) 
+            ? (closeVal - openVal) * 0.3 
+            : 0.0);
+          
+          let hasMacd = liveQuote?.hasMacd !== undefined ? liveQuote.hasMacd : changeVal > 0.5;
+          let hasGoldenCross = liveQuote?.hasGoldenCross !== undefined ? liveQuote.hasGoldenCross : (closeVal > openVal && changeVal > 0.0);
+          let hasVolumeSurge = liveQuote?.hasVolumeSurge !== undefined ? liveQuote.hasVolumeSurge : volumeVal > 1500000;
+
+          // Fundamental Metrics
+          let pe = liveQuote?.pe !== undefined ? liveQuote.pe : parseFloat((10 + (seed % 65)).toFixed(1)); 
+          let pb = liveQuote?.pb !== undefined ? liveQuote.pb : parseFloat((1 + (seed % 15) * 0.8).toFixed(1)); 
+          let evebitda = liveQuote?.evEbitda !== undefined ? liveQuote.evEbitda : parseFloat((8 + (seed % 42)).toFixed(1)); 
+          let debtequity = liveQuote?.debtEquity !== undefined ? liveQuote.debtEquity : parseFloat(((seed % 180) / 100).toFixed(2)); 
+          let currentratio = liveQuote?.currentRatio !== undefined ? liveQuote.currentRatio : parseFloat((0.8 + (seed % 25) * 0.1).toFixed(2)); 
+          let netprofitmargin = liveQuote?.netMargin !== undefined ? liveQuote.netMargin : parseFloat((5 + (seed % 35)).toFixed(1)); 
+          let roce = liveQuote?.roce !== undefined ? liveQuote.roce : parseFloat((8 + (seed % 42)).toFixed(1)); 
+          let roe = liveQuote?.roe !== undefined ? liveQuote.roe : parseFloat((6 + (seed % 34)).toFixed(1)); 
+          let profitgrowth = liveQuote?.yoyProfitGrowth !== undefined ? liveQuote.yoyProfitGrowth : parseFloat((((seed % 60) - 15)).toFixed(1)); 
+          let salesgrowth = liveQuote?.yoySalesGrowth !== undefined ? liveQuote.yoySalesGrowth : parseFloat((((seed % 40) - 5)).toFixed(1)); 
+          let promoterholding = liveQuote?.promoterHolding !== undefined ? liveQuote.promoterHolding : parseFloat((30 + (seed % 45)).toFixed(1)); 
+          let institutionholding = liveQuote?.instHolding !== undefined ? liveQuote.instHolding : parseFloat((10 + (seed % 50)).toFixed(1)); 
+          let pledgedshares = liveQuote?.pledgedRatio !== undefined ? liveQuote.pledgedRatio : parseFloat(((seed % 120) < 15 ? (seed % 10) : 0).toFixed(1)); 
+
+          // Derivative (F&O) Metrics
+          let oi = liveQuote?.oi !== undefined ? liveQuote.oi : (seed % 5000000) + 100000; 
+          let oichange = liveQuote?.oiChange !== undefined ? liveQuote.oiChange : parseFloat((((seed % 60) - 30)).toFixed(1)); 
+          let oivector = liveQuote?.oiChange !== undefined ? liveQuote.oiChange : parseFloat((((seed % 120) - 40)).toFixed(1)); 
+          let vwap = liveQuote?.vwap !== undefined ? liveQuote.vwap : parseFloat((closeVal * (0.997 + (seed % 6) * 0.001)).toFixed(2)); 
+          let pcr = liveQuote?.pcr !== undefined ? liveQuote.pcr : parseFloat((0.4 + (seed % 12) * 0.1).toFixed(2)); 
+          let costofcarry = liveQuote?.costOfCarry !== undefined ? liveQuote.costOfCarry : parseFloat((4 + (seed % 12)).toFixed(1)); 
 
           if (historicalSnapshotTarget) {
             const targetTime = new Date(historicalSnapshotTarget).getTime();
@@ -269,60 +325,88 @@ export default function MagicScanner() {
             highVal = highVal * multiplier;
             lowVal = lowVal * multiplier;
             rsiVal = Math.round(rsiVal * multiplier);
-            peVal = peVal * multiplier;
-            oichangeVal = oichangeVal * multiplier;
+            pe = pe * multiplier;
+            oichange = oichange * multiplier;
           }
 
           return {
             symbol: stock.symbol,
-            name: stock.name,
+            company: stock.name,
             sector: stock.sector,
-            price: closeVal,
-            change: changeVal,
+            price: `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            change: `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`,
+            closeVal,
+            openVal,
+            highVal,
+            lowVal,
+            volumeVal,
             rsi: rsiVal,
-            pe: peVal,
-            oichange: oichangeVal,
-            open: openVal,
-            high: highVal,
-            low: lowVal,
-            volume: volumeVal
+            adx: adxVal,
+            supertrendVal,
+            fvgBullVal,
+            hasMacd,
+            hasGoldenCross,
+            hasVolumeSurge,
+            rawChange: changeVal,
+            pe,
+            pb,
+            evebitda,
+            debtequity,
+            currentratio,
+            netprofitmargin,
+            roce,
+            roe,
+            profitgrowth,
+            salesgrowth,
+            promoterholding,
+            institutionholding,
+            pledgedshares,
+            oi,
+            oichange,
+            oivector,
+            vwap,
+            pcr,
+            costofcarry,
+            exchange: liveQuote?.exchange || 'NSE'
           };
         }).filter(stock => {
-          try {
-            if (query.includes('rsi <')) {
-              const val = parseFloat(query.split('rsi <')[1] || '0');
-              return stock.rsi < val;
-            }
-            if (query.includes('rsi >')) {
-              const val = parseFloat(query.split('rsi >')[1] || '0');
-              return stock.rsi > val;
-            }
-            if (query.includes('change >')) {
-              const val = parseFloat(query.split('change >')[1] || '0');
-              return stock.change > val;
-            }
-            if (query.includes('change <')) {
-              const val = parseFloat(query.split('change <')[1] || '0');
-              return stock.change < val;
-            }
-            if (query.includes('pe <')) {
-              const val = parseFloat(query.split('pe <')[1] || '0');
-              return stock.pe < val;
-            }
-            if (query.includes('pe >')) {
-              const val = parseFloat(query.split('pe >')[1] || '0');
-              return stock.pe > val;
-            }
-            if (query.includes('oichange >')) {
-              const val = parseFloat(query.split('oichange >')[1] || '0');
-              return stock.oichange > val;
-            }
-            if (query.includes('oichange <')) {
-              const val = parseFloat(query.split('oichange <')[1] || '0');
-              return stock.oichange < val;
-            }
-          } catch(e) {}
-          return stock.rsi < 50; 
+          const isMathExpression = /[><=+\-*/()]/.test(query);
+          if (isMathExpression) {
+            return evaluateCustomExpression(query, stock);
+          }
+
+          // Conversational NLP matchers
+          if (query.includes('rsi') && (query.includes('oversold') || query.includes('under') || query.includes('below') || query.includes('30'))) {
+            return stock.rsi < 30;
+          }
+          if (query.includes('rsi') && (query.includes('overbought') || query.includes('above') || query.includes('70'))) {
+            return stock.rsi > 70;
+          }
+          if (query.includes('macd') || query.includes('crossover')) {
+            return stock.hasMacd;
+          }
+          if (query.includes('golden') || query.includes('cross') || query.includes('sma') || query.includes('ema')) {
+            return stock.hasGoldenCross;
+          }
+          if (query.includes('volume') || query.includes('surge') || query.includes('spike')) {
+            return stock.hasVolumeSurge;
+          }
+          if (query.includes('supertrend') && (query.includes('bullish') || query.includes('buy') || query.includes('above'))) {
+            return stock.closeVal > stock.supertrendVal;
+          }
+          if (query.includes('adx') && (query.includes('strong') || query.includes('trend') || query.includes('25'))) {
+            return stock.adx > 25;
+          }
+          if (query.includes('fvg') || query.includes('fair value gap') || query.includes('imbalance')) {
+            return stock.fvgBullVal > 0;
+          }
+          if (query.includes('orb') || query.includes('opening range')) {
+            return stock.closeVal > stock.openVal;
+          }
+
+          return stock.symbol.toLowerCase().includes(query) || 
+                 stock.company.toLowerCase().includes(query) || 
+                 stock.sector.toLowerCase().includes(query);
         });
 
         return prev.map(w => w.id === id ? { 
@@ -434,8 +518,6 @@ export default function MagicScanner() {
     }
   }, [historicalSnapshotTarget, activeUniverseScope]);
 
-  // Watchlist State
-  const [watchlist, setWatchlist] = useState<any[]>([]);
   const [isWatchlistOpen, setIsWatchlistOpen] = useState(false);
 
   // Chart popup state
@@ -683,26 +765,55 @@ export default function MagicScanner() {
       toast.error('No scan results to export');
       return;
     }
-    const headers = ['Symbol', 'Company', 'Sector', 'Price', 'Change', 'Open', 'High', 'Low', 'RSI', 'ADX'];
+    const headers = [
+      'Symbol', 'Company', 'Sector', 'Price', 'Change', 'Open', 'High', 'Low', 'Volume',
+      'RSI', 'ADX', 'Supertrend', 'FVG Bullish', 'P/E', 'P/B', 'EV/EBITDA', 'Debt to Equity',
+      'Current Ratio', 'Net Margin', 'ROCE', 'ROE', 'YoY Profit Growth', 'QoQ Profit Growth',
+      'YoY Sales Growth', 'QoQ Sales Growth', 'Promoter Holding %', 'Inst Holding %',
+      'Pledged Ratio %', 'Open Interest', 'OI Change %', 'PCR', 'Cost of Carry', 'VWAP'
+    ];
     const rows = results.map(r => [
       r.symbol,
       `"${r.company}"`,
       r.sector,
       r.price.replace(/[^\d.]/g, ''),
-      r.change,
+      r.change.replace(/[^\d.+-]/g, ''),
       r.openVal,
       r.highVal,
       r.lowVal,
+      r.volumeVal,
       r.rsi,
-      r.adx
+      r.adx,
+      r.supertrendVal,
+      r.fvgBullVal,
+      r.pe,
+      r.pb,
+      r.evebitda,
+      r.debtequity,
+      r.currentratio,
+      r.netprofitmargin,
+      r.roce,
+      r.roe,
+      r.profitgrowth,
+      r.qoqProfitGrowth || 0,
+      r.salesgrowth,
+      r.qoqSalesGrowth || 0,
+      r.promoterholding,
+      r.institutionholding,
+      r.pledgedshares,
+      r.oi,
+      r.oichange,
+      r.pcr,
+      r.costofcarry,
+      r.vwap
     ]);
     
-    const csvContent = "data:text/csv;charset=utf-8," 
-      + [headers.join(','), ...rows.map(e => e.join(','))].join('\n');
-    const encodedUri = encodeURI(csvContent);
+    const csvContent = [headers.join(','), ...rows.map(row => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
     const link = document.createElement("a");
-    link.setAttribute("href", encodedUri);
-    link.setAttribute("download", `quantra_scan_${Date.now()}.csv`);
+    link.setAttribute("href", url);
+    link.setAttribute("download", `quantra_screener_active_export_${Date.now()}.csv`);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
@@ -825,6 +936,73 @@ export default function MagicScanner() {
                 <Bookmark size={12} />
                 Watchlist ({watchlist.length})
               </button>
+              
+              {/* Time Travel Calendar Popover */}
+              <div className="relative">
+                <button
+                  onClick={() => setShowDatePicker(!showDatePicker)}
+                  className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-bold border transition-colors ${
+                    historicalSnapshotTarget
+                      ? 'bg-amber-500/10 border-amber-400 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                      : 'bg-[#161B22] border-[#30363D] text-gray-400 hover:text-white hover:border-[#58A6FF]'
+                  }`}
+                >
+                  <Calendar size={12} />
+                  Time Travel {historicalSnapshotTarget ? '(Active)' : ''}
+                </button>
+                {showDatePicker && (
+                  <div className="absolute right-0 mt-2 w-64 bg-[#0D1117] border border-[#30363D] rounded-xl p-4 shadow-2xl z-50 space-y-3">
+                    <div className="flex items-center justify-between border-b border-[#21262D] pb-2">
+                      <span className="text-xs font-bold text-white flex items-center gap-1">
+                        <Clock size={12} className="text-amber-400" />
+                        Time Travel Target
+                      </span>
+                      <button
+                        onClick={() => setShowDatePicker(false)}
+                        className="text-gray-500 hover:text-white"
+                      >
+                        <X size={14} />
+                      </button>
+                    </div>
+                    <div className="space-y-1.5">
+                      <label className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block font-mono">Select Target Date</label>
+                      <input
+                        type="date"
+                        value={tempDate}
+                        onChange={(e) => setTempDate(e.target.value)}
+                        className="w-full bg-[#161B22] border border-[#30363D] rounded px-2.5 py-1.5 text-xs text-white outline-none focus:border-amber-400"
+                      />
+                    </div>
+                    <div className="flex gap-2 pt-1">
+                      <button
+                        onClick={() => {
+                          if (tempDate) {
+                            setHistoricalSnapshotTarget(tempDate);
+                            setShowDatePicker(false);
+                            toast.success(`Traveled back to ${tempDate}`);
+                          } else {
+                            toast.error('Please select a valid date');
+                          }
+                        }}
+                        className="flex-1 bg-amber-500 hover:bg-amber-400 text-gray-950 text-[10px] font-bold py-1.5 rounded transition-all"
+                      >
+                        Set Date
+                      </button>
+                      <button
+                        onClick={() => {
+                          setHistoricalSnapshotTarget(null);
+                          setTempDate('');
+                          setShowDatePicker(false);
+                          toast.info('Returned to real-time feed');
+                        }}
+                        className="bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-gray-300 text-[10px] font-bold py-1.5 px-3 rounded transition-all"
+                      >
+                        Reset
+                      </button>
+                    </div>
+                  </div>
+                )}
+              </div>
               <span className={`text-[10px] px-2 py-0.5 rounded font-mono border ${
                 historicalSnapshotTarget 
                   ? 'bg-amber-900/30 text-amber-400 border-amber-800/30'
@@ -981,8 +1159,8 @@ export default function MagicScanner() {
             <div className="divide-y divide-[#30363D]">
               {results.map((r, i) => {
                 const isActiveBse = activeExchanges[r.symbol] === 'BSE';
-                let displayPrice = r.price;
-                let displayChange = r.change;
+                let displayPrice = typeof r.price === 'number' ? r.price : r.closeVal;
+                let displayChange = typeof r.change === 'number' ? r.change : r.rawChange;
                 let displayOpen = r.openVal;
                 let displayHigh = r.highVal;
                 let displayLow = r.lowVal;
@@ -1126,6 +1304,10 @@ export default function MagicScanner() {
                     animate={{ opacity: 1, scale: 1 }}
                     exit={{ opacity: 0, scale: 0.9 }}
                     transition={{ type: 'spring', damping: 20, stiffness: 120 }}
+                    drag
+                    dragConstraints={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                    dragElastic={0.05}
+                    whileDrag={{ scale: 1.02, zIndex: 10, cursor: 'grabbing' }}
                     className={`bg-[#161B22]/50 border border-[#30363D] rounded-xl overflow-hidden shadow-2xl flex flex-col h-[420px] transition-colors hover:border-[#58A6FF]/40 ${sizeClass}`}
                   >
                     {/* Widget Header */}
@@ -1369,217 +1551,35 @@ export default function MagicScanner() {
         )}
       </AnimatePresence>
 
-      {/* Floating Low-Latency Chart Viewport Popup Overlay */}
-      <AnimatePresence>
-        {activeStockToken && (
-          <div className="fixed inset-0 bg-[#06090F]/90 backdrop-blur-md z-50 flex items-center justify-center p-4">
-            <motion.div 
-              initial={{ scale: 0.95, opacity: 0 }}
-              animate={{ scale: 1, opacity: 1 }}
-              exit={{ scale: 0.95, opacity: 0 }}
-              transition={{ duration: 0.25 }}
-              className="bg-[#0D1117] border border-[#30363D] rounded-xl overflow-hidden w-full max-w-4xl h-[85vh] flex flex-col shadow-2xl relative"
-            >
-              {/* Overlay Header */}
-              <div className="px-6 py-4 flex items-center justify-between border-b border-[#30363D] bg-[#161B22]/50">
-                <div>
-                  <div className="flex items-center gap-2">
-                    <h2 className="text-xl font-bold text-white">{activeStockToken.symbol}</h2>
-                    <span className="text-xs bg-[#21262D] text-[#58A6FF] px-2 py-0.5 rounded uppercase font-bold">{activeStockToken.sector}</span>
-                  </div>
-                  <p className="text-xs text-gray-400 mt-1">{activeStockToken.company} — Real-time analytics timeseries</p>
-                </div>
-                <div className="flex items-center gap-3">
-                  <button 
-                    onClick={() => {
-                      window.location.href = `/dashboard/charts?symbol=${activeStockToken.symbol}`;
-                    }}
-                    className="flex items-center gap-1 bg-cyan-950/50 hover:bg-cyan-900/60 border border-cyan-800 text-cyan-400 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all"
-                  >
-                    <Maximize2 size={13} />
-                    Open Live Terminal
-                  </button>
-                  <button 
-                    onClick={() => setActiveStockToken(null)}
-                    className="text-gray-400 hover:text-white p-1.5 rounded hover:bg-[#21262D] transition-colors"
-                  >
-                    <X size={18} />
-                  </button>
-                </div>
-              </div>
-
-              {/* Modal Core Layout */}
-              <div className="flex-1 flex overflow-hidden">
-                {/* Charting Screen */}
-                <div className="flex-1 p-6 flex flex-col overflow-y-auto space-y-6">
-                  {chartLoading ? (
-                    <div className="flex-1 flex flex-col items-center justify-center py-20 space-y-4">
-                      <div className="w-12 h-12 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin"></div>
-                      <p className="text-sm font-bold text-cyan-400 animate-pulse">Pulling live database vectors...</p>
-                    </div>
-                  ) : (
-                    <>
-                      {/* Price Action Chart */}
-                      <div className="h-64 md:h-[40%] bg-[#06090F]/50 border border-[#30363D] rounded-xl p-4 relative shadow-inner">
-                        <div className="absolute top-4 left-4 z-10">
-                          <span className="text-[10px] text-gray-500 uppercase tracking-widest block font-bold font-mono">Candle Close</span>
-                          <span className="text-lg font-bold text-white">{activeStockToken.price}</span>
-                        </div>
-                        <ResponsiveContainer width="100%" height="100%">
-                          <AreaChart data={chartData}>
-                            <defs>
-                              <linearGradient id="chartGradient" x1="0" y1="0" x2="0" y2="1">
-                                <stop offset="5%" stopColor="#22D3EE" stopOpacity={0.25}/>
-                                <stop offset="95%" stopColor="#22D3EE" stopOpacity={0}/>
-                              </linearGradient>
-                            </defs>
-                            <CartesianGrid strokeDasharray="3 3" stroke="#21262D" />
-                            <XAxis dataKey="date" stroke="#8B949E" fontSize={10} />
-                            <YAxis stroke="#8B949E" fontSize={10} domain={['auto', 'auto']} />
-                            <Tooltip contentStyle={{ backgroundColor: '#0D1117', borderColor: '#30363D' }} />
-                            <Area type="monotone" dataKey="price" stroke="#22D3EE" strokeWidth={2.5} fillOpacity={1} fill="url(#chartGradient)" name="Close Price" />
-                            {activeIndicators.includes('EMA Trend Cross') && (
-                              <>
-                                <Line type="monotone" dataKey="ema9" stroke="#EAB308" strokeWidth={1.5} dot={false} name="EMA 9" />
-                                <Line type="monotone" dataKey="ema21" stroke="#EC4899" strokeWidth={1.5} dot={false} name="EMA 21" />
-                              </>
-                            )}
-                            {activeIndicators.includes('Supertrend Overlay') && (
-                              <Line type="step" dataKey="supertrend" stroke="#22C55E" strokeWidth={1.5} dot={false} name="Supertrend" />
-                            )}
-                          </AreaChart>
-                        </ResponsiveContainer>
-                      </div>
-
-                      {/* RSI Oscillator Subchart (Dual Screen Layout) */}
-                      {activeIndicators.includes('RSI Breakout') && (
-                        <div className="h-44 md:h-[28%] bg-[#06090F]/50 border border-[#30363D] rounded-xl p-4 relative shadow-inner">
-                          <div className="absolute top-4 left-4 z-10">
-                            <span className="text-[10px] text-gray-500 uppercase tracking-widest block font-bold font-mono">Relative Strength Index</span>
-                            <span className="text-sm font-bold text-orange-400">RSI ({chartData[chartData.length - 1]?.rsi})</span>
-                          </div>
-                          <ResponsiveContainer width="100%" height="100%">
-                            <LineChart data={chartData}>
-                              <CartesianGrid strokeDasharray="3 3" stroke="#21262D" />
-                              <XAxis dataKey="date" stroke="#8B949E" fontSize={9} />
-                              <YAxis stroke="#8B949E" fontSize={9} domain={[0, 100]} ticks={[30, 50, 70]} />
-                              <Tooltip contentStyle={{ backgroundColor: '#0D1117', borderColor: '#30363D' }} />
-                              <Line type="monotone" dataKey="rsi" stroke="#F97316" strokeWidth={1.5} dot={false} name="RSI" />
-                              {/* Reference limits */}
-                              <Line type="monotone" dataKey={() => 70} stroke="#EF4444" strokeWidth={1} strokeDasharray="4 4" dot={false} name="Overbought (70)" />
-                              <Line type="monotone" dataKey={() => 30} stroke="#3B82F6" strokeWidth={1} strokeDasharray="4 4" dot={false} name="Oversold (30)" />
-                            </LineChart>
-                          </ResponsiveContainer>
-                        </div>
-                      )}
-
-                      {/* Active Indicator Micro-badges inline bar */}
-                      <div className="border-t border-[#30363D] pt-4">
-                        <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider block mb-2 font-mono">Active Overlay Indicators</span>
-                        <div className="flex flex-wrap gap-2">
-                          {activeIndicators.map(ind => (
-                            <div 
-                              key={ind} 
-                              className="bg-[#21262D] border border-[#30363D] text-gray-300 rounded px-2.5 py-1 text-xs flex items-center gap-1.5 hover:border-[#58A6FF]/40 transition-colors"
-                            >
-                              <span>{ind}</span>
-                              <button 
-                                onClick={() => handleToggleIndicator(ind)}
-                                className="text-gray-500 hover:text-white p-0.5 rounded transition-colors"
-                              >
-                                <X size={10} />
-                              </button>
-                            </div>
-                          ))}
-                          {activeIndicators.length === 0 && (
-                            <span className="text-xs text-gray-600 italic">No indicators overlaying canvas. Toggle sidebar profiles.</span>
-                          )}
-                        </div>
-                      </div>
-                    </>
-                  )}
-                </div>
-
-                {/* Templates Manager Configuration Sidebar */}
-                <div className="w-64 border-l border-[#30363D] bg-[#161B22]/50 p-6 flex flex-col space-y-6">
-                  <div>
-                    <h3 className="text-xs font-bold text-gray-400 uppercase tracking-widest flex items-center gap-1.5 mb-4">
-                      <Layers size={14} className="text-cyan-400" />
-                      Templates Engine
-                    </h3>
-                    <p className="text-[11px] text-gray-500 leading-normal">
-                      Quickly switch technical configurations or toggle individual overlays dynamically.
-                    </p>
-                  </div>
-
-                  <div className="space-y-2">
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono">Select Profiles</span>
-                    <button 
-                      onClick={() => setActiveIndicators(['EMA Trend Cross'])}
-                      className="w-full text-left px-3 py-2 rounded-lg bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-xs font-bold text-gray-300 transition-colors flex items-center justify-between"
-                    >
-                      <span>EMA Cross (Fast/Slow)</span>
-                      {activeIndicators.includes('EMA Trend Cross') && !activeIndicators.includes('RSI Breakout') && <Check size={12} className="text-[#22D3EE]" />}
-                    </button>
-                    <button 
-                      onClick={() => setActiveIndicators(['RSI Breakout'])}
-                      className="w-full text-left px-3 py-2 rounded-lg bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-xs font-bold text-gray-300 transition-colors flex items-center justify-between"
-                    >
-                      <span>RSI Oscillator Chart</span>
-                      {activeIndicators.includes('RSI Breakout') && !activeIndicators.includes('EMA Trend Cross') && <Check size={12} className="text-[#22D3EE]" />}
-                    </button>
-                    <button 
-                      onClick={() => setActiveIndicators(['EMA Trend Cross', 'RSI Breakout', 'Supertrend Overlay'])}
-                      className="w-full text-left px-3 py-2 rounded-lg bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-xs font-bold text-gray-300 transition-colors flex items-center justify-between"
-                    >
-                      <span>Combined Analytics</span>
-                      {activeIndicators.includes('EMA Trend Cross') && activeIndicators.includes('RSI Breakout') && <Check size={12} className="text-[#22D3EE]" />}
-                    </button>
-                  </div>
-
-                  <div className="border-t border-[#30363D] pt-4 flex-1">
-                    <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono block mb-3">Individual Overlays</span>
-                    <div className="space-y-2">
-                      {availableIndicators.map(ind => {
-                        const active = activeIndicators.includes(ind);
-                        return (
-                          <button
-                            key={ind}
-                            onClick={() => handleToggleIndicator(ind)}
-                            className={`w-full text-left px-3 py-2 rounded-lg border text-xs transition-all flex items-center justify-between ${
-                              active 
-                                ? 'bg-cyan-500/10 border-cyan-500/40 text-cyan-400' 
-                                : 'bg-transparent border-[#30363D] text-gray-400 hover:border-gray-500'
-                            }`}
-                          >
-                            <span>{ind}</span>
-                            <span className={`w-3.5 h-3.5 rounded flex items-center justify-center border text-[9px] ${
-                              active ? 'bg-cyan-400 border-cyan-400 text-gray-900 font-bold' : 'border-gray-600'
-                            }`}>
-                              {active && "✓"}
-                            </span>
-                          </button>
-                        );
-                      })}
-                    </div>
-                  </div>
-
-                  <div className="border-t border-[#30363D] pt-4">
-                    <button
-                      onClick={() => {
-                        toast.success("Current indicator vector synced to backend profile");
-                      }}
-                      className="w-full bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-white py-2 rounded-lg text-xs font-bold transition-colors"
-                    >
-                      Sync Active Settings
-                    </button>
-                  </div>
-                </div>
-              </div>
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
+      {activeStockToken && (
+        <ClickToChartModal
+          isOpen={!!activeStockToken}
+          onClose={() => setActiveStockToken(null)}
+          ticker={activeStockToken.symbol}
+          exchange={activeStockToken.exchange || 'NSE'}
+          activeIndicators={
+            activeIndicators.includes('EMA Trend Cross')
+              ? [
+                  {
+                    id: 'ema',
+                    name: 'EMA Trend',
+                    type: 'MA' as const,
+                    color: '#EAB308',
+                    calculate: (data) =>
+                      data.map((d, i) => {
+                        let sum = 0;
+                        const count = Math.min(i + 1, 9);
+                        for (let j = 0; j < count; j++) {
+                          sum += data[i - j]!.close;
+                        }
+                        return { time: d.time, value: sum / count };
+                      }),
+                  },
+                ]
+              : []
+          }
+        />
+      )}
     </div>
   );
 }
