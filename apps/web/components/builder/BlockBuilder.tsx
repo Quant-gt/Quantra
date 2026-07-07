@@ -6,6 +6,8 @@ import BacktestModal from './BacktestModal';
 import OptionsBuilder, { Instrument, Leg } from './OptionsBuilder';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { useScreener } from '@/context/ScreenerContext';
+import { Calendar, Clock, Globe } from 'lucide-react';
 import { SentenceBuilder, SentenceConditionBlock } from './SentenceBuilder';
 
 const STOCK_UNIVERSE = [
@@ -116,7 +118,156 @@ const STOCK_UNIVERSE = [
 
 type ConditionBlock = SentenceConditionBlock;
 
+function TimeTravelPicker() {
+  const { historicalSnapshotTarget, setHistoricalSnapshotTarget } = useScreener();
+  const [isOpen, setIsOpen] = useState(false);
+  const [inputVal, setInputVal] = useState('');
+  const popoverRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (historicalSnapshotTarget) {
+      const d = new Date(historicalSnapshotTarget);
+      const pad = (n: number) => n.toString().padStart(2, '0');
+      setInputVal(`${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}T${pad(d.getHours())}:${pad(d.getMinutes())}`);
+    } else {
+      setInputVal('');
+    }
+  }, [historicalSnapshotTarget]);
+
+  useEffect(() => {
+    function handleClickOutside(event: MouseEvent) {
+      if (popoverRef.current && !popoverRef.current.contains(event.target as Node)) {
+        setIsOpen(false);
+      }
+    }
+    document.addEventListener('mousedown', handleClickOutside);
+    return () => document.removeEventListener('mousedown', handleClickOutside);
+  }, []);
+
+  const handleApply = () => {
+    if (!inputVal) {
+      setHistoricalSnapshotTarget(null);
+      toast.info("Returned to live trading stream");
+    } else {
+      const iso = new Date(inputVal).toISOString();
+      setHistoricalSnapshotTarget(iso);
+      toast.success(`Time Travel Target: ${new Date(iso).toLocaleString()}`);
+    }
+    setIsOpen(false);
+  };
+
+  const setPreset = (daysAgo: number, hour: number, minute: number, isFixedDate?: string) => {
+    let target: Date;
+    if (isFixedDate) {
+      target = new Date(isFixedDate);
+    } else {
+      target = new Date();
+      target.setDate(target.getDate() - daysAgo);
+      target.setHours(hour, minute, 0, 0);
+    }
+    const iso = target.toISOString();
+    setHistoricalSnapshotTarget(iso);
+    toast.success(`Time Travel Target: ${target.toLocaleString()}`);
+    setIsOpen(false);
+  };
+
+  return (
+    <div className="relative" ref={popoverRef}>
+      <button
+        type="button"
+        onClick={() => setIsOpen(!isOpen)}
+        className={`w-full border text-xs font-bold rounded-md px-3 py-2 outline-none flex items-center justify-between cursor-pointer transition-all h-[38px] ${
+          historicalSnapshotTarget 
+            ? 'bg-amber-950/30 border-amber-500/40 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+            : 'bg-[#0D1117] border-[#30363D] hover:border-[#2EA043]/50 text-emerald-400'
+        }`}
+      >
+        <span className="flex items-center gap-1.5 truncate">
+          <Clock size={12} className={historicalSnapshotTarget ? 'animate-pulse' : ''} />
+          {historicalSnapshotTarget 
+            ? new Date(historicalSnapshotTarget).toLocaleString('en-IN', { dateStyle: 'short', timeStyle: 'short' })
+            : 'Live Production (Running)'
+          }
+        </span>
+        <ChevronDown size={12} className={`transition-transform ${isOpen ? 'rotate-180' : ''}`} />
+      </button>
+
+      {isOpen && (
+        <div className="absolute z-50 right-0 mt-1.5 w-72 bg-[#161B22] border border-[#30363D] rounded-xl p-4 shadow-2xl animate-in fade-in slide-in-from-top-1">
+          <div className="space-y-4">
+            <div>
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono block mb-1.5">Target Timestamp</span>
+              <input 
+                type="datetime-local" 
+                value={inputVal}
+                onChange={(e) => setInputVal(e.target.value)}
+                className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2 text-xs text-white outline-none focus:border-[#58A6FF]"
+              />
+            </div>
+
+            <div>
+              <span className="text-[10px] text-gray-500 font-bold uppercase tracking-wider font-mono block mb-2">Preset Snapshots</span>
+              <div className="space-y-1.5">
+                <button
+                  type="button"
+                  onClick={() => {
+                    const d = new Date();
+                    const day = d.getDay();
+                    const diff = day === 0 ? 2 : day === 6 ? 1 : 0;
+                    d.setDate(d.getDate() - diff);
+                    d.setHours(15, 30, 0, 0);
+                    setPreset(0, 15, 30, d.toISOString());
+                  }}
+                  className="w-full text-left bg-[#0D1117] hover:bg-[#21262D] border border-[#30363D] text-[11px] text-gray-300 rounded px-2.5 py-1.5 transition-colors"
+                >
+                  Previous Market Close (3:30 PM)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreset(7, 9, 15)}
+                  className="w-full text-left bg-[#0D1117] hover:bg-[#21262D] border border-[#30363D] text-[11px] text-gray-300 rounded px-2.5 py-1.5 transition-colors"
+                >
+                  1 Week Ago Open (9:15 AM)
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setPreset(0, 11, 0, '2026-02-01T11:00:00')}
+                  className="w-full text-left bg-[#0D1117] hover:bg-[#21262D] border border-[#30363D] text-[11px] text-gray-300 rounded px-2.5 py-1.5 transition-colors"
+                >
+                  Union Budget Day 2026 (11:00 AM)
+                </button>
+              </div>
+            </div>
+
+            <div className="flex gap-2 pt-2 border-t border-[#30363D]">
+              <button
+                type="button"
+                onClick={() => {
+                  setHistoricalSnapshotTarget(null);
+                  setIsOpen(false);
+                  toast.info("Returned to live stream");
+                }}
+                className="flex-1 bg-transparent hover:bg-red-950/20 text-red-400 border border-red-900/30 py-1.5 rounded text-xs font-bold transition-colors"
+              >
+                Reset Live
+              </button>
+              <button
+                type="button"
+                onClick={handleApply}
+                className="flex-1 bg-cyan-500 hover:bg-cyan-400 text-gray-900 py-1.5 rounded text-xs font-bold transition-colors shadow-md animate-pulse"
+              >
+                Apply Target
+              </button>
+            </div>
+          </div>
+        </div>
+      )}
+    </div>
+  );
+}
+
 export default function BlockBuilder() {
+  const { historicalSnapshotTarget } = useScreener();
   const [buyEnabled, setBuyEnabled] = useState(true);
   const [sellEnabled, setSellEnabled] = useState(true);
   const [isBacktestModalOpen, setIsBacktestModalOpen] = useState(false);
@@ -430,7 +581,9 @@ export default function BlockBuilder() {
   return (
     <div className="p-8 max-w-5xl mx-auto flex flex-col w-full">
       {/* Strategy Configuration Header */}
-      <div className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between shadow-lg">
+      <div className={`bg-[#161B22] border rounded-xl p-5 mb-6 flex flex-col md:flex-row gap-4 items-center justify-between shadow-lg transition-colors ${
+        historicalSnapshotTarget ? 'border-amber-500/40' : 'border-[#30363D]'
+      }`}>
         <div className="flex items-center gap-3 w-full md:w-auto">
           <div className="w-10 h-10 rounded-lg bg-gradient-to-br from-[#6366F1] to-[#8B5CF6] flex items-center justify-center shadow-lg">
             <Cpu size={20} className="text-white animate-pulse" />
@@ -574,6 +727,11 @@ export default function BlockBuilder() {
               min={1}
               className="w-full bg-[#0D1117] border border-[#30363D] text-white text-sm rounded-md px-3 py-2 outline-none focus:border-[#58A6FF]"
             />
+          </div>
+
+          <div className="flex-1 min-w-[200px]">
+            <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">Time Travel Engine</label>
+            <TimeTravelPicker />
           </div>
         </div>
       </div>

@@ -30,6 +30,7 @@ import {
 } from 'recharts';
 import { motion, AnimatePresence } from 'framer-motion';
 import { toast } from 'sonner';
+import { useScreener } from '@/context/ScreenerContext';
 
 // Real expanded broad market universe of 100 stocks for dynamic scanning (including Nifty Next 50 and Midcaps)
 const STOCK_UNIVERSE = [
@@ -144,10 +145,18 @@ function getSymbolSeed(symbol: string) {
 }
 
 export default function MagicScanner() {
+  const { historicalSnapshotTarget, setHistoricalSnapshotTarget } = useScreener();
   const [prompt, setPrompt] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+
+  // Automatically re-run scan when historicalSnapshotTarget changes
+  useEffect(() => {
+    if (prompt.trim() && hasScanned) {
+      handleScan();
+    }
+  }, [historicalSnapshotTarget]);
 
   // Watchlist State
   const [watchlist, setWatchlist] = useState<any[]>([]);
@@ -215,7 +224,10 @@ export default function MagicScanner() {
       const quotesRes = await fetch('/api/v1/market/quotes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ symbols: symbolsList })
+        body: JSON.stringify({ 
+          symbols: symbolsList,
+          asOfTimestamp: historicalSnapshotTarget
+        })
       });
       
       let liveQuotesMap: Record<string, any> = {};
@@ -405,17 +417,25 @@ export default function MagicScanner() {
     <div className="relative flex min-h-full w-full bg-[#0D1117]">
       {/* Pinned main workspace view */}
       <div className="flex-1 p-8 max-w-5xl mx-auto h-full w-full transition-all duration-300">
-        <div className="bg-[#1C2128]/50 border border-[#30363D] rounded-xl overflow-hidden shadow-xl backdrop-blur-sm">
+        <div className={`bg-[#1C2128]/50 border rounded-xl overflow-hidden shadow-xl backdrop-blur-sm transition-colors ${
+          historicalSnapshotTarget ? 'border-amber-500/40' : 'border-[#30363D]'
+        }`}>
           
           {/* Header */}
-          <div className="px-6 py-4 flex items-center justify-between border-b border-[#30363D] bg-[#1F242C]/50">
+          <div className={`px-6 py-4 flex items-center justify-between border-b bg-[#1F242C]/50 ${
+            historicalSnapshotTarget ? 'border-amber-500/30' : 'border-[#30363D]'
+          }`}>
             <div className="flex items-center gap-2">
-              <div className="text-cyan-400">
+              <div className={historicalSnapshotTarget ? 'text-amber-400' : 'text-cyan-400'}>
                 <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
                 </svg>
               </div>
-              <h3 className="text-sm font-bold text-cyan-400 tracking-wider">MAGIC FILTERS (Screener Only)</h3>
+              <h3 className={`text-sm font-bold tracking-wider ${
+                historicalSnapshotTarget ? 'text-amber-400' : 'text-cyan-400'
+              }`}>
+                MAGIC FILTERS {historicalSnapshotTarget ? '(Historical Time Travel)' : '(Screener Only)'}
+              </h3>
             </div>
             
             <div className="flex items-center gap-3">
@@ -423,14 +443,22 @@ export default function MagicScanner() {
                 onClick={() => setIsWatchlistOpen(!isWatchlistOpen)}
                 className={`flex items-center gap-1.5 px-3 py-1 rounded text-xs font-bold border transition-colors ${
                   isWatchlistOpen 
-                    ? 'bg-cyan-500/10 border-cyan-400 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]' 
+                    ? historicalSnapshotTarget 
+                      ? 'bg-amber-500/10 border-amber-400 text-amber-400 shadow-[0_0_10px_rgba(245,158,11,0.2)]'
+                      : 'bg-cyan-500/10 border-cyan-400 text-cyan-400 shadow-[0_0_10px_rgba(34,211,238,0.2)]'
                     : 'bg-[#161B22] border-[#30363D] text-gray-400 hover:text-white hover:border-[#58A6FF]'
                 }`}
               >
                 <Bookmark size={12} />
                 Watchlist ({watchlist.length})
               </button>
-              <span className="text-[10px] bg-cyan-900/30 text-cyan-400 px-2 py-0.5 rounded font-mono border border-cyan-800/30">MATH ENGINE ENHANCED</span>
+              <span className={`text-[10px] px-2 py-0.5 rounded font-mono border ${
+                historicalSnapshotTarget 
+                  ? 'bg-amber-900/30 text-amber-400 border-amber-800/30'
+                  : 'bg-cyan-900/30 text-cyan-400 border-cyan-800/30'
+              }`}>
+                {historicalSnapshotTarget ? 'HISTORICAL SNAPSHOT' : 'MATH ENGINE ENHANCED'}
+              </span>
             </div>
           </div>
 
@@ -475,18 +503,43 @@ export default function MagicScanner() {
             </div>
           </div>
         </div>
-        
-        {/* Results Area */}
-        {isScanning ? (
-          <div className="mt-8 flex flex-col items-center justify-center py-20 text-cyan-400">
-            <div className="w-10 h-10 border-4 border-cyan-400 border-t-transparent rounded-full animate-spin mb-4"></div>
+      
+      {/* Time Travel Warning Banner */}
+      {historicalSnapshotTarget && (
+        <div className="mt-8 bg-amber-950/20 border border-amber-500/30 rounded-xl p-4 flex items-center justify-between shadow-lg animate-in fade-in duration-200">
+          <div className="flex items-center gap-3">
+            <span className="relative flex h-2.5 w-2.5">
+              <span className="animate-ping absolute inline-flex h-full w-full rounded-full bg-amber-400 opacity-75"></span>
+              <span className="relative inline-flex rounded-full h-2.5 w-2.5 bg-amber-500"></span>
+            </span>
+            <p className="text-xs text-amber-200">
+              Viewing static market capture as of <span className="font-bold font-mono">{new Date(historicalSnapshotTarget).toLocaleString('en-IN', { dateStyle: 'medium', timeStyle: 'short' })}</span>
+            </p>
+          </div>
+          <button 
+            onClick={() => setHistoricalSnapshotTarget(null)}
+            className="bg-amber-500 hover:bg-amber-400 text-gray-900 px-3.5 py-1.5 rounded-lg text-xs font-bold transition-all shadow-md cursor-pointer"
+          >
+            Return to Live
+          </button>
+        </div>
+      )}
+      
+      {/* Results Area */}
+      {isScanning ? (
+        <div className={`mt-8 flex flex-col items-center justify-center py-20 ${historicalSnapshotTarget ? 'text-amber-400' : 'text-cyan-400'}`}>
+          <div className={`w-10 h-10 border-4 border-t-transparent rounded-full animate-spin mb-4 ${historicalSnapshotTarget ? 'border-amber-400' : 'border-cyan-400'}`}></div>
             <p className="text-sm font-bold animate-pulse">AI is parsing "{prompt}" and querying broad market universe...</p>
           </div>
         ) : results.length > 0 ? (
-          <div className="mt-8 bg-[#1C2128]/50 border border-[#30363D] rounded-xl overflow-hidden backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4">
+          <div className={`mt-8 bg-[#1C2128]/50 border rounded-xl overflow-hidden backdrop-blur-sm animate-in fade-in slide-in-from-bottom-4 ${
+            historicalSnapshotTarget ? 'border-amber-500/40' : 'border-[#30363D]'
+          }`}>
             
             {/* Table Action Header */}
-            <div className="px-6 py-4 border-b border-[#30363D] bg-[#21262D]/50 flex justify-between items-center">
+            <div className={`px-6 py-4 border-b bg-[#21262D]/50 flex justify-between items-center ${
+              historicalSnapshotTarget ? 'border-amber-500/30' : 'border-[#30363D]'
+            }`}>
               <div>
                 <h3 className="text-sm font-bold text-white">Scan Results ({results.length} found)</h3>
                 <span className="text-[11px] text-gray-400">Match criteria: {prompt}</span>

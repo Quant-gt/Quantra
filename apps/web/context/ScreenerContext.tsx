@@ -18,6 +18,8 @@ interface ScreenerContextType {
   setActiveIndicators: (indicators: string[]) => void;
   isChartOpen: boolean;
   setIsChartOpen: (open: boolean) => void;
+  historicalSnapshotTarget: string | null;
+  setHistoricalSnapshotTarget: (target: string | null) => void;
 }
 
 const ScreenerContext = createContext<ScreenerContextType | undefined>(undefined);
@@ -27,6 +29,7 @@ export const ScreenerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
   const [isChartOpen, setIsChartOpen] = useState<boolean>(false);
   const [watchlist, setWatchlist] = useState<string[]>([]);
   const [activeIndicators, setActiveIndicators] = useState<string[]>(['SMA_20', 'RSI_14']);
+  const [historicalSnapshotTarget, setHistoricalSnapshotTarget] = useState<string | null>(null);
 
   // Hydrate watchlist from localStorage on client-side mount
   useEffect(() => {
@@ -49,7 +52,8 @@ export const ScreenerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       activeStockToken, setActiveStockToken,
       watchlist, toggleWatchlist,
       activeIndicators, setActiveIndicators,
-      isChartOpen, setIsChartOpen
+      isChartOpen, setIsChartOpen,
+      historicalSnapshotTarget, setHistoricalSnapshotTarget
     }}>
       {children}
     </ScreenerContext.Provider>
