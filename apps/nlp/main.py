@@ -1,6 +1,7 @@
 import os
 import json
 import urllib.request
+import sys
 from fastapi import FastAPI, HTTPException, Header, Depends
 from pydantic import BaseModel
 from sentence_transformers import SentenceTransformer
@@ -9,6 +10,9 @@ from datetime import datetime
 import yfinance as yf
 import numpy as np
 from dotenv import load_dotenv
+
+# Resolve the path to apps/ai_engine dynamically
+sys.path.append(os.path.join(os.path.dirname(os.path.abspath(__file__)), "..", "ai_engine"))
 
 # Try loading from possible locations
 load_dotenv()
@@ -125,41 +129,93 @@ def parse_query(req: QueryRequest):
 @app.post("/api/backtest", dependencies=[Depends(verify_token)])
 def run_backtest(req: BacktestRequest):
     try:
+        import pandas as pd
+        from agents.intent_parser import StrategySchema, Indicator
+        from engine.backtester import VectorBacktester
+
         # 1. Fetch Data
         df = yf.download(req.symbol, start=req.start_date, end=req.end_date)
         if df.empty:
             raise HTTPException(status_code=400, detail="No data found for the given symbol and date range")
 
-        # 2. Simulate Strategy (Simple Moving Average Crossover for demonstration)
-        # In real app, this would evaluate the req.strategy_logic DAG
-        df['SMA_fast'] = df['Close'].rolling(window=9).mean()
-        df['SMA_slow'] = df['Close'].rolling(window=21).mean()
+        # 2. Parse / Construct Strategy Schema
+        if not req.strategy_logic:
+            strategy = StrategySchema(
+                market=req.symbol,
+                timeframe="1d",
+                indicators=[
+                    Indicator(name="SMA", period=9),
+                    Indicator(name="SMA", period=21)
+                ],
+                entry_logic=["close > SMA_21"],
+                exit_logic=["close < SMA_21"],
+                stop_loss_atr=2.0
+            )
+        else:
+            strategy = StrategySchema(**req.strategy_logic)
+
+        # VectorBacktester expects lowercase columns
+        if isinstance(df.columns, pd.MultiIndex):
+            df.columns = df.columns.get_level_values(0)
+        df.columns = [col.lower() for col in df.columns]
+
+        # 3. Instantiate and run indicator/signals parser
+        bt = VectorBacktester(strategy=strategy, df=df)
+        bt.apply_indicators()
+        bt.generate_signals()
+
+        # 4. Trailing stop-loss & position logic
+        df['position'] = 0.0
+        current_pos = 0.0
+        entry_price = 0.0
         
-        df['Signal'] = 0
-        df.loc[df['SMA_fast'] > df['SMA_slow'], 'Signal'] = 1
-        df['Position'] = df['Signal'].shift(1)
+        positions = np.zeros(len(df))
+        closes = df['close'].values
+        atrs = df['atr'].values
+        entries = df['entry_signal'].values
+        exits = df['exit_signal'].values
         
+        stop_mult = strategy.stop_loss_atr
+        stop_price = 0.0
+
+        for i in range(1, len(df)):
+            if current_pos == 0:
+                if entries[i-1]:
+                    current_pos = 1
+                    entry_price = closes[i]
+                    stop_price = entry_price - (atrs[i-1] * stop_mult)
+            elif current_pos == 1:
+                new_stop = closes[i] - (atrs[i-1] * stop_mult)
+                if new_stop > stop_price:
+                    stop_price = new_stop
+                if exits[i-1] or closes[i] <= stop_price:
+                    current_pos = 0
+            
+            positions[i] = current_pos
+
+        df['position'] = positions
+
         # Calculate Returns
-        df['Market_Return'] = df['Close'].pct_change()
-        df['Strategy_Return'] = df['Market_Return'] * df['Position']
+        df['market_return'] = df['close'].pct_change()
+        df['strategy_return'] = df['position'].shift(1) * df['market_return']
         
-        # 3. Calculate Metrics
-        total_return = (df['Strategy_Return'] + 1).prod() - 1
+        # 5. Calculate Metrics
+        total_return = (df['strategy_return'].fillna(0) + 1).prod() - 1
         cagr = (total_return + 1) ** (252 / len(df)) - 1 if len(df) > 0 else 0
         
         # Max Drawdown
-        cum_returns = (df['Strategy_Return'] + 1).cumprod()
+        cum_returns = (df['strategy_return'].fillna(0) + 1).cumprod()
         running_max = cum_returns.cummax()
         drawdown = (cum_returns - running_max) / running_max
         max_drawdown = drawdown.min()
         
         # Sharpe Ratio
-        sharpe = np.sqrt(252) * df['Strategy_Return'].mean() / df['Strategy_Return'].std() if df['Strategy_Return'].std() != 0 else 0
+        sharpe = np.sqrt(252) * df['strategy_return'].mean() / df['strategy_return'].std() if df['strategy_return'].std() != 0 else 0
         
         # Sortino Ratio
-        downside_returns = df.loc[df['Strategy_Return'] < 0, 'Strategy_Return']
+        downside_returns = df.loc[df['strategy_return'] < 0, 'strategy_return']
         downside_std = downside_returns.std()
-        sortino = np.sqrt(252) * df['Strategy_Return'].mean() / downside_std if downside_std != 0 and not np.isnan(downside_std) else 0
+        sortino = np.sqrt(252) * df['strategy_return'].mean() / downside_std if downside_std != 0 and not np.isnan(downside_std) else 0
 
         # Calculate Trades from Position changes
         trade_log = []
@@ -172,8 +228,8 @@ def run_backtest(req: BacktestRequest):
         entry_time = None
         
         for idx, row in df.iterrows():
-            pos = float(row['Position']) if not np.isnan(row['Position']) else 0.0
-            close_price = float(row['Close']) if not np.isnan(row['Close']) else 0.0
+            pos = float(row['position']) if not np.isnan(row['position']) else 0.0
+            close_price = float(row['close']) if not np.isnan(row['close']) else 0.0
             date_str = idx.strftime('%Y-%m-%d')
             
             if pos == 1.0 and position == 0:
@@ -202,7 +258,7 @@ def run_backtest(req: BacktestRequest):
         
         if position == 1:
             last_row = df.iloc[-1]
-            close_price = float(last_row['Close'])
+            close_price = float(last_row['close'])
             date_str = df.index[-1].strftime('%Y-%m-%d')
             pnl = (close_price - entry_price) * 100
             pnl_pct = (close_price - entry_price) / entry_price * 100
