@@ -212,7 +212,26 @@ export default function MagicScanner() {
       rsi: stock.rsi,
       adx: stock.adx,
       supertrend: stock.supertrendVal,
-      fvg: stock.fvgBullVal
+      fvg: stock.fvgBullVal,
+      pe: stock.pe,
+      pb: stock.pb,
+      evebitda: stock.evebitda,
+      debtequity: stock.debtequity,
+      currentratio: stock.currentratio,
+      netprofitmargin: stock.netprofitmargin,
+      roce: stock.roce,
+      roe: stock.roe,
+      profitgrowth: stock.profitgrowth,
+      salesgrowth: stock.salesgrowth,
+      promoterholding: stock.promoterholding,
+      institutionholding: stock.institutionholding,
+      pledgedshares: stock.pledgedshares,
+      oi: stock.oi,
+      oichange: stock.oichange,
+      oivector: stock.oivector,
+      vwap: stock.vwap,
+      pcr: stock.pcr,
+      costofcarry: stock.costofcarry
     };
     
     // Replace variables in expression
@@ -299,6 +318,29 @@ export default function MagicScanner() {
 
         const formattedPrice = `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const formattedChange = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;
+
+        // Fundamental Metrics
+        const pe = parseFloat((10 + (seed % 65)).toFixed(1)); 
+        const pb = parseFloat((1 + (seed % 15) * 0.8).toFixed(1)); 
+        const evebitda = parseFloat((8 + (seed % 42)).toFixed(1)); 
+        const debtequity = parseFloat(((seed % 180) / 100).toFixed(2)); 
+        const currentratio = parseFloat((0.8 + (seed % 25) * 0.1).toFixed(2)); 
+        const netprofitmargin = parseFloat((5 + (seed % 35)).toFixed(1)); 
+        const roce = parseFloat((8 + (seed % 42)).toFixed(1)); 
+        const roe = parseFloat((6 + (seed % 34)).toFixed(1)); 
+        const profitgrowth = parseFloat((((seed % 60) - 15)).toFixed(1)); 
+        const salesgrowth = parseFloat((((seed % 40) - 5)).toFixed(1)); 
+        const promoterholding = parseFloat((30 + (seed % 45)).toFixed(1)); 
+        const institutionholding = parseFloat((10 + (seed % 50)).toFixed(1)); 
+        const pledgedshares = parseFloat(((seed % 120) < 15 ? (seed % 10) : 0).toFixed(1)); 
+
+        // Derivative (F&O) Metrics
+        const oi = (seed % 5000000) + 100000; 
+        const oichange = parseFloat((((seed % 60) - 30)).toFixed(1)); 
+        const oivector = parseFloat((((seed % 120) - 40)).toFixed(1)); 
+        const vwap = parseFloat((closeVal * (0.997 + (seed % 6) * 0.001)).toFixed(2)); 
+        const pcr = parseFloat((0.4 + (seed % 12) * 0.1).toFixed(2)); 
+        const costofcarry = parseFloat((4 + (seed % 12)).toFixed(1)); 
         
         return {
           symbol: stock.symbol,
@@ -318,7 +360,26 @@ export default function MagicScanner() {
           hasMacd,
           hasGoldenCross,
           hasVolumeSurge,
-          rawChange: changeVal
+          rawChange: changeVal,
+          pe,
+          pb,
+          evebitda,
+          debtequity,
+          currentratio,
+          netprofitmargin,
+          roce,
+          roe,
+          profitgrowth,
+          salesgrowth,
+          promoterholding,
+          institutionholding,
+          pledgedshares,
+          oi,
+          oichange,
+          oivector,
+          vwap,
+          pcr,
+          costofcarry
         };
       }).filter(stock => {
         if (isMathExpression) {
@@ -697,8 +758,12 @@ export default function MagicScanner() {
                         <span className={r.rsi > 70 ? 'text-orange-400 font-bold' : r.rsi < 30 ? 'text-cyan-400 font-bold' : 'text-gray-300'}>{r.rsi}</span>
                       </div>
                       <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-gray-500 uppercase font-mono">ADX</span>
-                        <span>{r.adx}</span>
+                        <span className="text-[10px] text-gray-500 uppercase font-mono">P/E</span>
+                        <span className="text-gray-300 font-mono">{r.pe}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] text-gray-500 uppercase font-mono">OI (Chg%)</span>
+                        <span className={`font-mono ${r.oichange >= 0 ? 'text-green-400' : 'text-red-400'}`}>{(r.oi / 1000000).toFixed(1)}M ({r.oichange >= 0 ? '+' : ''}{r.oichange}%)</span>
                       </div>
                     </div>
                     

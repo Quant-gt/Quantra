@@ -49,18 +49,18 @@ interface ScreenerWidget {
 
 // Broad universe for widgets to fetch from
 const BROAD_MARKET = [
-  { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', price: 2450.45, change: 1.25, volume: 1540000, rsi: 62, macd: 1.2, ema20: 2420, close: 2450.45, open: 2420.10, high: 2465.00, low: 2415.00, sector: 'Energy' },
-  { symbol: 'TCS', name: 'Tata Consultancy Services Ltd.', price: 3820.15, change: -0.85, volume: 890000, rsi: 41, macd: -0.8, ema20: 3840, close: 3820.15, open: 3855.00, high: 3860.00, low: 3810.00, sector: 'Technology' },
-  { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd.', price: 1610.80, change: 2.10, volume: 3450000, rsi: 74, macd: 2.5, ema20: 1580, close: 1610.80, open: 1578.00, high: 1615.00, low: 1575.00, sector: 'Financial Services' },
-  { symbol: 'INFY', name: 'Infosys Ltd.', price: 1475.30, change: 1.65, volume: 1200000, rsi: 58, macd: 0.9, ema20: 1455, close: 1475.30, open: 1450.00, high: 1482.00, low: 1448.00, sector: 'Technology' },
-  { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd.', price: 980.20, change: -1.15, volume: 2200000, rsi: 35, macd: -1.4, ema20: 995, close: 980.20, open: 992.00, high: 994.00, low: 978.00, sector: 'Financial Services' },
-  { symbol: 'SBIN', name: 'State Bank of India', price: 742.60, change: 0.45, volume: 4100000, rsi: 51, macd: 0.3, ema20: 740, close: 742.60, open: 739.00, high: 746.00, low: 737.00, sector: 'Financial Services' },
-  { symbol: 'LT', name: 'Larsen & Toubro Ltd.', price: 3410.50, change: 2.45, volume: 750000, rsi: 69, macd: 4.1, ema20: 3320, close: 3410.50, open: 3330.00, high: 3425.00, low: 3325.00, sector: 'Construction' },
-  { symbol: 'ITC', name: 'ITC Ltd.', price: 428.15, change: -0.30, volume: 1800000, rsi: 48, macd: -0.1, ema20: 430, close: 428.15, open: 429.50, high: 431.00, low: 426.80, sector: 'Consumer Goods' },
-  { symbol: 'HINDUNILVR', name: 'Hindustan Unilever Ltd.', price: 2315.40, change: 0.15, volume: 550000, rsi: 45, macd: 0.0, ema20: 2310, close: 2315.40, open: 2310.00, high: 2328.00, low: 2305.00, sector: 'Consumer Goods' },
-  { symbol: 'BHARTIALRT', name: 'Bharti Airtel Ltd.', price: 1125.75, change: -1.95, volume: 1650000, rsi: 28, macd: -3.2, ema20: 1150, close: 1125.75, open: 1148.00, high: 1150.00, low: 1122.00, sector: 'Telecommunications' },
-  { symbol: 'NTPC', name: 'NTPC Ltd.', price: 332.40, change: 3.20, volume: 5120000, rsi: 78, macd: 1.8, ema20: 320, close: 332.40, open: 322.00, high: 334.80, low: 321.10, sector: 'Utilities' },
-  { symbol: 'TRENT', name: 'Trent Ltd.', price: 3950.00, change: 4.80, volume: 950000, rsi: 81, macd: 5.6, ema20: 3750, close: 3950.00, open: 3770.00, high: 3975.00, low: 3760.00, sector: 'Consumer Goods' },
+  { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', price: 2450.45, change: 1.25, volume: 1540000, rsi: 62, macd: 1.2, ema20: 2420, close: 2450.45, open: 2420.10, high: 2465.00, low: 2415.00, sector: 'Energy', pe: 25.4, oichange: 3.5 },
+  { symbol: 'TCS', name: 'Tata Consultancy Services Ltd.', price: 3820.15, change: -0.85, volume: 890000, rsi: 41, macd: -0.8, ema20: 3840, close: 3820.15, open: 3855.00, high: 3860.00, low: 3810.00, sector: 'Technology', pe: 30.1, oichange: -1.2 },
+  { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd.', price: 1610.80, change: 2.10, volume: 3450000, rsi: 74, macd: 2.5, ema20: 1580, close: 1610.80, open: 1578.00, high: 1615.00, low: 1575.00, sector: 'Financial Services', pe: 18.2, oichange: 8.4 },
+  { symbol: 'INFY', name: 'Infosys Ltd.', price: 1475.30, change: 1.65, volume: 1200000, rsi: 58, macd: 0.9, ema20: 1455, close: 1475.30, open: 1450.00, high: 1482.00, low: 1448.00, sector: 'Technology', pe: 26.3, oichange: 2.1 },
+  { symbol: 'ICICIBANK', name: 'ICICI Bank Ltd.', price: 980.20, change: -1.15, volume: 2200000, rsi: 35, macd: -1.4, ema20: 995, close: 980.20, open: 992.00, high: 994.00, low: 978.00, sector: 'Financial Services', pe: 17.5, oichange: -4.5 },
+  { symbol: 'SBIN', name: 'State Bank of India', price: 742.60, change: 0.45, volume: 4100000, rsi: 51, macd: 0.3, ema20: 740, close: 742.60, open: 739.00, high: 746.00, low: 737.00, sector: 'Financial Services', pe: 9.8, oichange: 0.8 },
+  { symbol: 'LT', name: 'Larsen & Toubro Ltd.', price: 3410.50, change: 2.45, volume: 750000, rsi: 69, macd: 4.1, ema20: 3320, close: 3410.50, open: 3330.00, high: 3425.00, low: 3325.00, sector: 'Construction', pe: 35.2, oichange: 12.5 },
+  { symbol: 'ITC', name: 'ITC Ltd.', price: 428.15, change: -0.30, volume: 1800000, rsi: 48, macd: -0.1, ema20: 430, close: 428.15, open: 429.50, high: 431.00, low: 426.80, sector: 'Consumer Goods', pe: 28.1, oichange: -0.2 },
+  { symbol: 'HINDUNILVR', name: 'Hindustan Unilever Ltd.', price: 2315.40, change: 0.15, volume: 550000, rsi: 45, macd: 0.0, ema20: 2310, close: 2315.40, open: 2310.00, high: 2328.00, low: 2305.00, sector: 'Consumer Goods', pe: 55.4, oichange: 1.1 },
+  { symbol: 'BHARTIALRT', name: 'Bharti Airtel Ltd.', price: 1125.75, change: -1.95, volume: 1650000, rsi: 28, macd: -3.2, ema20: 1150, close: 1125.75, open: 1148.00, high: 1150.00, low: 1122.00, sector: 'Telecommunications', pe: 65.0, oichange: -6.4 },
+  { symbol: 'NTPC', name: 'NTPC Ltd.', price: 332.40, change: 3.20, volume: 5120000, rsi: 78, macd: 1.8, ema20: 320, close: 332.40, open: 322.00, high: 334.80, low: 321.10, sector: 'Utilities', pe: 15.6, oichange: 14.2 },
+  { symbol: 'TRENT', name: 'Trent Ltd.', price: 3950.00, change: 4.80, volume: 950000, rsi: 81, macd: 5.6, ema20: 3750, close: 3950.00, open: 3770.00, high: 3975.00, low: 3760.00, sector: 'Consumer Goods', pe: 120.4, oichange: 18.6 },
 ];
 
 export default function WorkspacePage() {
@@ -176,6 +176,22 @@ export default function WorkspacePage() {
           if (query.includes('macd <')) {
             const val = parseFloat(query.split('macd <')[1] || '0');
             return macdVal < val;
+          }
+          if (query.includes('pe <')) {
+            const val = parseFloat(query.split('pe <')[1] || '0');
+            return (stock.pe || 0) < val;
+          }
+          if (query.includes('pe >')) {
+            const val = parseFloat(query.split('pe >')[1] || '0');
+            return (stock.pe || 0) > val;
+          }
+          if (query.includes('oichange >')) {
+            const val = parseFloat(query.split('oichange >')[1] || '0');
+            return (stock.oichange || 0) > val;
+          }
+          if (query.includes('oichange <')) {
+            const val = parseFloat(query.split('oichange <')[1] || '0');
+            return (stock.oichange || 0) < val;
           }
         } catch(e) {}
         
@@ -511,7 +527,8 @@ export default function WorkspacePage() {
                           <th className="px-4 py-2.5 text-right">Price</th>
                           <th className="px-4 py-2.5 text-right">Change</th>
                           <th className="px-4 py-2.5 text-right">RSI (14)</th>
-                          <th className="px-4 py-2.5 text-right">MACD</th>
+                          <th className="px-4 py-2.5 text-right">P/E</th>
+                          <th className="px-4 py-2.5 text-right">OI Chg</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#21262D]">
@@ -548,8 +565,11 @@ export default function WorkspacePage() {
                                   {r.rsi}
                                 </span>
                               </td>
-                              <td className={`px-4 py-3 text-right font-mono ${r.macd >= 0 ? 'text-emerald-500/80' : 'text-red-500/80'}`}>
-                                {r.macd}
+                              <td className="px-4 py-3 text-right font-mono text-gray-300">
+                                {r.pe || '24.5'}
+                              </td>
+                              <td className={`px-4 py-3 text-right font-mono font-bold ${r.oichange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                {r.oichange >= 0 ? '+' : ''}{(r.oichange || 2.5).toFixed(1)}%
                               </td>
                             </tr>
                           );
