@@ -180,6 +180,7 @@ export default function MagicScanner() {
   const [hasScanned, setHasScanned] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [activeExchanges, setActiveExchanges] = useState<Record<string, 'NSE' | 'BSE'>>({});
+  const [liveQuotesMap, setLiveQuotesMap] = useState<Record<string, any>>({});
 
   // Workspace Layout view integration states
   const [viewMode, setViewMode] = useState<'single' | 'workspace'>('single');
@@ -213,26 +214,51 @@ export default function MagicScanner() {
   const runWidgetScan = async (id: string) => {
     setWidgets(prev => prev.map(w => w.id === id ? { ...w, isScanning: true } : w));
     
-    // Simulate low-latency query filtering matching the MagicScanner broad market universe
-    setTimeout(() => {
+    try {
+      const activeMap = UNIVERSE_MAPS[activeUniverseScope];
+      const universeList = activeMap 
+        ? STOCK_UNIVERSE.filter(s => activeMap.includes(s.symbol))
+        : activeUniverseScope === 'Custom Watchlist'
+          ? STOCK_UNIVERSE.filter(s => globalWatchlist.includes(s.symbol))
+          : STOCK_UNIVERSE;
+
+      const symbolsList = universeList.map(s => s.symbol);
+      const quotesRes = await fetch('/api/v1/market/quotes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ 
+          symbols: symbolsList,
+          asOfTimestamp: historicalSnapshotTarget
+        })
+      });
+      
+      let currentQuotesMap = liveQuotesMap;
+      if (quotesRes.ok) {
+        const quotesData = await quotesRes.json();
+        const fetchedQuotes = quotesData.quotes || {};
+        currentQuotesMap = { ...liveQuotesMap, ...fetchedQuotes };
+        setLiveQuotesMap(currentQuotesMap);
+      }
+
       setWidgets(prev => {
         const widget = prev.find(w => w.id === id);
         if (!widget) return prev;
 
         const query = (widget.query || '').toLowerCase().trim();
         
-        const filtered = STOCK_UNIVERSE.map(stock => {
+        const filtered = universeList.map(stock => {
           const seed = getSymbolSeed(stock.symbol);
+          const liveQuote = currentQuotesMap[stock.symbol];
           
-          let closeVal = (seed % 1200) + 150;
-          let changeVal = ((seed % 120) - 60) / 10;
-          let openVal = closeVal * (1 - changeVal / 100);
-          let highVal = Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
-          let lowVal = Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
-          let volumeVal = (seed % 900000) + 100000;
-          let rsiVal = Math.min(Math.max(Math.round(50 + changeVal * 6), 10), 90);
+          let closeVal = liveQuote ? liveQuote.close : (seed % 1200) + 150;
+          let changeVal = liveQuote ? liveQuote.change : ((seed % 120) - 60) / 10;
+          let openVal = liveQuote ? liveQuote.open : closeVal * (1 - changeVal / 100);
+          let highVal = liveQuote ? liveQuote.high : Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
+          let lowVal = liveQuote ? liveQuote.low : Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
+          let volumeVal = liveQuote ? liveQuote.volume : (seed % 900000) + 100000;
+          let rsiVal = liveQuote?.rsi !== undefined ? liveQuote.rsi : Math.min(Math.max(Math.round(50 + changeVal * 6), 10), 90);
           let peVal = parseFloat((10 + (seed % 65)).toFixed(1)); 
-          let oichangeVal = parseFloat((((seed % 60) - 30)).toFixed(1)); 
+          let oichangeVal = liveQuote?.oichange !== undefined ? liveQuote.oichange : parseFloat((((seed % 60) - 30)).toFixed(1)); 
 
           if (historicalSnapshotTarget) {
             const targetTime = new Date(historicalSnapshotTarget).getTime();
@@ -305,7 +331,10 @@ export default function MagicScanner() {
           results: filtered 
         } : w);
       });
-    }, 800);
+    } catch (error) {
+      console.error(error);
+      setWidgets(prev => prev.map(w => w.id === id ? { ...w, isScanning: false } : w));
+    }
   };
 
   const handleCreateWidget = (e: React.FormEvent) => {
@@ -507,6 +536,7 @@ export default function MagicScanner() {
       if (quotesRes.ok) {
         const quotesData = await quotesRes.json();
         liveQuotesMap = quotesData.quotes || {};
+        setLiveQuotesMap(liveQuotesMap);
       }
       
       const query = prompt.toLowerCase().trim();
@@ -523,17 +553,17 @@ export default function MagicScanner() {
         const lowVal = liveQuote ? liveQuote.low : Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
         const volumeVal = liveQuote ? liveQuote.volume : (seed % 900000) + 100000;
         
-        const rsi = Math.min(Math.max(Math.round(50 + changeVal * 6), 10), 90);
-        const adx = Math.min(Math.max(Math.round(20 + Math.abs(changeVal) * 8), 10), 60);
-        const supertrendVal = changeVal >= 0 
+        const rsi = liveQuote?.rsi !== undefined ? liveQuote.rsi : Math.min(Math.max(Math.round(50 + changeVal * 6), 10), 90);
+        const adx = liveQuote?.adx !== undefined ? liveQuote.adx : Math.min(Math.max(Math.round(20 + Math.abs(changeVal) * 8), 10), 60);
+        const supertrendVal = liveQuote?.supertrend !== undefined ? liveQuote.supertrend : (changeVal >= 0 
           ? (lowVal - (highVal - lowVal) * 1.5) 
-          : (highVal + (highVal - lowVal) * 1.5);
-        const fvgBullVal = (closeVal > openVal && (highVal - lowVal) > (closeVal * 0.02)) 
+          : (highVal + (highVal - lowVal) * 1.5));
+        const fvgBullVal = liveQuote?.fvgBull !== undefined ? liveQuote.fvgBull : ((closeVal > openVal && (highVal - lowVal) > (closeVal * 0.02)) 
           ? (closeVal - openVal) * 0.3 
-          : 0.0;
-        const hasMacd = changeVal > 0.5;
-        const hasGoldenCross = closeVal > openVal && changeVal > 0.0;
-        const hasVolumeSurge = volumeVal > 1500000;
+          : 0.0);
+        const hasMacd = liveQuote?.hasMacd !== undefined ? liveQuote.hasMacd : changeVal > 0.5;
+        const hasGoldenCross = liveQuote?.hasGoldenCross !== undefined ? liveQuote.hasGoldenCross : (closeVal > openVal && changeVal > 0.0);
+        const hasVolumeSurge = liveQuote?.hasVolumeSurge !== undefined ? liveQuote.hasVolumeSurge : volumeVal > 1500000;
 
         const formattedPrice = `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const formattedChange = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;
