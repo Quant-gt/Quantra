@@ -85,10 +85,6 @@ export default function DashboardLayout({
               <SlidersHorizontal size={18} />
               Strategy Builder
             </Link>
-            <Link href="/dashboard/workspace" className={getLinkClass('/dashboard/workspace')}>
-              <Layers size={18} />
-              Workspace Layout
-            </Link>
             <Link href="/dashboard/charts" className={getLinkClass('/dashboard/charts')}>
               <BarChart2 size={18} />
               Live Charts

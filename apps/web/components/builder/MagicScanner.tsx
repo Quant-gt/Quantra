@@ -13,7 +13,9 @@ import {
   Check, 
   Maximize2,
   Trash2,
-  Bookmark
+  Bookmark,
+  RefreshCw,
+  Plus
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import { 
@@ -178,6 +180,223 @@ export default function MagicScanner() {
   const [hasScanned, setHasScanned] = useState(false);
   const [results, setResults] = useState<any[]>([]);
   const [activeExchanges, setActiveExchanges] = useState<Record<string, 'NSE' | 'BSE'>>({});
+
+  // Workspace Layout view integration states
+  const [viewMode, setViewMode] = useState<'single' | 'workspace'>('single');
+  const [widgets, setWidgets] = useState<any[]>([
+    {
+      id: 'rsi-oversold',
+      title: 'RSI Oversold Matrix',
+      query: 'rsi < 40',
+      timeframe: '15m',
+      layoutSize: 'medium',
+      results: [],
+      isScanning: false,
+      isPolling: false
+    },
+    {
+      id: 'high-momentum',
+      title: 'High Momentum Breakouts',
+      query: 'change > 1.5',
+      timeframe: '5m',
+      layoutSize: 'small',
+      results: [],
+      isScanning: false,
+      isPolling: false
+    }
+  ]);
+  const [newTitle, setNewTitle] = useState('');
+  const [newQuery, setNewQuery] = useState('');
+  const [newTimeframe, setNewTimeframe] = useState<'1m' | '5m' | '15m' | '1h' | '1d'>('15m');
+  const [newSize, setNewSize] = useState<'small' | 'medium' | 'large'>('small');
+
+  const runWidgetScan = async (id: string) => {
+    setWidgets(prev => prev.map(w => w.id === id ? { ...w, isScanning: true } : w));
+    
+    // Simulate low-latency query filtering matching the MagicScanner broad market universe
+    setTimeout(() => {
+      setWidgets(prev => {
+        const widget = prev.find(w => w.id === id);
+        if (!widget) return prev;
+
+        const query = (widget.query || '').toLowerCase().trim();
+        
+        const filtered = STOCK_UNIVERSE.map(stock => {
+          const seed = getSymbolSeed(stock.symbol);
+          
+          let closeVal = (seed % 1200) + 150;
+          let changeVal = ((seed % 120) - 60) / 10;
+          let openVal = closeVal * (1 - changeVal / 100);
+          let highVal = Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
+          let lowVal = Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
+          let volumeVal = (seed % 900000) + 100000;
+          let rsiVal = Math.min(Math.max(Math.round(50 + changeVal * 6), 10), 90);
+          let peVal = parseFloat((10 + (seed % 65)).toFixed(1)); 
+          let oichangeVal = parseFloat((((seed % 60) - 30)).toFixed(1)); 
+
+          if (historicalSnapshotTarget) {
+            const targetTime = new Date(historicalSnapshotTarget).getTime();
+            const multiplier = 0.8 + (Math.sin(targetTime + seed) * 0.25);
+            closeVal = parseFloat((closeVal * multiplier).toFixed(2));
+            changeVal = parseFloat(((multiplier - 1) * 100).toFixed(2));
+            openVal = openVal * multiplier;
+            highVal = highVal * multiplier;
+            lowVal = lowVal * multiplier;
+            rsiVal = Math.round(rsiVal * multiplier);
+            peVal = peVal * multiplier;
+            oichangeVal = oichangeVal * multiplier;
+          }
+
+          return {
+            symbol: stock.symbol,
+            name: stock.name,
+            sector: stock.sector,
+            price: closeVal,
+            change: changeVal,
+            rsi: rsiVal,
+            pe: peVal,
+            oichange: oichangeVal,
+            open: openVal,
+            high: highVal,
+            low: lowVal,
+            volume: volumeVal
+          };
+        }).filter(stock => {
+          try {
+            if (query.includes('rsi <')) {
+              const val = parseFloat(query.split('rsi <')[1] || '0');
+              return stock.rsi < val;
+            }
+            if (query.includes('rsi >')) {
+              const val = parseFloat(query.split('rsi >')[1] || '0');
+              return stock.rsi > val;
+            }
+            if (query.includes('change >')) {
+              const val = parseFloat(query.split('change >')[1] || '0');
+              return stock.change > val;
+            }
+            if (query.includes('change <')) {
+              const val = parseFloat(query.split('change <')[1] || '0');
+              return stock.change < val;
+            }
+            if (query.includes('pe <')) {
+              const val = parseFloat(query.split('pe <')[1] || '0');
+              return stock.pe < val;
+            }
+            if (query.includes('pe >')) {
+              const val = parseFloat(query.split('pe >')[1] || '0');
+              return stock.pe > val;
+            }
+            if (query.includes('oichange >')) {
+              const val = parseFloat(query.split('oichange >')[1] || '0');
+              return stock.oichange > val;
+            }
+            if (query.includes('oichange <')) {
+              const val = parseFloat(query.split('oichange <')[1] || '0');
+              return stock.oichange < val;
+            }
+          } catch(e) {}
+          return stock.rsi < 50; 
+        });
+
+        return prev.map(w => w.id === id ? { 
+          ...w, 
+          isScanning: false, 
+          results: filtered 
+        } : w);
+      });
+    }, 800);
+  };
+
+  const handleCreateWidget = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!newTitle.trim() || !newQuery.trim()) {
+      toast.error('Please input a screener title and query criteria');
+      return;
+    }
+    const newId = `widget-${Date.now()}`;
+    const newWidget = {
+      id: newId,
+      title: newTitle,
+      query: newQuery,
+      timeframe: newTimeframe,
+      layoutSize: newSize,
+      results: [],
+      isScanning: false,
+      isPolling: false
+    };
+
+    setWidgets(prev => [...prev, newWidget]);
+    setNewTitle('');
+    setNewQuery('');
+    toast.success(`Created screener widget: ${newTitle}`);
+    setTimeout(() => runWidgetScan(newId), 100);
+  };
+
+  const handleRemoveWidget = (id: string) => {
+    setWidgets(prev => prev.filter(w => w.id !== id));
+    toast.info('Screener widget removed');
+  };
+
+  const handleTogglePolling = (id: string) => {
+    setWidgets(prev => prev.map(w => w.id === id ? { ...w, isPolling: !w.isPolling } : w));
+  };
+
+  const handleResizeWidget = (id: string, size: 'small' | 'medium' | 'large') => {
+    setWidgets(prev => prev.map(w => w.id === id ? { ...w, layoutSize: size } : w));
+  };
+
+  const handleExportWidgetCSV = (widget: any) => {
+    if (!widget.results || widget.results.length === 0) {
+      toast.error('No scan data to export');
+      return;
+    }
+    const headers = ['Symbol', 'Sector', 'Price', 'Change %', 'RSI (14)', 'P/E', 'OI Chg %'];
+    const rows = widget.results.map((r: any) => [
+      r.symbol,
+      r.sector,
+      r.price,
+      r.change,
+      r.rsi,
+      r.pe,
+      r.oichange
+    ]);
+    const csvContent = [headers.join(','), ...rows.map((row: any) => row.join(','))].join('\n');
+    const blob = new Blob([csvContent], { type: 'text/csv;charset=utf-8;' });
+    const url = URL.createObjectURL(blob);
+    const link = document.createElement('a');
+    link.setAttribute('href', url);
+    link.setAttribute('download', `${widget.title.toLowerCase().replace(/\s+/g, '_')}_data.csv`);
+    link.style.visibility = 'hidden';
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    toast.success(`${widget.title} CSV Exported!`);
+  };
+
+  // Hydrate all screeners on startup or view mode trigger
+  useEffect(() => {
+    if (viewMode === 'workspace') {
+      widgets.forEach(w => runWidgetScan(w.id));
+    }
+  }, [viewMode, historicalSnapshotTarget]);
+
+  // Set up workspace polling intervals
+  useEffect(() => {
+    if (viewMode !== 'workspace') return;
+    const intervals = widgets.map(w => {
+      if (w.isPolling) {
+        return setInterval(() => {
+          runWidgetScan(w.id);
+        }, 15000); 
+      }
+      return null;
+    });
+
+    return () => {
+      intervals.forEach(int => int && clearInterval(int));
+    };
+  }, [widgets, viewMode]);
 
   // Automatically re-run scan when historicalSnapshotTarget or activeUniverseScope changes
   useEffect(() => {
@@ -521,17 +740,45 @@ export default function MagicScanner() {
           <div className={`px-6 py-4 flex items-center justify-between border-b bg-[#1F242C]/50 ${
             historicalSnapshotTarget ? 'border-amber-500/30' : 'border-[#30363D]'
           }`}>
-            <div className="flex items-center gap-2">
-              <div className={historicalSnapshotTarget ? 'text-amber-400' : 'text-cyan-400'}>
-                <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
-                </svg>
+            <div className="flex items-center gap-4">
+              <div className="flex items-center gap-2">
+                <div className={historicalSnapshotTarget ? 'text-amber-400' : 'text-cyan-400'}>
+                  <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                    <polygon points="12 2 15.09 8.26 22 9.27 17 14.14 18.18 21.02 12 17.77 5.82 21.02 7 14.14 2 9.27 8.91 8.26 12 2"></polygon>
+                  </svg>
+                </div>
+                <h3 className={`text-sm font-bold tracking-wider ${
+                  historicalSnapshotTarget ? 'text-amber-400' : 'text-cyan-400'
+                }`}>
+                  MAGIC FILTERS
+                </h3>
               </div>
-              <h3 className={`text-sm font-bold tracking-wider ${
-                historicalSnapshotTarget ? 'text-amber-400' : 'text-cyan-400'
-              }`}>
-                MAGIC FILTERS {historicalSnapshotTarget ? '(Historical Time Travel)' : '(Screener Only)'}
-              </h3>
+
+              {/* View Mode Toggle */}
+              <div className="flex bg-[#0D1117] p-0.5 rounded border border-[#30363D] shrink-0">
+                <button
+                  type="button"
+                  onClick={() => setViewMode('single')}
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded transition-all ${
+                    viewMode === 'single'
+                      ? 'bg-[#30363D] text-white shadow-md'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Single Scan
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setViewMode('workspace')}
+                  className={`px-3 py-1.5 text-[11px] font-bold rounded transition-all ${
+                    viewMode === 'workspace'
+                      ? 'bg-[#30363D] text-white shadow-md'
+                      : 'text-gray-400 hover:text-white'
+                  }`}
+                >
+                  Multi-Screener Canvas
+                </button>
+              </div>
             </div>
             
             <div className="flex items-center gap-3">
@@ -559,62 +806,96 @@ export default function MagicScanner() {
           </div>
 
           {/* Input Area */}
-          <div className="px-6 py-6 border-b border-[#30363D]">
-            <div className="flex gap-4 items-center">
-              <div className="flex-1 relative">
-                <input 
-                  type="text" 
-                  value={prompt}
-                  onChange={(e) => setPrompt(e.target.value)}
-                  onKeyDown={(e) => e.key === 'Enter' && handleScan()}
-                  placeholder="Type filters like 'rsi oversold' or math formulas like '(close - open) / (high - low) * 100 > 50'"
-                  className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-4 pr-10 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors shadow-inner"
-                />
-              </div>
+          {viewMode === 'single' ? (
+            <div className="px-6 py-6 border-b border-[#30363D]">
+              <div className="flex gap-4 items-center">
+                <div className="flex-1 relative">
+                  <input 
+                    type="text" 
+                    value={prompt}
+                    onChange={(e) => setPrompt(e.target.value)}
+                    onKeyDown={(e) => e.key === 'Enter' && handleScan()}
+                    placeholder="Type filters like 'rsi oversold' or math formulas like '(close - open) / (high - low) * 100 > 50'"
+                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-4 pr-10 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors shadow-inner"
+                  />
+                </div>
 
-              {/* Universe Scope Selector */}
-              <div className="w-[180px] shrink-0">
-                <select
-                  value={activeUniverseScope}
-                  onChange={(e) => setActiveUniverseScope(e.target.value)}
-                  className="w-full bg-[#0D1117] border border-[#30363D] text-white text-xs rounded-lg px-3 py-3 outline-none focus:border-cyan-400/50 cursor-pointer h-[46px] font-bold"
-                >
-                  <option value="Nifty 50">Nifty 50 Scope</option>
-                  <option value="Nifty 100">Nifty 100 Scope</option>
-                  <option value="Nifty Midcap 100">Nifty Midcap 100</option>
-                  <option value="Nifty 500">Nifty 500 (All)</option>
-                  <option value="Only F&O Stocks">F&O Segment Only</option>
-                  <option value="Custom Watchlist">Custom Watchlist</option>
-                </select>
-              </div>
+                {/* Universe Scope Selector */}
+                <div className="w-[180px] shrink-0">
+                  <select
+                    value={activeUniverseScope}
+                    onChange={(e) => setActiveUniverseScope(e.target.value)}
+                    className="w-full bg-[#0D1117] border border-[#30363D] text-white text-xs rounded-lg px-3 py-3 outline-none focus:border-cyan-400/50 cursor-pointer h-[46px] font-bold"
+                  >
+                    <option value="Nifty 50">Nifty 50 Scope</option>
+                    <option value="Nifty 100">Nifty 100 Scope</option>
+                    <option value="Nifty Midcap 100">Nifty Midcap 100</option>
+                    <option value="Nifty 500">Nifty 500 (All)</option>
+                    <option value="Only F&O Stocks">F&O Segment Only</option>
+                    <option value="Custom Watchlist">Custom Watchlist</option>
+                  </select>
+                </div>
 
-              <button 
-                onClick={handleScan}
-                disabled={isScanning || !prompt.trim()}
-                className="bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 text-gray-900 px-6 py-3 rounded-lg text-sm font-bold transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)] flex items-center gap-2 h-[46px]"
-              >
-                {isScanning ? <span className="animate-pulse">Scanning...</span> : <><Sparkles size={16} className="fill-current" /> Generate & Scan</>}
-              </button>
-            </div>
-
-            {/* Prompt Chips */}
-            <div className="flex flex-wrap gap-2.5 mt-4">
-              {[
-                'RSI oversold',
-                'supertrend buy',
-                '(close - open) / (high - low) * 100 > 50',
-                'close > supertrend and rsi < 40'
-              ].map((chip) => (
                 <button 
-                  key={chip}
-                  onClick={() => { setPrompt(chip); }}
-                  className="bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-gray-300 text-[11px] px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-colors font-mono"
+                  onClick={handleScan}
+                  disabled={isScanning || !prompt.trim()}
+                  className="bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 text-gray-900 px-6 py-3 rounded-lg text-sm font-bold transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)] flex items-center gap-2 h-[46px]"
                 >
-                  {chip} <Navigation size={10} className="rotate-45" />
+                  {isScanning ? <span className="animate-pulse">Scanning...</span> : <><Sparkles size={16} className="fill-current" /> Generate & Scan</>}
                 </button>
-              ))}
+              </div>
+
+              {/* Prompt Chips */}
+              <div className="flex flex-wrap gap-2.5 mt-4">
+                {[
+                  'RSI oversold',
+                  'supertrend buy',
+                  '(close - open) / (high - low) * 100 > 50',
+                  'close > supertrend and rsi < 40'
+                ].map((chip) => (
+                  <button 
+                    key={chip}
+                    onClick={() => { setPrompt(chip); }}
+                    className="bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-gray-300 text-[11px] px-3 py-1.5 rounded-md flex items-center gap-1.5 transition-colors font-mono"
+                  >
+                    {chip} <Navigation size={10} className="rotate-45" />
+                  </button>
+                ))}
+              </div>
             </div>
-          </div>
+          ) : (
+            /* Workspace Creator Form */
+            <form onSubmit={handleCreateWidget} className="px-6 py-6 border-b border-[#30363D] space-y-4">
+              <div className="grid grid-cols-1 md:grid-cols-4 gap-4 items-end">
+                <div className="space-y-1.5">
+                  <label className="text-[10px] uppercase font-bold text-gray-400 font-mono tracking-wider">Screener Title</label>
+                  <input
+                    type="text"
+                    value={newTitle}
+                    onChange={(e) => setNewTitle(e.target.value)}
+                    placeholder="e.g. RSI Oversold Matrix"
+                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2.5 text-xs text-white outline-none focus:border-cyan-400/50 transition-colors"
+                  />
+                </div>
+                <div className="space-y-1.5 md:col-span-2">
+                  <label className="text-[10px] uppercase font-bold text-gray-400 font-mono tracking-wider">Query Criteria (e.g. rsi &lt; 30)</label>
+                  <input
+                    type="text"
+                    value={newQuery}
+                    onChange={(e) => setNewQuery(e.target.value)}
+                    placeholder="e.g. rsi < 40 or change > 1.5"
+                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-3 py-2.5 text-xs text-white outline-none focus:border-cyan-400/50 transition-colors font-mono"
+                  />
+                </div>
+                <button
+                  type="submit"
+                  className="bg-cyan-400 hover:bg-cyan-300 text-gray-900 px-4 py-2.5 rounded-lg text-xs font-bold transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)] flex items-center justify-center gap-1.5 h-[38px] w-full"
+                >
+                  <Plus size={14} /> Add Screener Widget
+                </button>
+              </div>
+            </form>
+          )}
         </div>
       
       {/* Time Travel Warning Banner */}
@@ -637,11 +918,11 @@ export default function MagicScanner() {
           </button>
         </div>
       )}
-      
-      {/* Results Area */}
-      {isScanning ? (
-        <div className={`mt-8 flex flex-col items-center justify-center py-20 ${historicalSnapshotTarget ? 'text-amber-400' : 'text-cyan-400'}`}>
-          <div className={`w-10 h-10 border-4 border-t-transparent rounded-full animate-spin mb-4 ${historicalSnapshotTarget ? 'border-amber-400' : 'border-cyan-400'}`}></div>
+            {/* Results Area */}
+      {viewMode === 'single' ? (
+        isScanning ? (
+          <div className={`mt-8 flex flex-col items-center justify-center py-20 ${historicalSnapshotTarget ? 'text-amber-400' : 'text-cyan-400'}`}>
+            <div className={`w-10 h-10 border-4 border-t-transparent rounded-full animate-spin mb-4 ${historicalSnapshotTarget ? 'border-amber-400' : 'border-cyan-400'}`}></div>
             <p className="text-sm font-bold animate-pulse">AI is parsing "{prompt}" and querying broad market universe...</p>
           </div>
         ) : results.length > 0 ? (
@@ -676,56 +957,50 @@ export default function MagicScanner() {
                 let displayHigh = r.highVal;
                 let displayLow = r.lowVal;
                 
+                // Real-time currency conversions, exchange mappings and simulation offsets
                 if (isActiveBse) {
-                  let seedVal = 0;
-                  for (let index = 0; index < r.symbol.length; index++) {
-                    seedVal += r.symbol.charCodeAt(index);
-                  }
-                  const bseMultiplier = 0.998 + (Math.sin(seedVal) * 0.004);
-                  const baseRawPrice = parseFloat(r.price.replace(/[^\d.]/g, ''));
-                  displayPrice = '₹' + (baseRawPrice * bseMultiplier).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
-                  
-                  const rawChange = parseFloat(r.change.replace(/[^\d.-]/g, ''));
-                  displayChange = (rawChange * bseMultiplier).toFixed(2) + '%';
-                  if (rawChange >= 0 && !displayChange.startsWith('+')) {
-                    displayChange = '+' + displayChange;
-                  }
-                  displayOpen = r.openVal * bseMultiplier;
-                  displayHigh = r.highVal * bseMultiplier;
-                  displayLow = r.lowVal * bseMultiplier;
+                  const seed = getSymbolSeed(r.symbol);
+                  const multiplier = 0.998 + (Math.sin(seed) * 0.004);
+                  displayPrice = displayPrice * multiplier;
+                  displayOpen = displayOpen * multiplier;
+                  displayHigh = displayHigh * multiplier;
+                  displayLow = displayLow * multiplier;
+                  displayChange = displayChange * 0.995;
                 }
 
+                const isBookmarked = watchlist.some(w => w.symbol === r.symbol);
+                const displayPriceStr = displayPrice.toLocaleString('en-IN', { style: 'currency', currency: 'INR' });
+                const displayChangeStr = `${displayChange >= 0 ? '+' : ''}${displayChange.toFixed(2)}%`;
+                
                 return (
                   <motion.div 
-                    layout
-                    key={r.symbol} 
+                    key={r.symbol}
+                    layoutId={`row-${r.symbol}`}
                     onClick={() => handleRowClick(r)}
-                    className="px-6 py-4 flex items-center justify-between hover:bg-[#30363D]/30 transition-colors group cursor-pointer"
+                    className="flex items-center justify-between px-6 py-4 hover:bg-[#21262D]/40 transition-all cursor-pointer group"
                   >
-                    <div className="flex items-center gap-4">
-                      {/* Star micro-action button */}
-                      <button
+                    <div className="flex items-center gap-4 min-w-[200px]">
+                      {/* Star Bookmark Watchlist Hook */}
+                      <button 
                         onClick={(e) => handleToggleWatchlist(e, r)}
-                        className={`text-gray-500 hover:text-yellow-400 transition-colors p-1 rounded hover:bg-[#21262D] ${
-                          watchlist.some(w => w.symbol === r.symbol) ? 'text-yellow-400' : 'text-gray-600'
+                        className={`p-1 rounded hover:bg-[#30363D] transition-colors ${
+                          isBookmarked ? 'text-yellow-400' : 'text-gray-500 hover:text-yellow-400'
                         }`}
                       >
-                        <Star size={16} className={watchlist.some(w => w.symbol === r.symbol) ? 'fill-current' : ''} />
+                        <Star size={14} className={isBookmarked ? 'fill-current' : ''} />
                       </button>
+
                       <div>
                         <div className="flex items-center gap-2">
-                          <h4 className="text-lg font-bold text-white leading-none">{r.symbol}</h4>
-                          <span className="text-[10px] bg-[#30363D] text-gray-400 px-1.5 py-0.5 rounded font-mono uppercase">{r.sector}</span>
+                          <span className="font-bold text-sm text-white">{r.symbol}</span>
                           
-                          {/* Dual-State Listing Badges */}
-                          <div className="flex gap-0.5 bg-[#0D1117] p-0.5 rounded border border-[#30363D]" onClick={e => e.stopPropagation()}>
+                          {/* NSE/BSE toggle badges */}
+                          <div className="flex items-center bg-[#0D1117] rounded border border-[#30363D] p-0.5 overflow-hidden shrink-0" onClick={(e) => e.stopPropagation()}>
                             <button
                               type="button"
                               onClick={() => setActiveExchanges(prev => ({ ...prev, [r.symbol]: 'NSE' }))}
-                              className={`px-1.5 py-0.5 text-[8px] font-bold rounded font-mono transition-colors ${
-                                !isActiveBse 
-                                  ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
-                                  : 'text-gray-500 hover:text-gray-300'
+                              className={`text-[8px] font-bold px-1.5 py-0.5 rounded transition-all ${
+                                !isActiveBse ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' : 'text-gray-500 hover:text-gray-300'
                               }`}
                             >
                               NSE
@@ -733,44 +1008,42 @@ export default function MagicScanner() {
                             <button
                               type="button"
                               onClick={() => setActiveExchanges(prev => ({ ...prev, [r.symbol]: 'BSE' }))}
-                              className={`px-1.5 py-0.5 text-[8px] font-bold rounded font-mono transition-colors ${
-                                isActiveBse 
-                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
-                                  : 'text-gray-500 hover:text-gray-300'
+                              className={`text-[8px] font-bold px-1.5 py-0.5 rounded transition-all ${
+                                isActiveBse ? 'bg-orange-500/10 text-orange-400 border border-orange-500/20' : 'text-gray-500 hover:text-gray-300'
                               }`}
                             >
                               BSE
                             </button>
                           </div>
                         </div>
-                        <p className="text-xs text-gray-400 mt-1">{r.company}</p>
+                        <span className="text-[11px] text-gray-400 block mt-0.5">{r.name}</span>
                       </div>
                     </div>
                     
-                    {/* Display metrics on hover */}
-                    <div className="hidden lg:flex items-center gap-6 text-xs text-gray-400">
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-gray-500 uppercase font-mono">OHL Range</span>
-                        <span>₹{displayOpen?.toFixed(1)} - ₹{displayHigh?.toFixed(1)}</span>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-gray-500 uppercase font-mono">RSI</span>
-                        <span className={r.rsi > 70 ? 'text-orange-400 font-bold' : r.rsi < 30 ? 'text-cyan-400 font-bold' : 'text-gray-300'}>{r.rsi}</span>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-gray-500 uppercase font-mono">P/E</span>
-                        <span className="text-gray-300 font-mono">{r.pe}</span>
-                      </div>
-                      <div className="flex flex-col items-end">
-                        <span className="text-[10px] text-gray-500 uppercase font-mono">OI (Chg%)</span>
-                        <span className={`font-mono ${r.oichange >= 0 ? 'text-green-400' : 'text-red-400'}`}>{(r.oi / 1000000).toFixed(1)}M ({r.oichange >= 0 ? '+' : ''}{r.oichange}%)</span>
-                      </div>
-                    </div>
-                    
-                    <div className="text-right flex items-center gap-4">
+                    {/* Technical Parameter Details */}
+                    <div className="hidden md:flex items-center gap-8 text-xs text-gray-400 font-mono">
                       <div>
-                        <p className="text-sm font-bold text-cyan-400">{displayPrice}</p>
-                        <p className={`text-xs ${displayChange.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{displayChange}</p>
+                        <span className="text-gray-500 block text-[9px] uppercase font-mono">RSI (14)</span>
+                        <span className={r.rsi > 70 ? 'text-orange-400' : r.rsi < 30 ? 'text-cyan-400' : 'text-gray-300'}>
+                          {r.rsi}
+                        </span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block text-[9px] uppercase font-mono">P/E Ratio</span>
+                        <span className="text-gray-300">{r.pe || '24.5'}</span>
+                      </div>
+                      <div>
+                        <span className="text-gray-500 block text-[9px] uppercase font-mono">OI Chg %</span>
+                        <span className={`font-bold ${r.oichange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                          {r.oichange >= 0 ? '+' : ''}{(r.oichange || 2.5).toFixed(1)}%
+                        </span>
+                      </div>
+                    </div>
+
+                    <div className="flex items-center gap-4">
+                      <div className="text-right">
+                        <p className="font-bold text-sm text-white font-mono">{displayPriceStr}</p>
+                        <p className={`text-xs ${displayChange.toString().startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{displayChangeStr}</p>
                       </div>
                       
                       {/* Navigation redirect button */}
@@ -799,7 +1072,178 @@ export default function MagicScanner() {
             <Sparkles size={48} className="mb-4 opacity-20" />
             <p className="text-sm">Enter a magic prompt to scan the broad market universe.</p>
           </div>
-        )}
+        )
+      ) : (
+        /* Workspace Multi-Screener Grid */
+        <div className="mt-8">
+          <motion.div 
+            layout
+            className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-6"
+          >
+            <AnimatePresence>
+              {widgets.map(w => {
+                const sizeClass = w.layoutSize === 'large' 
+                  ? 'col-span-1 md:col-span-2 lg:col-span-3' 
+                  : w.layoutSize === 'medium' 
+                    ? 'col-span-1 md:col-span-2' 
+                    : 'col-span-1';
+
+                return (
+                  <motion.div 
+                    key={w.id}
+                    layoutId={w.id}
+                    initial={{ opacity: 0, scale: 0.95 }}
+                    animate={{ opacity: 1, scale: 1 }}
+                    exit={{ opacity: 0, scale: 0.9 }}
+                    transition={{ type: 'spring', damping: 20, stiffness: 120 }}
+                    className={`bg-[#161B22]/50 border border-[#30363D] rounded-xl overflow-hidden shadow-2xl flex flex-col h-[420px] transition-colors hover:border-[#58A6FF]/40 ${sizeClass}`}
+                  >
+                    {/* Widget Header */}
+                    <div className="px-5 py-3.5 bg-[#1F242C]/40 border-b border-[#30363D] flex items-center justify-between">
+                      <div>
+                        <h3 className="text-sm font-bold text-white flex items-center gap-2">
+                          <span className={`w-2 h-2 rounded-full ${w.isPolling ? 'bg-emerald-500 animate-pulse' : 'bg-gray-600'}`} />
+                          {w.title}
+                        </h3>
+                        <span className="text-[10px] text-gray-400 font-mono">{w.query} ({w.timeframe})</span>
+                      </div>
+
+                      <div className="flex items-center gap-2">
+                        {/* Size selectors */}
+                        <div className="bg-[#0D1117] p-0.5 rounded border border-[#30363D] flex items-center gap-0.5">
+                          <button 
+                            type="button"
+                            onClick={() => handleResizeWidget(w.id, 'small')}
+                            title="Small Width"
+                            className={`p-1 rounded text-[10px] font-bold ${w.layoutSize === 'small' ? 'bg-[#30363D] text-cyan-400' : 'text-gray-500 hover:text-gray-300'}`}
+                          >
+                            1x
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => handleResizeWidget(w.id, 'medium')}
+                            title="Medium Width"
+                            className={`p-1 rounded text-[10px] font-bold ${w.layoutSize === 'medium' ? 'bg-[#30363D] text-cyan-400' : 'text-gray-500 hover:text-gray-300'}`}
+                          >
+                            2x
+                          </button>
+                          <button 
+                            type="button"
+                            onClick={() => handleResizeWidget(w.id, 'large')}
+                            title="Full Width"
+                            className={`p-1 rounded text-[10px] font-bold ${w.layoutSize === 'large' ? 'bg-[#30363D] text-cyan-400' : 'text-gray-500 hover:text-gray-300'}`}
+                          >
+                            3x
+                          </button>
+                        </div>
+
+                        <button 
+                          type="button"
+                          onClick={() => handleTogglePolling(w.id)}
+                          className={`p-1.5 rounded border transition-colors ${w.isPolling ? 'bg-emerald-500/10 border-emerald-500/40 text-emerald-400' : 'bg-[#0D1117] border-[#30363D] text-gray-400 hover:text-white'}`}
+                          title={w.isPolling ? 'Disable Auto-Refresh' : 'Enable 15s Auto-Refresh'}
+                        >
+                          <RefreshCw size={12} className={w.isPolling ? 'animate-spin' : ''} />
+                        </button>
+
+                        <button 
+                          type="button"
+                          onClick={() => handleExportWidgetCSV(w)}
+                          className="p-1.5 rounded bg-[#0D1117] border border-[#30363D] text-gray-400 hover:text-white transition-colors"
+                          title="Export CSV"
+                        >
+                          <Download size={12} />
+                        </button>
+
+                        <button 
+                          type="button"
+                          onClick={() => handleRemoveWidget(w.id)}
+                          className="p-1.5 rounded bg-[#0D1117] border border-[#30363D] text-gray-500 hover:text-red-400 hover:border-red-500/40 transition-colors"
+                          title="Delete Widget"
+                        >
+                          <Trash2 size={12} />
+                        </button>
+                      </div>
+                    </div>
+
+                    {/* Widget Content/Table */}
+                    <div className="flex-1 overflow-auto bg-[#0D1117]/20">
+                      {w.isScanning ? (
+                        <div className="h-full flex flex-col items-center justify-center py-10">
+                          <div className="w-6 h-6 border-2 border-cyan-400 border-t-transparent rounded-full animate-spin mb-2"></div>
+                          <span className="text-[10px] text-gray-500 font-mono animate-pulse">Scanning criteria...</span>
+                        </div>
+                      ) : !w.results || w.results.length === 0 ? (
+                        <div className="h-full flex flex-col items-center justify-center py-10 text-gray-500">
+                          <span className="text-xs">No matching scanner results found</span>
+                        </div>
+                      ) : (
+                        <table className="w-full text-left text-xs border-collapse">
+                          <thead>
+                            <tr className="sticky top-0 bg-[#161B22] border-b border-[#30363D] text-gray-400 text-[10px] uppercase font-mono">
+                              <th className="px-4 py-2.5 w-10">Add</th>
+                              <th className="px-4 py-2.5">Symbol</th>
+                              <th className="px-4 py-2.5 text-right">Price</th>
+                              <th className="px-4 py-2.5 text-right">Change</th>
+                              <th className="px-4 py-2.5 text-right">RSI (14)</th>
+                              <th className="px-4 py-2.5 text-right">P/E</th>
+                              <th className="px-4 py-2.5 text-right">OI Chg</th>
+                            </tr>
+                          </thead>
+                          <tbody className="divide-y divide-[#21262D]">
+                            {w.results.map((r: any) => {
+                              const isBookmarked = watchlist.some(item => item.symbol === r.symbol);
+                              return (
+                                <tr 
+                                  key={r.symbol}
+                                  onClick={() => handleRowClick(r)}
+                                  className="hover:bg-[#21262D]/60 transition-colors group cursor-pointer"
+                                >
+                                  <td className="px-4 py-3" onClick={(e) => e.stopPropagation()}>
+                                    <motion.button
+                                      type="button"
+                                      whileTap={{ scale: 0.85 }}
+                                      onClick={(e) => handleToggleWatchlist(e, r)}
+                                      className={`p-1 rounded transition-colors ${isBookmarked ? 'text-yellow-400' : 'text-gray-600 hover:text-yellow-400'}`}
+                                    >
+                                      <Star size={14} className={isBookmarked ? 'fill-current' : ''} />
+                                    </motion.button>
+                                  </td>
+                                  <td className="px-4 py-3 font-bold text-white">
+                                    <div>
+                                      <span>{r.symbol}</span>
+                                      <span className="block text-[10px] text-gray-500 font-normal truncate max-w-[120px]">{r.name}</span>
+                                    </div>
+                                  </td>
+                                  <td className="px-4 py-3 text-right font-mono text-white">₹{r.price.toFixed(2)}</td>
+                                  <td className={`px-4 py-3 text-right font-mono font-bold ${r.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {r.change >= 0 ? '+' : ''}{r.change.toFixed(2)}%
+                                  </td>
+                                  <td className="px-4 py-3 text-right font-mono">
+                                    <span className={r.rsi > 70 ? 'text-orange-400' : r.rsi < 30 ? 'text-cyan-400' : 'text-gray-300'}>
+                                      {r.rsi}
+                                    </span>
+                                  </td>
+                                  <td className="px-4 py-3 text-right font-mono text-gray-300">
+                                    {r.pe || '24.5'}
+                                  </td>
+                                  <td className={`px-4 py-3 text-right font-mono font-bold ${r.oichange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {r.oichange >= 0 ? '+' : ''}{(r.oichange || 2.5).toFixed(1)}%
+                                  </td>
+                                </tr>
+                              );
+                            })}
+                          </tbody>
+                        </table>
+                      )}
+                    </div>
+                  </motion.div>
+                );
+              })}
+            </AnimatePresence>
+          </motion.div>
+        </div>
+      )}
       </div>
 
       {/* Watchlist Slide-out Drawer Panel */}
