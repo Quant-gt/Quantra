@@ -24,6 +24,8 @@ export interface BacktestResult {
     win_rate: number;
     total_trades: number;
     sharpe_ratio: number;
+    sortino_ratio: number;
+    profit_factor: number;
   };
   trades: TradeLog[];
   equity_curve: EquityCurvePoint[];
@@ -127,13 +129,36 @@ export async function runBacktest(req: BacktestRequest): Promise<BacktestResult>
   const stdDev = Math.sqrt(returns.reduce((sq, val) => sq + Math.pow(val - avgReturn, 2), 0) / (returns.length || 1));
   const sharpeRatio = stdDev === 0 ? 0 : (avgReturn / stdDev) * Math.sqrt(252); // Annualized
 
+  // Calculate Profit Factor
+  let grossProfits = 0;
+  let grossLosses = 0;
+  trades.forEach(t => {
+    if (t.action === 'SELL' && t.pnl !== undefined) {
+      if (t.pnl > 0) grossProfits += t.pnl;
+      else if (t.pnl < 0) grossLosses += Math.abs(t.pnl);
+    }
+  });
+  let profitFactor = 0;
+  if (grossLosses === 0) {
+    profitFactor = grossProfits > 0 ? 99.9 : 0.0;
+  } else {
+    profitFactor = Number((grossProfits / grossLosses).toFixed(2));
+  }
+
+  // Calculate Sortino Ratio
+  const downsideReturns = returns.map(r => r < 0 ? r : 0);
+  const downsideDev = Math.sqrt(downsideReturns.reduce((sq, val) => sq + Math.pow(val, 2), 0) / (downsideReturns.length || 1));
+  const sortinoRatio = downsideDev === 0 ? 0 : (avgReturn / downsideDev) * Math.sqrt(252);
+
   return {
     metrics: {
       total_return_pct: Number(totalReturn.toFixed(2)),
       max_drawdown_pct: Number((maxDrawdown * 100).toFixed(2)),
       win_rate: Number(winRate.toFixed(2)),
       total_trades: totalTrades,
-      sharpe_ratio: Number(sharpeRatio.toFixed(2))
+      sharpe_ratio: Number(sharpeRatio.toFixed(2)),
+      sortino_ratio: Number(sortinoRatio.toFixed(2)),
+      profit_factor: profitFactor
     },
     trades,
     equity_curve
