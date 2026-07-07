@@ -32,7 +32,7 @@ export default function App() {
             </View>
             <Text style={[styles.pnl, { color: dep.pnl >= 0 ? '#10b981' : '#ef4444' }]}>
               ₹{dep.pnl.toFixed(2)}
-            </pnl>
+            </Text>
             <TouchableOpacity style={styles.actionButton}>
               <Text style={styles.actionButtonText}>View Positions</Text>
             </TouchableOpacity>
