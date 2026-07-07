@@ -163,27 +163,43 @@ export default function MagicScanner() {
     }
   };
 
-  const handleScan = () => {
+  const handleScan = async () => {
     if (!prompt.trim()) return;
     setIsScanning(true);
     setHasScanned(true);
     setResults([]);
     
-    setTimeout(() => {
+    try {
+      const symbolsList = STOCK_UNIVERSE.map(s => s.symbol);
+      const quotesRes = await fetch('/api/v1/market/quotes', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ symbols: symbolsList })
+      });
+      
+      let liveQuotesMap: Record<string, any> = {};
+      if (quotesRes.ok) {
+        const quotesData = await quotesRes.json();
+        liveQuotesMap = quotesData.quotes || {};
+      }
+      
       const query = prompt.toLowerCase().trim();
       const isMathExpression = /[><=+\-*/()]/.test(query);
       
       const matched = STOCK_UNIVERSE.map(stock => {
         const seed = getSymbolSeed(stock.symbol);
-        const closeVal = (seed % 4800) + 150; // ₹150 to ₹4950
-        const changeVal = ((seed % 120) - 60) / 10; // -6.0% to +6.0%
-        const openVal = closeVal * (1 - changeVal / 100);
-        const highVal = Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
-        const lowVal = Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
+        const liveQuote = liveQuotesMap[stock.symbol];
         
-        const rsi = (seed % 75) + 12; // 12 to 87
-        const adx = (seed % 45) + 10; // 10 to 55
-        const volumeVal = (seed % 900000) + 100000;
+        // Use live last traded price, fallback to deterministic seed if Yahoo is down
+        const closeVal = liveQuote ? liveQuote.close : (seed % 1200) + 150;
+        const changeVal = liveQuote ? liveQuote.change : ((seed % 120) - 60) / 10;
+        const openVal = liveQuote ? liveQuote.open : closeVal * (1 - changeVal / 100);
+        const highVal = liveQuote ? liveQuote.high : Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
+        const lowVal = liveQuote ? liveQuote.low : Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
+        const volumeVal = liveQuote ? liveQuote.volume : (seed % 900000) + 100000;
+        
+        const rsi = (seed % 75) + 12; // RSI between 12 and 87
+        const adx = (seed % 45) + 10;
         const supertrendVal = closeVal * (changeVal >= 0 ? 0.96 : 1.04);
         const fvgBullVal = (seed % 7) === 0 ? (closeVal * 0.012) : 0.0;
         const hasMacd = (seed % 3) === 0;
@@ -252,30 +268,12 @@ export default function MagicScanner() {
                stock.sector.toLowerCase().includes(query);
       });
 
-      if (matched.length === 0) {
-        const fallbackList = STOCK_UNIVERSE.filter((_, idx) => (idx % 6) === 0).map(stock => {
-          const seed = getSymbolSeed(stock.symbol);
-          const closeVal = (seed % 4800) + 150;
-          const changeVal = ((seed % 120) - 60) / 10;
-          const formattedPrice = `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-          const formattedChange = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;
-          return {
-            symbol: stock.symbol,
-            company: stock.name,
-            sector: stock.sector,
-            price: formattedPrice,
-            change: formattedChange,
-            closeVal,
-            rawChange: changeVal
-          };
-        });
-        setResults(fallbackList);
-      } else {
-        setResults(matched);
-      }
-      
+      setResults(matched);
+    } catch (err) {
+      console.error("Live scanning failed:", err);
+    } finally {
       setIsScanning(false);
-    }, 1500);
+    }
   };
 
   return (
@@ -351,7 +349,11 @@ export default function MagicScanner() {
           </div>
           <div className="divide-y divide-[#30363D]">
             {results.map((r, i) => (
-              <div key={i} className="px-6 py-4 flex items-center justify-between hover:bg-[#30363D]/30 transition-colors group">
+              <div 
+                key={i} 
+                onClick={() => window.location.href = `/dashboard/charts?symbol=${r.symbol}`}
+                className="px-6 py-4 flex items-center justify-between hover:bg-[#30363D]/30 transition-colors group cursor-pointer"
+              >
                 <div>
                   <div className="flex items-center gap-2">
                     <h4 className="text-lg font-bold text-white">{r.symbol}</h4>

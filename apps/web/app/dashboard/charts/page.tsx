@@ -177,6 +177,17 @@ export default function DashboardChartsPage() {
     setActiveSymbol(symbol);
   };
 
+  useEffect(() => {
+    if (typeof window !== 'undefined') {
+      const params = new URLSearchParams(window.location.search);
+      const symbolParam = params.get('symbol');
+      if (symbolParam) {
+        const cleanSymbol = symbolParam.toUpperCase();
+        handleStockSearchSelect(cleanSymbol);
+      }
+    }
+  }, []);
+
   return (
     <div className="p-4 md:p-8 bg-[#0D1117] min-h-full flex flex-col gap-6">
       <div className="flex flex-col md:flex-row justify-between items-end gap-4">
