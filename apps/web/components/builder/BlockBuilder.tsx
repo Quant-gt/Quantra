@@ -6,6 +6,7 @@ import BacktestModal from './BacktestModal';
 import OptionsBuilder, { Instrument, Leg } from './OptionsBuilder';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
+import { SentenceBuilder, SentenceConditionBlock } from './SentenceBuilder';
 
 const STOCK_UNIVERSE = [
   { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', sector: 'Energy' },
@@ -113,13 +114,7 @@ const STOCK_UNIVERSE = [
   { symbol: 'HUDCO', name: 'Housing & Urban Development Corp.', sector: 'Financial Services' }
 ];
 
-interface ConditionBlock {
-  id: string;
-  indicator: string;
-  comparison: string;
-  valueType: string;
-  value: string;
-}
+type ConditionBlock = SentenceConditionBlock;
 
 export default function BlockBuilder() {
   const [buyEnabled, setBuyEnabled] = useState(true);
@@ -259,11 +254,11 @@ export default function BlockBuilder() {
 
   // Condition blocks lists
   const [buyBlocks, setBuyBlocks] = useState<ConditionBlock[]>([
-    { id: '1', indicator: 'Close Price', comparison: 'Greater Than', valueType: 'Number', value: '100' }
+    { id: '1', offset: 'Latest', indicator: 'Close Price', comparison: 'Greater Than', valueType: 'Number', value: '100' }
   ]);
 
   const [sellBlocks, setSellBlocks] = useState<ConditionBlock[]>([
-    { id: '1', indicator: 'RSI (14)', comparison: 'Less Than', valueType: 'Number', value: '30' }
+    { id: '1', offset: 'Latest', indicator: 'RSI', period: '14', comparison: 'Greater Than', valueType: 'Number', value: '70' }
   ]);
 
   // Lifted OptionsBuilder states
@@ -281,7 +276,7 @@ export default function BlockBuilder() {
     const newId = Date.now().toString();
     setBuyBlocks([
       ...buyBlocks,
-      { id: newId, indicator: 'Close Price', comparison: 'Greater Than', valueType: 'Number', value: '100' }
+      { id: newId, offset: 'Latest', indicator: 'Close Price', comparison: 'Greater Than', valueType: 'Number', value: '100' }
     ]);
     toast.success("Added new Buy indicator condition block");
   };
@@ -294,7 +289,7 @@ export default function BlockBuilder() {
     setBuyBlocks(buyBlocks.filter(b => b.id !== id));
   };
 
-  const updateBuyBlock = (id: string, field: keyof ConditionBlock, value: string) => {
+  const updateBuyBlock = (id: string, field: keyof ConditionBlock, value: any) => {
     setBuyBlocks(buyBlocks.map(b => b.id === id ? { ...b, [field]: value } : b));
   };
 
@@ -302,7 +297,7 @@ export default function BlockBuilder() {
     const newId = Date.now().toString();
     setSellBlocks([
       ...sellBlocks,
-      { id: newId, indicator: 'RSI (14)', comparison: 'Less Than', valueType: 'Number', value: '30' }
+      { id: newId, offset: 'Latest', indicator: 'RSI', period: '14', comparison: 'Greater Than', valueType: 'Number', value: '70' }
     ]);
     toast.success("Added new Sell indicator condition block");
   };
@@ -315,7 +310,7 @@ export default function BlockBuilder() {
     setSellBlocks(sellBlocks.filter(b => b.id !== id));
   };
 
-  const updateSellBlock = (id: string, field: keyof ConditionBlock, value: string) => {
+  const updateSellBlock = (id: string, field: keyof ConditionBlock, value: any) => {
     setSellBlocks(sellBlocks.map(b => b.id === id ? { ...b, [field]: value } : b));
   };
 
@@ -645,71 +640,12 @@ export default function BlockBuilder() {
 
             {/* Condition Blocks List */}
             <div className={`space-y-4 ${!buyEnabled && 'opacity-50 pointer-events-none'}`}>
-              {buyBlocks.map((block) => (
-                <div key={block.id} className="flex items-center gap-3 mb-2">
-                  <div className="flex-1 bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex">
-                    <select 
-                      value={block.indicator}
-                      onChange={(e) => updateBuyBlock(block.id, 'indicator', e.target.value)}
-                      className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none appearance-none cursor-pointer"
-                    >
-                      <option className="bg-[#1C2128] text-white">Close Price</option>
-                      <option className="bg-[#1C2128] text-white">Volume</option>
-                      <option className="bg-[#1C2128] text-white">RSI (14)</option>
-                      <option className="bg-[#1C2128] text-white">MACD (12, 26, 9)</option>
-                      <option className="bg-[#1C2128] text-white">SMA (50)</option>
-                      <option className="bg-[#1C2128] text-white">EMA (20)</option>
-                      <option className="bg-[#1C2128] text-white">Bollinger Bands</option>
-                      <option className="bg-[#1C2128] text-white">VWAP</option>
-                      <option className="bg-[#1C2128] text-white">Stochastic</option>
-                      <option className="bg-[#1C2128] text-white">Supertrend</option>
-                      <option className="bg-[#1C2128] text-white">ADX (14)</option>
-                      <option className="bg-[#1C2128] text-white">Donchian Channels</option>
-                      <option className="bg-[#1C2128] text-white">OBV (On-Balance Volume)</option>
-                      <option className="bg-[#1C2128] text-white">Pivot Points (Standard)</option>
-                      <option className="bg-[#1C2128] text-white">ORB (Opening Range Breakout)</option>
-                      <option className="bg-[#1C2128] text-white">FVG (Fair Value Gap)</option>
-                    </select>
-                  </div>
-                  
-                  <div className="bg-[#1F2937] border border-blue-900/30 rounded-lg p-1">
-                    <select 
-                      value={block.comparison}
-                      onChange={(e) => updateBuyBlock(block.id, 'comparison', e.target.value)}
-                      className="bg-transparent text-[#8B5CF6] text-sm font-bold px-3 py-2 outline-none appearance-none cursor-pointer"
-                    >
-                      <option className="bg-[#1C2128] text-white">Greater Than</option>
-                      <option className="bg-[#1C2128] text-white">Less Than</option>
-                      <option className="bg-[#1C2128] text-white">Crosses Above</option>
-                      <option className="bg-[#1C2128] text-white">Crosses Below</option>
-                    </select>
-                  </div>
-
-                  <div className="flex-[2] bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex items-center">
-                    <select 
-                      value={block.valueType}
-                      onChange={(e) => updateBuyBlock(block.id, 'valueType', e.target.value)}
-                      className="bg-transparent text-white text-sm px-3 py-2 outline-none border-r border-[#30363D] appearance-none cursor-pointer"
-                    >
-                      <option className="bg-[#1C2128] text-white">Number</option>
-                      <option className="bg-[#1C2128] text-white">Indicator</option>
-                    </select>
-                    <input 
-                      type="text" 
-                      value={block.value}
-                      onChange={(e) => updateBuyBlock(block.id, 'value', e.target.value)}
-                      className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none"
-                    />
-                  </div>
-
-                  <button 
-                    onClick={() => removeBuyBlock(block.id)}
-                    className="bg-[#21262D] hover:bg-red-500/20 text-red-400 p-2 rounded-lg border border-[#30363D] transition-colors"
-                  >
-                    <X size={16} />
-                  </button>
-                </div>
-              ))}
+              <SentenceBuilder
+                blocks={buyBlocks}
+                onChange={setBuyBlocks}
+                onAddBlock={addBuyBlock}
+                onRemoveBlock={removeBuyBlock}
+              />
             </div>
 
             {/* Action Block - Advanced Derivatives Configurator */}
@@ -771,71 +707,12 @@ export default function BlockBuilder() {
               <>
                 {/* Condition Blocks List */}
                 <div className="space-y-4">
-                  {sellBlocks.map((block) => (
-                    <div key={block.id} className="flex items-center gap-3 mb-2">
-                      <div className="flex-1 bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex">
-                        <select 
-                          value={block.indicator}
-                          onChange={(e) => updateSellBlock(block.id, 'indicator', e.target.value)}
-                          className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none appearance-none cursor-pointer"
-                        >
-                          <option className="bg-[#1C2128] text-white">Close Price</option>
-                          <option className="bg-[#1C2128] text-white">Volume</option>
-                          <option className="bg-[#1C2128] text-white">RSI (14)</option>
-                          <option className="bg-[#1C2128] text-white">MACD (12, 26, 9)</option>
-                          <option className="bg-[#1C2128] text-white">SMA (50)</option>
-                          <option className="bg-[#1C2128] text-white">EMA (20)</option>
-                          <option className="bg-[#1C2128] text-white">Bollinger Bands</option>
-                          <option className="bg-[#1C2128] text-white">VWAP</option>
-                          <option className="bg-[#1C2128] text-white">Stochastic</option>
-                          <option className="bg-[#1C2128] text-white">Supertrend</option>
-                          <option className="bg-[#1C2128] text-white">ADX (14)</option>
-                          <option className="bg-[#1C2128] text-white">Donchian Channels</option>
-                          <option className="bg-[#1C2128] text-white">OBV (On-Balance Volume)</option>
-                          <option className="bg-[#1C2128] text-white">Pivot Points (Standard)</option>
-                          <option className="bg-[#1C2128] text-white">ORB (Opening Range Breakout)</option>
-                          <option className="bg-[#1C2128] text-white">FVG (Fair Value Gap)</option>
-                        </select>
-                      </div>
-                      
-                      <div className="bg-[#1F2937] border border-blue-900/30 rounded-lg p-1">
-                        <select 
-                          value={block.comparison}
-                          onChange={(e) => updateSellBlock(block.id, 'comparison', e.target.value)}
-                          className="bg-transparent text-[#8B5CF6] text-sm font-bold px-3 py-2 outline-none appearance-none cursor-pointer"
-                        >
-                          <option className="bg-[#1C2128] text-white">Greater Than</option>
-                          <option className="bg-[#1C2128] text-white">Less Than</option>
-                          <option className="bg-[#1C2128] text-white">Crosses Above</option>
-                          <option className="bg-[#1C2128] text-white">Crosses Below</option>
-                        </select>
-                      </div>
-
-                      <div className="flex-[2] bg-[#0D1117] border border-[#30363D] rounded-lg p-1 flex items-center">
-                        <select 
-                          value={block.valueType}
-                          onChange={(e) => updateSellBlock(block.id, 'valueType', e.target.value)}
-                          className="bg-transparent text-white text-sm px-3 py-2 outline-none border-r border-[#30363D] appearance-none cursor-pointer"
-                        >
-                          <option className="bg-[#1C2128] text-white">Number</option>
-                          <option className="bg-[#1C2128] text-white">Indicator</option>
-                        </select>
-                        <input 
-                          type="text" 
-                          value={block.value}
-                          onChange={(e) => updateSellBlock(block.id, 'value', e.target.value)}
-                          className="bg-transparent text-white text-sm w-full px-3 py-2 outline-none"
-                        />
-                      </div>
-
-                      <button 
-                        onClick={() => removeSellBlock(block.id)}
-                        className="bg-[#21262D] hover:bg-red-500/20 text-red-400 p-2 rounded-lg border border-[#30363D] transition-colors"
-                      >
-                        <X size={16} />
-                      </button>
-                    </div>
-                  ))}
+                  <SentenceBuilder
+                    blocks={sellBlocks}
+                    onChange={setSellBlocks}
+                    onAddBlock={addSellBlock}
+                    onRemoveBlock={removeSellBlock}
+                  />
                 </div>
 
                 {/* Action Block - Advanced Derivatives Configurator */}
