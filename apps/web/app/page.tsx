@@ -12,42 +12,6 @@ import PublicNavbar from '@/components/PublicNavbar';
 import TradingViewTicker from '@/components/TradingViewTicker';
 import { ClickToChartModal } from '@/components/workspace/click-to-chart-modal';
 
-const disclosures = [
-  { time: '14:32', exchange: 'NSE', ticker: 'INFY', type: 'Earnings', title: 'Infosys announces strategic partnership with leading cloud provider for enterprise AI transition.', content: 'Infosys has entered into a strategic collaboration with a leading cloud hyperscaler to accelerate enterprise AI adoption globally. The initiative involves training over 100,000 developers on generative AI tools and deploying cloud-native LLM solutions across core banking and manufacturing client verticals.' },
-  { time: '13:15', exchange: 'BSE', ticker: 'RELIANCE', type: 'Corporate Actions', title: 'Reliance Industries schedules board meeting to consider bonus issue of equity shares.', content: 'Reliance Industries Ltd. has notified the exchanges that a meeting of the Board of Directors is scheduled for next Thursday to consider and recommend a bonus issue of equity shares in the ratio of 1:1, subject to shareholder approvals.' },
-  { time: '11:45', exchange: 'NSE', ticker: 'TCS', type: 'Bulk Deals', title: 'TCS shares worth ₹450 Cr witness block deal transfer during morning session.', content: 'Tata Consultancy Services Ltd. witnessed a massive bulk transaction at 10:15 AM where approximately 1.3 million shares were exchanged at an average price of ₹3,420 per share. Institutional registry logs indicate mutual fund inflow consolidation.' },
-  { time: '09:30', exchange: 'NSE', ticker: 'HDFCBANK', type: 'Earnings', title: 'HDFC Bank reports 12% YoY growth in net profit for the latest fiscal quarter.', content: 'HDFC Bank Ltd. declared its quarterly performance showing solid net interest income expansion. Net profit stood at ₹16,820 Cr, marking a steady 12.4% YoY profit vector growth, supported by loan growth and stable net interest margins.' }
-];
-
-const fiiDiiData = [
-  { pool: 'Foreign Institutional Investors (FII)', buy: 12450, sell: 11210, net: 1240 },
-  { pool: 'Domestic Institutional Investors (DII)', buy: 8200, sell: 8950, net: -750 }
-];
-
-const previewStrategies = {
-  value: [
-    { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', price: 2452.1, change: 1.45, pe: '14.2x' },
-    { symbol: 'TCS', name: 'Tata Consultancy Services Ltd.', price: 3410.5, change: -0.82, pe: '22.1x' },
-    { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd.', price: 1610.2, change: 0.45, pe: '18.5x' },
-    { symbol: 'INFY', name: 'Infosys Ltd.', price: 1420.3, change: 2.1, pe: '15.8x' },
-    { symbol: 'SBIN', name: 'State Bank of India', price: 575.4, change: 0.95, pe: '9.2x' }
-  ],
-  momentum: [
-    { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', price: 2452.1, change: 1.45, rsi: '76.4' },
-    { symbol: 'TCS', name: 'Tata Consultancy Services Ltd.', price: 3410.5, change: -0.82, rsi: '52.1' },
-    { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd.', price: 1610.2, change: 0.45, rsi: '68.5' },
-    { symbol: 'INFY', name: 'Infosys Ltd.', price: 1420.3, change: 2.1, rsi: '71.2' },
-    { symbol: 'SBIN', name: 'State Bank of India', price: 575.4, change: 0.95, rsi: '64.8' }
-  ],
-  volume: [
-    { symbol: 'RELIANCE', name: 'Reliance Industries Ltd.', price: 2452.1, change: 1.45, volume: '15.4M' },
-    { symbol: 'TCS', name: 'Tata Consultancy Services Ltd.', price: 3410.5, change: -0.82, volume: '8.2M' },
-    { symbol: 'HDFCBANK', name: 'HDFC Bank Ltd.', price: 1610.2, change: 0.45, volume: '12.1M' },
-    { symbol: 'INFY', name: 'Infosys Ltd.', price: 1420.3, change: 2.1, volume: '10.8M' },
-    { symbol: 'SBIN', name: 'State Bank of India', price: 575.4, change: 0.95, volume: '14.2M' }
-  ]
-};
-
 export default function Home() {
   const [isHovered, setIsHovered] = useState(false);
   const [isDemoOpen, setIsDemoOpen] = useState(false);
@@ -58,6 +22,109 @@ export default function Home() {
   const [isChartOpen, setIsChartOpen] = useState(false);
   const [activeTicker, setActiveTicker] = useState('RELIANCE');
   const [isSignupDrawerOpen, setIsSignupDrawerOpen] = useState(false);
+
+  // Live aggregated datasets (Replacing mock data fallback arrays)
+  const [liveDisclosures, setLiveDisclosures] = useState<any[]>([]);
+  const [isDisclosuresLoading, setIsDisclosuresLoading] = useState(true);
+
+  const [liveFiiDii, setLiveFiiDii] = useState<any[]>([]);
+  const [isFiiDiiLoading, setIsFiiDiiLoading] = useState(true);
+
+  const [liveStrategies, setLiveStrategies] = useState<Record<'value' | 'momentum' | 'volume', any[]>>({
+    value: [],
+    momentum: [],
+    volume: []
+  });
+  const [isStrategiesLoading, setIsStrategiesLoading] = useState(true);
+
+  useEffect(() => {
+    const fetchLandingData = async () => {
+      // 1. Fetch live exchange disclosures
+      try {
+        const discRes = await fetch('/api/v1/market/disclosures');
+        const discJson = await discRes.json();
+        if (discJson.success && discJson.disclosures) {
+          setLiveDisclosures(discJson.disclosures);
+        }
+      } catch (err) {
+        console.error("Disclosures fetch failed:", err);
+      } finally {
+        setIsDisclosuresLoading(false);
+      }
+
+      // 2. Fetch Institutional FII / DII activity
+      try {
+        const fiiRes = await fetch('/api/v1/market/fii-dii');
+        const fiiJson = await fiiRes.json();
+        if (fiiJson.success && fiiJson.data) {
+          setLiveFiiDii(fiiJson.data);
+        }
+      } catch (err) {
+        console.error("FII / DII fetch failed:", err);
+      } finally {
+        setIsFiiDiiLoading(false);
+      }
+
+      // 3. Fetch strategy preview pricing metrics (Resolves real quotes via master token mapping symbols)
+      try {
+        const stratRes = await fetch('/api/v1/market/quotes', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ symbols: ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'SBIN'] })
+        });
+        const stratJson = await stratRes.json();
+        if (stratJson.quotes) {
+          const names: Record<string, string> = {
+            RELIANCE: 'Reliance Industries Ltd.',
+            TCS: 'Tata Consultancy Services Ltd.',
+            HDFCBANK: 'HDFC Bank Ltd.',
+            INFY: 'Infosys Ltd.',
+            SBIN: 'State Bank of India'
+          };
+          const symbols = ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'SBIN'];
+
+          setLiveStrategies({
+            value: symbols.map(sym => {
+              const live = stratJson.quotes[sym] || {};
+              return {
+                symbol: sym,
+                name: names[sym] || sym,
+                price: live.close || 0,
+                change: live.change || 0,
+                pe: live.pe ? `${live.pe.toFixed(1)}x` : '--'
+              };
+            }),
+            momentum: symbols.map(sym => {
+              const live = stratJson.quotes[sym] || {};
+              return {
+                symbol: sym,
+                name: names[sym] || sym,
+                price: live.close || 0,
+                change: live.change || 0,
+                rsi: live.rsi ? live.rsi.toFixed(1) : '--'
+              };
+            }),
+            volume: symbols.map(sym => {
+              const live = stratJson.quotes[sym] || {};
+              return {
+                symbol: sym,
+                name: names[sym] || sym,
+                price: live.close || 0,
+                change: live.change || 0,
+                volume: live.volume ? `${(live.volume / 1000000).toFixed(1)}M` : '--'
+              };
+            })
+          });
+        }
+      } catch (err) {
+        console.error("Strategy data fetch failed:", err);
+      } finally {
+        setIsStrategiesLoading(false);
+      }
+    };
+
+    fetchLandingData();
+  }, []);
 
   // Auto-play steps in the Watch Demo simulator when open
   useEffect(() => {
@@ -225,16 +292,27 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-900/50">
-                {fiiDiiData.map((item, idx) => (
-                  <tr key={idx} className="hover:bg-zinc-900/35 transition-colors">
-                    <td className="py-3.5 text-zinc-300 font-medium">{item.pool}</td>
-                    <td className="py-3.5 text-right font-mono text-zinc-400">₹{item.buy.toLocaleString()} Cr</td>
-                    <td className="py-3.5 text-right font-mono text-zinc-400">₹{item.sell.toLocaleString()} Cr</td>
-                    <td className={`py-3.5 text-right font-mono font-bold ${item.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {item.net >= 0 ? '+' : ''}₹{item.net.toLocaleString()} Cr
-                    </td>
-                  </tr>
-                ))}
+                {isFiiDiiLoading ? (
+                  [...Array(2)].map((_, idx) => (
+                    <tr key={idx} className="animate-pulse bg-zinc-900/10">
+                      <td className="py-3.5"><div className="h-4 bg-zinc-800 rounded w-44"></div></td>
+                      <td className="py-3.5"><div className="h-4 bg-zinc-800 rounded w-16 ml-auto"></div></td>
+                      <td className="py-3.5"><div className="h-4 bg-zinc-800 rounded w-16 ml-auto"></div></td>
+                      <td className="py-3.5"><div className="h-4 bg-zinc-800 rounded w-16 ml-auto"></div></td>
+                    </tr>
+                  ))
+                ) : (
+                  liveFiiDii.map((item, idx) => (
+                    <tr key={idx} className="hover:bg-zinc-900/35 transition-colors">
+                      <td className="py-3.5 text-zinc-300 font-medium">{item.pool}</td>
+                      <td className="py-3.5 text-right font-mono text-zinc-400">₹{item.buy.toLocaleString()} Cr</td>
+                      <td className="py-3.5 text-right font-mono text-zinc-400">₹{item.sell.toLocaleString()} Cr</td>
+                      <td className={`py-3.5 text-right font-mono font-bold ${item.net >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {item.net >= 0 ? '+' : ''}₹{item.net.toLocaleString()} Cr
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
@@ -272,38 +350,53 @@ export default function Home() {
           </div>
 
           <div className="space-y-2.5 max-h-[260px] overflow-y-auto pr-1">
-            {disclosures
-              .filter(d => disclosureFilter === 'All' || d.type === disclosureFilter)
-              .map((disclosure, idx) => (
-                <div
-                  key={idx}
-                  onClick={() => setSelectedDisclosure(disclosure)}
-                  className="flex items-start gap-4 p-3 rounded-2xl border border-zinc-900/60 hover:bg-zinc-900/35 hover:border-zinc-800 transition-all cursor-pointer group"
-                >
-                  <div className="flex flex-col items-center justify-center text-center shrink-0 min-w-[50px]">
-                    <span className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-300 transition-colors">{disclosure.time}</span>
-                    <span className="text-[9px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded mt-1.5 uppercase font-bold group-hover:bg-zinc-850 group-hover:text-zinc-200 transition-colors">
-                      {disclosure.exchange}
-                    </span>
+            {isDisclosuresLoading ? (
+              [...Array(3)].map((_, idx) => (
+                <div key={idx} className="animate-pulse flex items-start gap-4 p-3 rounded-2xl border border-zinc-900/60 bg-zinc-900/10">
+                  <div className="shrink-0 min-w-[50px] space-y-2">
+                    <div className="h-3.5 bg-zinc-800 rounded w-10 mx-auto"></div>
+                    <div className="h-4 bg-zinc-800 rounded w-12 mx-auto"></div>
                   </div>
-
-                  <div className="flex-1 min-w-0">
-                    <div className="flex items-center gap-2 mb-1">
-                      <span className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">{disclosure.ticker}</span>
-                      <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
-                        disclosure.type === 'Earnings' ? 'bg-purple-900/20 text-purple-400 border border-purple-800/20' :
-                        disclosure.type === 'Dividend' ? 'bg-blue-900/20 text-blue-400 border border-blue-800/20' :
-                        'bg-amber-900/20 text-amber-400 border border-amber-800/20'
-                      }`}>
-                        {disclosure.type}
-                      </span>
-                    </div>
-                    <p className="text-zinc-500 text-xs line-clamp-1 group-hover:text-zinc-400 transition-colors leading-relaxed">
-                      {disclosure.title}
-                    </p>
+                  <div className="flex-1 space-y-2">
+                    <div className="h-4 bg-zinc-800 rounded w-20"></div>
+                    <div className="h-3.5 bg-zinc-800 rounded w-full"></div>
                   </div>
                 </div>
-              ))}
+              ))
+            ) : (
+              liveDisclosures
+                .filter(d => disclosureFilter === 'All' || d.type === disclosureFilter)
+                .map((disclosure, idx) => (
+                  <div
+                    key={idx}
+                    onClick={() => setSelectedDisclosure(disclosure)}
+                    className="flex items-start gap-4 p-3 rounded-2xl border border-zinc-900/60 hover:bg-zinc-900/35 hover:border-zinc-800 transition-all cursor-pointer group"
+                  >
+                    <div className="flex flex-col items-center justify-center text-center shrink-0 min-w-[50px]">
+                      <span className="text-[10px] font-mono text-zinc-500 group-hover:text-zinc-300 transition-colors">{disclosure.time}</span>
+                      <span className="text-[9px] bg-zinc-900 border border-zinc-800 text-zinc-400 px-1.5 py-0.5 rounded mt-1.5 uppercase font-bold group-hover:bg-zinc-850 group-hover:text-zinc-200 transition-colors">
+                        {disclosure.exchange}
+                      </span>
+                    </div>
+
+                    <div className="flex-1 min-w-0">
+                      <div className="flex items-center gap-2 mb-1">
+                        <span className="text-xs font-bold text-white group-hover:text-emerald-400 transition-colors">{disclosure.ticker}</span>
+                        <span className={`text-[9px] px-1.5 py-0.5 rounded-full font-bold ${
+                          disclosure.type === 'Earnings' ? 'bg-purple-900/20 text-purple-400 border border-purple-800/20' :
+                          disclosure.type === 'Dividend' ? 'bg-blue-900/20 text-blue-400 border border-blue-800/20' :
+                          'bg-amber-900/20 text-amber-400 border border-amber-800/20'
+                        }`}>
+                          {disclosure.type}
+                        </span>
+                      </div>
+                      <p className="text-zinc-500 text-xs line-clamp-1 group-hover:text-zinc-400 transition-colors leading-relaxed">
+                        {disclosure.title}
+                      </p>
+                    </div>
+                  </div>
+                ))
+            )}
           </div>
         </div>
       </section>
@@ -369,32 +462,44 @@ export default function Home() {
                 </tr>
               </thead>
               <tbody className="divide-y divide-zinc-900/50">
-                {previewStrategies[activeStrategyTab].map((row, idx) => (
-                  <tr
-                    key={idx}
-                    onClick={() => {
-                      setActiveTicker(row.symbol);
-                      setIsChartOpen(true);
-                    }}
-                    className="hover:bg-zinc-900/35 transition-colors cursor-pointer group"
-                  >
-                    <td className="p-4 font-medium text-white flex items-center gap-2">
-                      <span className="group-hover:text-emerald-400 transition-colors font-bold">{row.symbol}</span>
-                      <span className="text-[10px] text-zinc-500 group-hover:text-zinc-400 transition-colors hidden sm:inline-block font-normal">({row.name})</span>
-                      <Activity className="h-3 w-3 text-emerald-500/40 group-hover:text-emerald-400 shrink-0 transition-all duration-300 group-hover:scale-110" />
-                    </td>
-                    <td className="p-4 text-right font-mono text-zinc-300">₹{row.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
-                    <td className={`p-4 text-right font-mono font-bold ${row.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                      {row.change >= 0 ? '+' : ''}{row.change.toFixed(2)}%
-                    </td>
-                    <td className="p-4 text-right font-mono text-zinc-300">
-                      {'pe' in row ? row.pe : 'rsi' in row ? row.rsi : 'volume' in row ? row.volume : ''}
-                    </td>
-                    <td className="p-4 text-right font-bold text-emerald-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all inline-flex items-center gap-1">
-                      Examine Canvas <ArrowUpRight size={13} />
-                    </td>
-                  </tr>
-                ))}
+                {isStrategiesLoading ? (
+                  [...Array(5)].map((_, idx) => (
+                    <tr key={idx} className="animate-pulse bg-zinc-900/10">
+                      <td className="p-4"><div className="h-4 bg-zinc-800 rounded w-24"></div></td>
+                      <td className="p-4"><div className="h-4 bg-zinc-800 rounded w-16 ml-auto"></div></td>
+                      <td className="p-4"><div className="h-4 bg-zinc-800 rounded w-12 ml-auto"></div></td>
+                      <td className="p-4"><div className="h-4 bg-zinc-800 rounded w-10 ml-auto"></div></td>
+                      <td className="p-4"><div className="h-4 bg-zinc-800 rounded w-24 ml-auto"></div></td>
+                    </tr>
+                  ))
+                ) : (
+                  liveStrategies[activeStrategyTab]?.map((row, idx) => (
+                    <tr
+                      key={idx}
+                      onClick={() => {
+                        setActiveTicker(row.symbol);
+                        setIsChartOpen(true);
+                      }}
+                      className="hover:bg-zinc-900/35 transition-colors cursor-pointer group"
+                    >
+                      <td className="p-4 font-medium text-white flex items-center gap-2">
+                        <span className="group-hover:text-emerald-400 transition-colors font-bold">{row.symbol}</span>
+                        <span className="text-[10px] text-zinc-500 group-hover:text-zinc-400 transition-colors hidden sm:inline-block font-normal">({row.name})</span>
+                        <Activity className="h-3 w-3 text-emerald-500/40 group-hover:text-emerald-400 shrink-0 transition-all duration-300 group-hover:scale-110" />
+                      </td>
+                      <td className="p-4 text-right font-mono text-zinc-300">₹{row.price.toLocaleString(undefined, { minimumFractionDigits: 2 })}</td>
+                      <td className={`p-4 text-right font-mono font-bold ${row.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                        {row.change >= 0 ? '+' : ''}{row.change.toFixed(2)}%
+                      </td>
+                      <td className="p-4 text-right font-mono text-zinc-300">
+                        {row.pe || row.rsi || row.volume || '--'}
+                      </td>
+                      <td className="p-4 text-right font-bold text-emerald-500 group-hover:text-emerald-400 group-hover:translate-x-1 transition-all inline-flex items-center gap-1">
+                        Examine Canvas <ArrowUpRight size={13} />
+                      </td>
+                    </tr>
+                  ))
+                )}
               </tbody>
             </table>
           </div>
