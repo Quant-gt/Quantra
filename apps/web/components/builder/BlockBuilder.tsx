@@ -267,7 +267,7 @@ function TimeTravelPicker() {
 }
 
 export default function BlockBuilder() {
-  const { historicalSnapshotTarget } = useScreener();
+  const { historicalSnapshotTarget, activeUniverseScope, setActiveUniverseScope } = useScreener();
   const [buyEnabled, setBuyEnabled] = useState(true);
   const [sellEnabled, setSellEnabled] = useState(true);
   const [isBacktestModalOpen, setIsBacktestModalOpen] = useState(false);
@@ -727,6 +727,22 @@ export default function BlockBuilder() {
               min={1}
               className="w-full bg-[#0D1117] border border-[#30363D] text-white text-sm rounded-md px-3 py-2 outline-none focus:border-[#58A6FF]"
             />
+          </div>
+
+          <div className="flex-1 min-w-[150px]">
+            <label className="block text-[10px] uppercase font-bold text-gray-500 tracking-wider mb-1">Universe Scope</label>
+            <select
+              value={activeUniverseScope}
+              onChange={(e) => setActiveUniverseScope(e.target.value)}
+              className="w-full bg-[#0D1117] border border-[#30363D] text-white text-sm rounded-md px-3 py-2 outline-none focus:border-[#58A6FF] cursor-pointer h-[38px] font-bold"
+            >
+              <option value="Nifty 50">Nifty 50 Scope</option>
+              <option value="Nifty 100">Nifty 100 Scope</option>
+              <option value="Nifty Midcap 100">Nifty Midcap 100</option>
+              <option value="Nifty 500">Nifty 500 (All)</option>
+              <option value="Only F&O Stocks">F&O Segment Only</option>
+              <option value="Custom Watchlist">Custom Watchlist</option>
+            </select>
           </div>
 
           <div className="flex-1 min-w-[200px]">

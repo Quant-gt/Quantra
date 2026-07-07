@@ -136,6 +136,26 @@ const STOCK_UNIVERSE = [
   { symbol: 'HUDCO', name: 'Housing & Urban Development Corp.', sector: 'Financial Services' }
 ];
 
+const UNIVERSE_MAPS: Record<string, string[]> = {
+  'Nifty 50': ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'BHARTIALRT', 'SBIN', 'LICI', 'LT', 'ITC', 'HINDUNILVR', 'KOTAKBANK', 'AXISBANK', 'NTPC', 'ADANIPORTS', 'TATAMOTORS', 'SUNPHARMA', 'ONGC', 'POWERGRID', 'TITAN', 'MARUTI', 'BAJFINANCE', 'COALINDIA', 'ADANIENT', 'ULTRACEMCO', 'BPCL', 'HCLTECH', 'ASIANPAINT', 'JSWSTEEL', 'TATASTEEL', 'GRASIM', 'LTIM', 'BAJAJFINSV', 'HINDALCO', 'INDUSINDBK', 'NESTLEIND', 'TECHM', 'EICHERMOT', 'M&M', 'DIVISLAB', 'HEROMOTOCO', 'BRITANNIA'],
+  'Nifty 100': ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'BHARTIALRT', 'SBIN', 'LICI', 'LT', 'ITC', 'HINDUNILVR', 'KOTAKBANK', 'AXISBANK', 'NTPC', 'ADANIPORTS', 'TATAMOTORS', 'SUNPHARMA', 'ONGC', 'POWERGRID', 'TITAN', 'MARUTI', 'BAJFINANCE', 'COALINDIA', 'ADANIENT', 'ULTRACEMCO', 'BPCL', 'HCLTECH', 'ASIANPAINT', 'JSWSTEEL', 'TATASTEEL', 'GRASIM', 'LTIM', 'BAJAJFINSV', 'HINDALCO', 'INDUSINDBK', 'NESTLEIND', 'TECHM', 'EICHERMOT', 'M&M', 'DIVISLAB', 'HEROMOTOCO', 'BRITANNIA', 'JIOFIN', 'ADANIPOWER', 'IOC', 'HAL', 'DLF', 'HDFCLIFE', 'SBILIFE', 'SHRIRAMFIN', 'BEL', 'PNB', 'DMART', 'PIDILITIND'],
+  'Nifty Midcap 100': ['TRENT', 'KPITTECH', 'PERSISTENT', 'COFORGE', 'DIXON', 'ASTRAL', 'PAGEIND', 'CIPLA', 'DRREDDY', 'APOLLOHOSP', 'LUPIN', 'AUROPHARMA', 'BIOCON', 'IRCTC', 'ZOMATO', 'PAYTM', 'NYKAA', 'SRF', 'CONCOR', 'GMRINFRA', 'IRFC', 'HUDCO', 'TVSMOTOR', 'BALKRISIND', 'ASHOKLEY', 'GAIL', 'RECLTD', 'PFC', 'NHPC', 'SJVN', 'SAIL', 'NMDC', 'VEDL', 'JINDALSTEL', 'HINDZINC', 'TATAELXSI', 'GODREJCP', 'DABUR', 'COLPAL', 'MARICO'],
+  'Only F&O Stocks': ['RELIANCE', 'TCS', 'HDFCBANK', 'INFY', 'ICICIBANK', 'BHARTIALRT', 'SBIN', 'LT', 'ITC', 'HINDUNILVR', 'KOTAKBANK', 'AXISBANK', 'NTPC', 'ADANIPORTS', 'TATAMOTORS', 'SUNPHARMA', 'ONGC', 'POWERGRID', 'TITAN', 'MARUTI', 'BAJFINANCE', 'COALINDIA', 'WIPRO', 'BPCL', 'HCLTECH', 'ASIANPAINT', 'JSWSTEEL', 'TATASTEEL', 'GRASIM', 'LTIM', 'BAJAJFINSV', 'HINDALCO', 'INDUSINDBK', 'TECHM', 'EICHERMOT', 'SHRIRAMFIN', 'M&M', 'BEL', 'DIVISLAB', 'PNB', 'CANBK', 'HEROMOTOCO', 'TVSMOTOR', 'BALKRISIND', 'ASHOKLEY', 'GAIL', 'RECLTD', 'PFC', 'SAIL', 'NMDC', 'VEDL', 'JINDALSTEL', 'TATAELXSI', 'BRITANNIA', 'SRF', 'CIPLA', 'DRREDDY', 'APOLLOHOSP', 'LUPIN', 'AUROPHARMA', 'BIOCON'],
+};
+
+const MultiExchangeTickerMap: Record<string, { bseSymbol: string; bseCode: string }> = {
+  RELIANCE: { bseSymbol: 'RELIANCE', bseCode: '500325' },
+  TCS: { bseSymbol: 'TCS', bseCode: '532540' },
+  HDFCBANK: { bseSymbol: 'HDFCBANK', bseCode: '500180' },
+  INFY: { bseSymbol: 'INFY', bseCode: '500209' },
+  ICICIBANK: { bseSymbol: 'ICICIBANK', bseCode: '532174' },
+  BHARTIALRT: { bseSymbol: 'BHARTIALRT', bseCode: '532454' },
+  SBIN: { bseSymbol: 'SBIN', bseCode: '500112' },
+  LT: { bseSymbol: 'LT', bseCode: '500510' },
+  ITC: { bseSymbol: 'ITC', bseCode: '500875' },
+  HINDUNILVR: { bseSymbol: 'HINDUNILVR', bseCode: '500696' }
+};
+
 function getSymbolSeed(symbol: string) {
   let hash = 0;
   for (let i = 0; i < symbol.length; i++) {
@@ -145,18 +165,26 @@ function getSymbolSeed(symbol: string) {
 }
 
 export default function MagicScanner() {
-  const { historicalSnapshotTarget, setHistoricalSnapshotTarget } = useScreener();
+  const { 
+    historicalSnapshotTarget, 
+    setHistoricalSnapshotTarget,
+    activeUniverseScope,
+    setActiveUniverseScope,
+    watchlist: globalWatchlist,
+    toggleWatchlist: toggleGlobalWatchlist
+  } = useScreener();
   const [prompt, setPrompt] = useState('');
   const [isScanning, setIsScanning] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  const [activeExchanges, setActiveExchanges] = useState<Record<string, 'NSE' | 'BSE'>>({});
 
-  // Automatically re-run scan when historicalSnapshotTarget changes
+  // Automatically re-run scan when historicalSnapshotTarget or activeUniverseScope changes
   useEffect(() => {
     if (prompt.trim() && hasScanned) {
       handleScan();
     }
-  }, [historicalSnapshotTarget]);
+  }, [historicalSnapshotTarget, activeUniverseScope]);
 
   // Watchlist State
   const [watchlist, setWatchlist] = useState<any[]>([]);
@@ -220,7 +248,14 @@ export default function MagicScanner() {
     setResults([]);
     
     try {
-      const symbolsList = STOCK_UNIVERSE.map(s => s.symbol);
+      const activeMap = UNIVERSE_MAPS[activeUniverseScope];
+      const universeList = activeMap 
+        ? STOCK_UNIVERSE.filter(s => activeMap.includes(s.symbol))
+        : activeUniverseScope === 'Custom Watchlist'
+          ? STOCK_UNIVERSE.filter(s => globalWatchlist.includes(s.symbol))
+          : STOCK_UNIVERSE;
+
+      const symbolsList = universeList.map(s => s.symbol);
       const quotesRes = await fetch('/api/v1/market/quotes', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
@@ -239,7 +274,7 @@ export default function MagicScanner() {
       const query = prompt.toLowerCase().trim();
       const isMathExpression = /[><=+\-*/()]/.test(query);
       
-      const matched = STOCK_UNIVERSE.map(stock => {
+      const matched = universeList.map(stock => {
         const seed = getSymbolSeed(stock.symbol);
         const liveQuote = liveQuotesMap[stock.symbol];
         
@@ -464,7 +499,7 @@ export default function MagicScanner() {
 
           {/* Input Area */}
           <div className="px-6 py-6 border-b border-[#30363D]">
-            <div className="flex gap-4">
+            <div className="flex gap-4 items-center">
               <div className="flex-1 relative">
                 <input 
                   type="text" 
@@ -475,10 +510,27 @@ export default function MagicScanner() {
                   className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg pl-4 pr-10 py-3 text-sm text-white outline-none focus:border-cyan-400/50 transition-colors shadow-inner"
                 />
               </div>
+
+              {/* Universe Scope Selector */}
+              <div className="w-[180px] shrink-0">
+                <select
+                  value={activeUniverseScope}
+                  onChange={(e) => setActiveUniverseScope(e.target.value)}
+                  className="w-full bg-[#0D1117] border border-[#30363D] text-white text-xs rounded-lg px-3 py-3 outline-none focus:border-cyan-400/50 cursor-pointer h-[46px] font-bold"
+                >
+                  <option value="Nifty 50">Nifty 50 Scope</option>
+                  <option value="Nifty 100">Nifty 100 Scope</option>
+                  <option value="Nifty Midcap 100">Nifty Midcap 100</option>
+                  <option value="Nifty 500">Nifty 500 (All)</option>
+                  <option value="Only F&O Stocks">F&O Segment Only</option>
+                  <option value="Custom Watchlist">Custom Watchlist</option>
+                </select>
+              </div>
+
               <button 
                 onClick={handleScan}
                 disabled={isScanning || !prompt.trim()}
-                className="bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 text-gray-900 px-6 py-3 rounded-lg text-sm font-bold transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)] flex items-center gap-2"
+                className="bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 text-gray-900 px-6 py-3 rounded-lg text-sm font-bold transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)] flex items-center gap-2 h-[46px]"
               >
                 {isScanning ? <span className="animate-pulse">Scanning...</span> : <><Sparkles size={16} className="fill-current" /> Generate & Scan</>}
               </button>
@@ -555,67 +607,122 @@ export default function MagicScanner() {
             </div>
             
             <div className="divide-y divide-[#30363D]">
-              {results.map((r, i) => (
-                <div 
-                  key={r.symbol} 
-                  onClick={() => handleRowClick(r)}
-                  className="px-6 py-4 flex items-center justify-between hover:bg-[#30363D]/30 transition-colors group cursor-pointer"
-                >
-                  <div className="flex items-center gap-4">
-                    {/* Star micro-action button */}
-                    <button
-                      onClick={(e) => handleToggleWatchlist(e, r)}
-                      className={`text-gray-500 hover:text-yellow-400 transition-colors p-1 rounded hover:bg-[#21262D] ${
-                        watchlist.some(w => w.symbol === r.symbol) ? 'text-yellow-400' : 'text-gray-600'
-                      }`}
-                    >
-                      <Star size={16} className={watchlist.some(w => w.symbol === r.symbol) ? 'fill-current' : ''} />
-                    </button>
-                    <div>
-                      <div className="flex items-center gap-2">
-                        <h4 className="text-lg font-bold text-white leading-none">{r.symbol}</h4>
-                        <span className="text-[10px] bg-[#30363D] text-gray-400 px-1.5 py-0.5 rounded font-mono uppercase">{r.sector}</span>
+              {results.map((r, i) => {
+                const isActiveBse = activeExchanges[r.symbol] === 'BSE';
+                let displayPrice = r.price;
+                let displayChange = r.change;
+                let displayOpen = r.openVal;
+                let displayHigh = r.highVal;
+                let displayLow = r.lowVal;
+                
+                if (isActiveBse) {
+                  let seedVal = 0;
+                  for (let index = 0; index < r.symbol.length; index++) {
+                    seedVal += r.symbol.charCodeAt(index);
+                  }
+                  const bseMultiplier = 0.998 + (Math.sin(seedVal) * 0.004);
+                  const baseRawPrice = parseFloat(r.price.replace(/[^\d.]/g, ''));
+                  displayPrice = '₹' + (baseRawPrice * bseMultiplier).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 });
+                  
+                  const rawChange = parseFloat(r.change.replace(/[^\d.-]/g, ''));
+                  displayChange = (rawChange * bseMultiplier).toFixed(2) + '%';
+                  if (rawChange >= 0 && !displayChange.startsWith('+')) {
+                    displayChange = '+' + displayChange;
+                  }
+                  displayOpen = r.openVal * bseMultiplier;
+                  displayHigh = r.highVal * bseMultiplier;
+                  displayLow = r.lowVal * bseMultiplier;
+                }
+
+                return (
+                  <motion.div 
+                    layout
+                    key={r.symbol} 
+                    onClick={() => handleRowClick(r)}
+                    className="px-6 py-4 flex items-center justify-between hover:bg-[#30363D]/30 transition-colors group cursor-pointer"
+                  >
+                    <div className="flex items-center gap-4">
+                      {/* Star micro-action button */}
+                      <button
+                        onClick={(e) => handleToggleWatchlist(e, r)}
+                        className={`text-gray-500 hover:text-yellow-400 transition-colors p-1 rounded hover:bg-[#21262D] ${
+                          watchlist.some(w => w.symbol === r.symbol) ? 'text-yellow-400' : 'text-gray-600'
+                        }`}
+                      >
+                        <Star size={16} className={watchlist.some(w => w.symbol === r.symbol) ? 'fill-current' : ''} />
+                      </button>
+                      <div>
+                        <div className="flex items-center gap-2">
+                          <h4 className="text-lg font-bold text-white leading-none">{r.symbol}</h4>
+                          <span className="text-[10px] bg-[#30363D] text-gray-400 px-1.5 py-0.5 rounded font-mono uppercase">{r.sector}</span>
+                          
+                          {/* Dual-State Listing Badges */}
+                          <div className="flex gap-0.5 bg-[#0D1117] p-0.5 rounded border border-[#30363D]" onClick={e => e.stopPropagation()}>
+                            <button
+                              type="button"
+                              onClick={() => setActiveExchanges(prev => ({ ...prev, [r.symbol]: 'NSE' }))}
+                              className={`px-1.5 py-0.5 text-[8px] font-bold rounded font-mono transition-colors ${
+                                !isActiveBse 
+                                  ? 'bg-cyan-500/10 text-cyan-400 border border-cyan-500/20' 
+                                  : 'text-gray-500 hover:text-gray-300'
+                              }`}
+                            >
+                              NSE
+                            </button>
+                            <button
+                              type="button"
+                              onClick={() => setActiveExchanges(prev => ({ ...prev, [r.symbol]: 'BSE' }))}
+                              className={`px-1.5 py-0.5 text-[8px] font-bold rounded font-mono transition-colors ${
+                                isActiveBse 
+                                  ? 'bg-amber-500/10 text-amber-400 border border-amber-500/20' 
+                                  : 'text-gray-500 hover:text-gray-300'
+                              }`}
+                            >
+                              BSE
+                            </button>
+                          </div>
+                        </div>
+                        <p className="text-xs text-gray-400 mt-1">{r.company}</p>
                       </div>
-                      <p className="text-xs text-gray-400 mt-1">{r.company}</p>
-                    </div>
-                  </div>
-                  
-                  {/* Display metrics on hover */}
-                  <div className="hidden lg:flex items-center gap-6 text-xs text-gray-400">
-                    <div className="flex flex-col items-end">
-                      <span className="text-[10px] text-gray-500 uppercase font-mono">OHL Range</span>
-                      <span>₹{r.openVal?.toFixed(1)} - ₹{r.highVal?.toFixed(1)}</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[10px] text-gray-500 uppercase font-mono">RSI</span>
-                      <span className={r.rsi > 70 ? 'text-orange-400 font-bold' : r.rsi < 30 ? 'text-cyan-400 font-bold' : 'text-gray-300'}>{r.rsi}</span>
-                    </div>
-                    <div className="flex flex-col items-end">
-                      <span className="text-[10px] text-gray-500 uppercase font-mono">ADX</span>
-                      <span>{r.adx}</span>
-                    </div>
-                  </div>
-                  
-                  <div className="text-right flex items-center gap-4">
-                    <div>
-                      <p className="text-sm font-bold text-cyan-400">{r.price}</p>
-                      <p className={`text-xs ${r.change.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{r.change}</p>
                     </div>
                     
-                    {/* Navigation redirect button */}
-                    <button 
-                      onClick={(e) => {
-                        e.stopPropagation();
-                        window.location.href = `/dashboard/charts?symbol=${r.symbol}`;
-                      }}
-                      title="Open full page Live Chart"
-                      className="p-1.5 rounded hover:bg-[#21262D] text-gray-500 hover:text-cyan-400 transition-colors"
-                    >
-                      <Maximize2 size={13} />
-                    </button>
-                  </div>
-                </div>
-              ))}
+                    {/* Display metrics on hover */}
+                    <div className="hidden lg:flex items-center gap-6 text-xs text-gray-400">
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] text-gray-500 uppercase font-mono">OHL Range</span>
+                        <span>₹{displayOpen?.toFixed(1)} - ₹{displayHigh?.toFixed(1)}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] text-gray-500 uppercase font-mono">RSI</span>
+                        <span className={r.rsi > 70 ? 'text-orange-400 font-bold' : r.rsi < 30 ? 'text-cyan-400 font-bold' : 'text-gray-300'}>{r.rsi}</span>
+                      </div>
+                      <div className="flex flex-col items-end">
+                        <span className="text-[10px] text-gray-500 uppercase font-mono">ADX</span>
+                        <span>{r.adx}</span>
+                      </div>
+                    </div>
+                    
+                    <div className="text-right flex items-center gap-4">
+                      <div>
+                        <p className="text-sm font-bold text-cyan-400">{displayPrice}</p>
+                        <p className={`text-xs ${displayChange.startsWith('-') ? 'text-red-400' : 'text-green-400'}`}>{displayChange}</p>
+                      </div>
+                      
+                      {/* Navigation redirect button */}
+                      <button 
+                        onClick={(e) => {
+                          e.stopPropagation();
+                          window.location.href = `/dashboard/charts?symbol=${r.symbol}`;
+                        }}
+                        title="Open full page Live Chart"
+                        className="p-1.5 rounded hover:bg-[#21262D] text-gray-500 hover:text-cyan-400 transition-colors"
+                      >
+                        <Maximize2 size={13} />
+                      </button>
+                    </div>
+                  </motion.div>
+                );
+              })}
             </div>
           </div>
         ) : hasScanned ? (
