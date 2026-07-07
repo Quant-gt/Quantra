@@ -129,6 +129,65 @@ export default function BlockBuilder() {
   const [isSaving, setIsSaving] = useState(false);
   const [strategyId, setStrategyId] = useState<string | null>(null);
 
+  const [apiKey, setApiKey] = useState('');
+  const [apiSecret, setApiSecret] = useState('');
+
+  useEffect(() => {
+    const loadCreds = async () => {
+      try {
+        const res = await fetch('/api/v1/onboarding/load');
+        if (res.ok) {
+          const data = await res.json();
+          const config = data.preferences?.broker_config;
+          if (config) {
+            setApiKey(config.app_key || config.app_secret || '••••••••••••');
+            setApiSecret(config.api_secret || '••••••••••••');
+          }
+        }
+      } catch (err) {
+        console.error("Failed to load credentials:", err);
+      }
+    };
+    loadCreds();
+  }, []);
+
+  const saveBrokerCredentials = async (key: string, secret: string) => {
+    try {
+      const loadRes = await fetch('/api/v1/onboarding/load');
+      let currentPrefs: any = {};
+      if (loadRes.ok) {
+        const loadData = await loadRes.json();
+        currentPrefs = loadData.preferences || {};
+      }
+      
+      const newBrokerConfig = {
+        ...(currentPrefs.broker_config || {}),
+        broker: 'kite',
+        ...(key && key !== '••••••••••••' ? { app_key: key } : {}),
+        ...(secret && secret !== '••••••••••••' ? { api_secret: secret } : {})
+      };
+      
+      const saveRes = await fetch('/api/v1/onboarding/save', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          currentStep: 3,
+          data: {
+            ...currentPrefs,
+            broker_config: newBrokerConfig
+          }
+        })
+      });
+      
+      if (saveRes.ok) {
+        toast.success("Broker credentials updated successfully!");
+      }
+    } catch (err) {
+      console.error("Failed to save broker credentials:", err);
+      toast.error("Failed to update broker credentials");
+    }
+  };
+
   // Strategy Metadata
   const [strategyName, setStrategyName] = useState('Dual Block Strategy');
   const [symbol, setSymbol] = useState('RELIANCE');
@@ -802,7 +861,10 @@ export default function BlockBuilder() {
                 <label className="block text-xs font-bold text-[#58A6FF] mb-2">API Key</label>
                 <input 
                   type="password" 
-                  defaultValue="****************"
+                  value={apiKey}
+                  onChange={(e) => setApiKey(e.target.value)}
+                  onBlur={() => saveBrokerCredentials(apiKey, apiSecret)}
+                  placeholder="Enter API Key"
                   className="w-full bg-[#161B22] border border-[#30363D] rounded-lg px-4 py-2 text-white outline-none focus:border-[#58A6FF]"
                 />
               </div>
@@ -810,7 +872,10 @@ export default function BlockBuilder() {
                 <label className="block text-xs font-bold text-[#58A6FF] mb-2">API Secret</label>
                 <input 
                   type="password" 
-                  defaultValue="********************************"
+                  value={apiSecret}
+                  onChange={(e) => setApiSecret(e.target.value)}
+                  onBlur={() => saveBrokerCredentials(apiKey, apiSecret)}
+                  placeholder="Enter API Secret"
                   className="w-full bg-[#161B22] border border-[#30363D] rounded-lg px-4 py-2 text-white outline-none focus:border-[#58A6FF]"
                 />
               </div>
@@ -856,7 +921,7 @@ export default function BlockBuilder() {
       <BacktestModal 
         isOpen={isBacktestModalOpen} 
         onClose={() => setIsBacktestModalOpen(false)} 
-        strategyId={strategyId || "82d2d8a6-706c-479d-836a-a83388902a31"} 
+        strategyId={strategyId || ""} 
       />
     </div>
   );

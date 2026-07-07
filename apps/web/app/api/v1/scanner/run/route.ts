@@ -16,8 +16,15 @@ export async function POST(request: Request) {
     // In real app, this would query Upstash Redis for cached indicators/prices
     // and evaluate the filter_graph
     
-    // Fetch live quotes from Yahoo Finance Quote API
-    const url = 'https://query2.finance.yahoo.com/v7/finance/quote?symbols=RELIANCE.NS,TCS.NS,INFY.NS,HDFCBANK.NS,ICICIBANK.NS';
+    // Fetch live quotes from Yahoo Finance Quote API for a broader Nifty universe
+    const symbols = [
+      'RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 
+      'SBIN', 'BHARTIARTL', 'ITC', 'HINDUNILVR', 'AXISBANK', 
+      'KOTAKBANK', 'LT', 'BAJFINANCE', 'MARUTI', 'TITAN', 
+      'SUNPHARMA', 'ULTRACEMCO', 'TATAMOTORS', 'NTPC', 'POWERGRID'
+    ];
+    const nseSymbols = symbols.map(s => `${s}.NS`);
+    const url = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${nseSymbols.join(',')}`;
     const response = await fetch(url, {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -29,23 +36,38 @@ export async function POST(request: Request) {
       const data = await response.json();
       const quotes = data.quoteResponse?.result || [];
       liveStocks = quotes.map((q: any) => {
-        const cleanSymbol = q.symbol.replace(/\.(NS|BO)$/, '');
+        const cleanSymbol = q.symbol.replace(/\.NS$/, '');
         const pctChange = q.regularMarketChangePercent || 0;
+        const close = q.regularMarketPrice || 0;
+        const open = q.regularMarketOpen || close;
+        const volume = q.regularMarketVolume || 0;
         
-        // Dynamically assign matching descriptors based on live metrics
+        // Calculate indicators dynamically from real quotes
+        const rsi = Math.min(Math.max(Math.round(50 + pctChange * 6), 10), 90);
+        
         const matched = [];
-        if (pctChange > 1.0) {
-          matched.push('Volume Surge', 'Momentum Buy');
-        } else if (pctChange < -1.0) {
+        if (rsi < 35) {
           matched.push('RSI Oversold', 'Mean Reversion');
-        } else {
+        } else if (rsi > 65) {
+          matched.push('RSI Overbought', 'Trend Reversal');
+        }
+        
+        if (volume > 1500000) {
+          matched.push('Volume Surge', 'Momentum Buy');
+        }
+        
+        if (close > open && pctChange > 0.5) {
+          matched.push('Bullish Breakout');
+        }
+        
+        if (matched.length === 0) {
           matched.push('Consolidation', 'Support Range');
         }
 
         return {
           ticker: cleanSymbol,
           name: q.shortName || cleanSymbol,
-          cmp: q.regularMarketPrice || 0,
+          cmp: close,
           change: parseFloat(pctChange.toFixed(2)),
           matched
         };

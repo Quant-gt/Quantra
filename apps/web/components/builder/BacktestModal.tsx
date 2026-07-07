@@ -133,8 +133,8 @@ const BacktestModal = ({ isOpen, onClose, strategyId }: Props) => {
                     { label: 'Win Rate', val: `${result.metrics.win_rate}%`, color: 'text-white' },
                     { label: 'Max DD', val: `-${result.metrics.max_drawdown_pct}%`, color: 'text-red-400' },
                     { label: 'Sharpe', val: result.metrics.sharpe_ratio, color: 'text-white' },
-                    { label: 'Sortino', val: result.metrics.sortino_ratio || '2.8', color: 'text-purple-400' },
-                    { label: 'PF', val: result.metrics.profit_factor || '1.95', color: 'text-green-400' }
+                    { label: 'Sortino', val: result.metrics.sortino_ratio || '-', color: 'text-purple-400' },
+                    { label: 'PF', val: result.metrics.profit_factor || '-', color: 'text-green-400' }
                   ].map((m, i) => (
                     <div key={i} className="bg-[#161B22] border border-[#30363D] rounded-xl p-3 md:p-4">
                       <p className="text-[10px] md:text-xs text-gray-500 mb-1 font-bold uppercase tracking-wider">{m.label}</p>

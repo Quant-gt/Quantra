@@ -153,14 +153,82 @@ def run_backtest(req: BacktestRequest):
         drawdown = (cum_returns - running_max) / running_max
         max_drawdown = drawdown.min()
         
-        # Sharpe Ratio (assuming 0 risk free rate for simplicity)
+        # Sharpe Ratio
         sharpe = np.sqrt(252) * df['Strategy_Return'].mean() / df['Strategy_Return'].std() if df['Strategy_Return'].std() != 0 else 0
+        
+        # Sortino Ratio
+        downside_returns = df.loc[df['Strategy_Return'] < 0, 'Strategy_Return']
+        downside_std = downside_returns.std()
+        sortino = np.sqrt(252) * df['Strategy_Return'].mean() / downside_std if downside_std != 0 and not np.isnan(downside_std) else 0
+
+        # Calculate Trades from Position changes
+        trade_log = []
+        trades_won = 0
+        total_profit = 0
+        total_loss = 0
+        
+        position = 0 # 0 = flat, 1 = long
+        entry_price = 0.0
+        entry_time = None
+        
+        for idx, row in df.iterrows():
+            pos = float(row['Position']) if not np.isnan(row['Position']) else 0.0
+            close_price = float(row['Close']) if not np.isnan(row['Close']) else 0.0
+            date_str = idx.strftime('%Y-%m-%d')
+            
+            if pos == 1.0 and position == 0:
+                position = 1
+                entry_price = close_price
+                entry_time = date_str
+            elif pos == 0.0 and position == 1:
+                position = 0
+                pnl = (close_price - entry_price) * 100
+                pnl_pct = (close_price - entry_price) / entry_price * 100
+                
+                trade_log.append({
+                    "entry_time": entry_time,
+                    "exit_time": date_str,
+                    "entry_price": round(entry_price, 2),
+                    "exit_price": round(close_price, 2),
+                    "pnl": round(pnl, 2),
+                    "pnl_pct": round(pnl_pct, 2)
+                })
+                
+                if pnl > 0:
+                    trades_won += 1
+                    total_profit += pnl
+                else:
+                    total_loss += abs(pnl)
+        
+        if position == 1:
+            last_row = df.iloc[-1]
+            close_price = float(last_row['Close'])
+            date_str = df.index[-1].strftime('%Y-%m-%d')
+            pnl = (close_price - entry_price) * 100
+            pnl_pct = (close_price - entry_price) / entry_price * 100
+            trade_log.append({
+                "entry_time": entry_time,
+                "exit_time": date_str,
+                "entry_price": round(entry_price, 2),
+                "exit_price": round(close_price, 2),
+                "pnl": round(pnl, 2),
+                "pnl_pct": round(pnl_pct, 2)
+            })
+            if pnl > 0:
+                trades_won += 1
+                total_profit += pnl
+            else:
+                total_loss += abs(pnl)
+
+        total_trades = len(trade_log)
+        win_rate = round((trades_won / total_trades) * 100, 2) if total_trades > 0 else 0.0
+        profit_factor = round(total_profit / total_loss, 2) if total_loss > 0 else (round(total_profit, 2) if total_profit > 0 else 1.0)
 
         # 4. Format Results
         equity_curve = cum_returns.fillna(1.0).reset_index()
         equity_curve.columns = ['date', 'value']
         equity_curve['date'] = equity_curve['date'].dt.strftime('%Y-%m-%d')
-        equity_curve['value'] = equity_curve['value'] * 100000 # Assume 100k starting capital
+        equity_curve['value'] = equity_curve['value'] * 100000
         
         results = {
             "status": "completed",
@@ -169,13 +237,12 @@ def run_backtest(req: BacktestRequest):
                 "total_return": round(total_return * 100, 2),
                 "max_drawdown": round(max_drawdown * 100, 2),
                 "sharpe_ratio": round(sharpe, 2),
-                "win_rate": 55.0, # Simulated
-                "profit_factor": 1.5 # Simulated
+                "sortino_ratio": round(sortino, 2),
+                "win_rate": win_rate,
+                "profit_factor": profit_factor
             },
             "equity_curve": equity_curve.to_dict(orient='records'),
-            "trade_log": [
-                {"entry_time": req.start_date, "exit_time": req.end_date, "pnl": round(total_return * 100000, 2)}
-            ]
+            "trade_log": trade_log
         }
         
         return results

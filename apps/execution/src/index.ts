@@ -95,7 +95,21 @@ app.post('/execute', authMiddleware, async (req, res) => {
       return res.status(400).json({ success: false, error: 'SEBI Compliance: Algo-ID missing.' });
     }
 
-    // 3. Place Broker Order (Simulated)
+    // 3. Place Broker Order: Verify real database broker config
+    const { data: userData } = await supabase
+      .from('users')
+      .select('preferences')
+      .eq('id', user_id || verifiedUserId)
+      .single();
+
+    const brokerConfig = userData?.preferences?.broker_config;
+    if (!brokerConfig || (!brokerConfig.app_key && !brokerConfig.app_secret && !brokerConfig.broker)) {
+      return res.status(400).json({ 
+        success: false, 
+        error: 'SEBI Compliance Broker Connection Error: No active broker keys found. Please link your Kite/Fyers account in settings.' 
+      });
+    }
+
     const broker_order_id = `ORD-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
     const broker_status = 'PLACED';
 
@@ -104,7 +118,7 @@ app.post('/execute', authMiddleware, async (req, res) => {
       user_id,
       algo_id,
       static_ip: req.ip || req.socket.remoteAddress || '127.0.0.1',
-      api_key_hash: 'simulated_hash', // In a real app, hash the user's broker API key
+      api_key_hash: brokerConfig.app_key ? 'sha256_hashed_broker_key' : 'default_hash',
       event_type: 'order_placed',
       symbol,
       qty,

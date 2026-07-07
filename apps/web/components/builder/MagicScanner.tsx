@@ -198,13 +198,17 @@ export default function MagicScanner() {
         const lowVal = liveQuote ? liveQuote.low : Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
         const volumeVal = liveQuote ? liveQuote.volume : (seed % 900000) + 100000;
         
-        const rsi = (seed % 75) + 12; // RSI between 12 and 87
-        const adx = (seed % 45) + 10;
-        const supertrendVal = closeVal * (changeVal >= 0 ? 0.96 : 1.04);
-        const fvgBullVal = (seed % 7) === 0 ? (closeVal * 0.012) : 0.0;
-        const hasMacd = (seed % 3) === 0;
-        const hasGoldenCross = (seed % 4) === 0;
-        const hasVolumeSurge = volumeVal > 600000;
+        const rsi = Math.min(Math.max(Math.round(50 + changeVal * 6), 10), 90);
+        const adx = Math.min(Math.max(Math.round(20 + Math.abs(changeVal) * 8), 10), 60);
+        const supertrendVal = changeVal >= 0 
+          ? (lowVal - (highVal - lowVal) * 1.5) 
+          : (highVal + (highVal - lowVal) * 1.5);
+        const fvgBullVal = (closeVal > openVal && (highVal - lowVal) > (closeVal * 0.02)) 
+          ? (closeVal - openVal) * 0.3 
+          : 0.0;
+        const hasMacd = changeVal > 0.5;
+        const hasGoldenCross = closeVal > openVal && changeVal > 0.0;
+        const hasVolumeSurge = volumeVal > 1500000;
 
         const formattedPrice = `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
         const formattedChange = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;

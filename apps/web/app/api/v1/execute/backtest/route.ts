@@ -31,59 +31,20 @@ export async function POST(request: Request) {
 
       if (res.ok) {
         const data = await res.json();
-        if (data.success) {
-          // Add extra frontend metrics if not provided by backend
-          if (data.metrics && !data.metrics.sortino_ratio) {
-            data.metrics.sortino_ratio = 2.8;
-            data.metrics.profit_factor = 1.95;
-          }
-          return NextResponse.json(data);
-        }
+        return NextResponse.json(data);
+      } else {
+        const errText = await res.text();
+        return NextResponse.json({ success: false, error: errText || 'Backtest execution failed' }, { status: res.status });
       }
-    } catch (proxyError) {
-      console.warn('Execution service proxy backtest failed, falling back to mock engine:', proxyError);
+    } catch (proxyError: any) {
+      console.error('Execution service proxy backtest failed:', proxyError);
+      return NextResponse.json({ 
+        success: false, 
+        error: `Execution Service Offline: ${proxyError.message || 'Connection refused'}` 
+      }, { status: 502 });
     }
-
-    // Fallback Mock Engine: Generate mock equity curve and trades
-    // This ensures builder UI works even when AlphaVantage is rate-limited or offline
-    await new Promise(resolve => setTimeout(resolve, 1500));
-
-    const equity_curve = [];
-    let currentVal = initial_capital;
-    for (let i = 0; i < 30; i++) {
-      const date = new Date(Date.now() - (30 - i) * 86400000).toISOString().split('T')[0];
-      const change = currentVal * (0.005 + (Math.random() * 0.02 - 0.01));
-      currentVal += change;
-      equity_curve.push({ date, value: Math.round(currentVal) });
-    }
-
-    const trades = [
-      { date: '2026-05-18', action: 'BUY', price: 150.25, quantity: 100, pnl: null },
-      { date: '2026-05-19', action: 'SELL', price: 155.50, quantity: 100, pnl: 525.00 },
-      { date: '2026-05-20', action: 'BUY', price: 154.00, quantity: 100, pnl: null },
-      { date: '2026-05-21', action: 'SELL', price: 152.00, quantity: 100, pnl: -200.00 },
-    ];
-
-    const metrics = {
-      total_return_pct: 14.5,
-      win_rate: 68.2,
-      max_drawdown_pct: 8.4,
-      sharpe_ratio: 2.1,
-      sortino_ratio: 2.8,
-      profit_factor: 1.95
-    };
-
-    return NextResponse.json({
-      success: true,
-      strategy_id,
-      symbol,
-      metrics,
-      equity_curve,
-      trades,
-      fallback_simulation: true
-    });
-  } catch (error) {
+  } catch (error: any) {
     console.error('Backtest route handler error:', error);
-    return NextResponse.json({ success: false, error: 'Engine failure' }, { status: 500 });
+    return NextResponse.json({ success: false, error: error.message || 'Engine failure' }, { status: 500 });
   }
 }
