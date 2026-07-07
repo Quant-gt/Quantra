@@ -2,7 +2,7 @@
 
 import React, { useEffect, useRef, useState } from "react";
 import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, LineSeries } from "lightweight-charts";
-import { Loader2, Lock, Zap, ArrowRight, ShieldCheck, Activity } from "lucide-react";
+import { Loader2, Lock, Zap, ArrowRight, Activity, AlertCircle } from "lucide-react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
 
@@ -29,6 +29,7 @@ interface ClickToChartModalProps {
   ticker: string;
   exchange: "NSE" | "BSE";
   activeIndicators?: ActiveIndicator[];
+  data?: OHLCVData[]; // Paramount prop override
 }
 
 export function ClickToChartModal({
@@ -37,41 +38,63 @@ export function ClickToChartModal({
   ticker,
   exchange,
   activeIndicators = [],
+  data: externalData,
 }: ClickToChartModalProps) {
   const chartContainerRef = useRef<HTMLDivElement>(null);
   const chartRef = useRef<IChartApi | null>(null);
   const [isLoading, setIsLoading] = useState<boolean>(true);
+  const [hasError, setHasError] = useState<boolean>(false);
+  const [chartData, setChartData] = useState<OHLCVData[]>([]);
   const [metaMetrics, setMetaMetrics] = useState({ price: 0, change: 0 });
   const [activeTimeframe, setActiveTimeframe] = useState<"1d" | "15m" | "1m">("1d");
   const [showGatePrompt, setShowGatePrompt] = useState<boolean>(false);
   const [gateReason, setGateReason] = useState<string>("");
 
+  // Step 1: Resolve dataset via props or async endpoints
   useEffect(() => {
-    if (!isOpen || !chartContainerRef.current) return;
-    setIsLoading(true);
+    if (!isOpen) return;
 
-    const generateMockOHLCV = (): OHLCVData[] => {
-      const data: OHLCVData[] = [];
-      let basePrice = 2400 + Math.random() * 200;
-      const today = new Date();
-      for (let i = 180; i >= 0; i--) {
-        const date = new Date(today);
-        date.setDate(today.getDate() - i);
-        const dateString = date.toISOString().split("T")[0]!;
-        const open = basePrice + (Math.random() - 0.5) * 30;
-        const high = open + Math.random() * 40;
-        const low = open - Math.random() * 40;
-        const close = (open + high + low) / 3 + (Math.random() - 0.5) * 15;
-        data.push({ time: dateString, open, high, low, close, volume: 100000 });
-        basePrice = close;
+    if (externalData && externalData.length > 0) {
+      setChartData(externalData);
+      setIsLoading(false);
+      setHasError(false);
+      return;
+    }
+
+    const fetchHistoricalData = async () => {
+      setIsLoading(true);
+      setHasError(false);
+      try {
+        const response = await fetch(
+          `/api/v1/market/history?ticker=${encodeURIComponent(ticker)}&exchange=${exchange}`
+        );
+        const res = await response.json();
+        if (res.success && res.data && res.data.length > 0) {
+          setChartData(res.data);
+        } else {
+          setHasError(true);
+        }
+      } catch (err) {
+        console.error("Error loading historical chart data:", err);
+        setHasError(true);
+      } finally {
+        setIsLoading(false);
       }
-      return data;
     };
 
-    const historicalData = generateMockOHLCV();
-    const latestBar = historicalData[historicalData.length - 1]!;
-    const previousBar = historicalData[historicalData.length - 2]!;
-    setMetaMetrics({ price: latestBar.close, change: ((latestBar.close - previousBar.close) / previousBar.close) * 100 });
+    fetchHistoricalData();
+  }, [isOpen, ticker, exchange, externalData]);
+
+  // Step 2: Render charts after dataset changes
+  useEffect(() => {
+    if (!isOpen || isLoading || hasError || chartData.length === 0 || !chartContainerRef.current) return;
+
+    const latestBar = chartData[chartData.length - 1]!;
+    const previousBar = chartData[chartData.length - 2] || latestBar;
+    setMetaMetrics({
+      price: latestBar.close,
+      change: ((latestBar.close - previousBar.close) / previousBar.close) * 100
+    });
 
     const chart = createChart(chartContainerRef.current, {
       layout: {
@@ -90,19 +113,18 @@ export function ClickToChartModal({
     const candlestickSeries = chart.addSeries(CandlestickSeries, {
       upColor: "#10b981", downColor: "#ef4444", borderVisible: false, wickUpColor: "#10b981", wickDownColor: "#ef4444"
     });
-    candlestickSeries.setData(historicalData);
+    candlestickSeries.setData(chartData);
 
     const indicatorSeriesReferences: ISeriesApi<any>[] = [];
     activeIndicators.forEach((indicator) => {
       if (indicator.type === "MA") {
         const lineSeries = chart.addSeries(LineSeries, { color: indicator.color, lineWidth: 2, title: indicator.name });
-        lineSeries.setData(indicator.calculate(historicalData));
+        lineSeries.setData(indicator.calculate(chartData));
         indicatorSeriesReferences.push(lineSeries);
       }
     });
 
     chart.timeScale().fitContent();
-    setIsLoading(false);
 
     const handleResize = () => {
       if (chartContainerRef.current && chartRef.current) {
@@ -120,7 +142,7 @@ export function ClickToChartModal({
         chartRef.current = null;
       }
     };
-  }, [isOpen, ticker, activeIndicators]);
+  }, [isOpen, isLoading, hasError, chartData, activeIndicators]);
 
   const handleGateClick = (reason: string) => {
     setGateReason(reason);
@@ -144,7 +166,7 @@ export function ClickToChartModal({
             </div>
           </div>
           <div className="flex flex-wrap items-center gap-3">
-            {!isLoading && (
+            {!isLoading && !hasError && chartData.length > 0 && (
               <div className="flex items-center space-x-4 bg-zinc-900/40 border border-zinc-900 px-3 py-1.5 rounded-lg">
                 <span className="text-sm font-mono text-zinc-200">₹{metaMetrics.price.toFixed(2)}</span>
                 <span className={`text-sm font-mono ${metaMetrics.change >= 0 ? "text-emerald-500" : "text-red-500"}`}>
@@ -158,7 +180,7 @@ export function ClickToChartModal({
               onClick={() => {
                 window.location.href = '/auth/signup?source=deployment';
               }}
-              className="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-extrabold px-3.5 py-1.5 rounded-lg text-xs transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-1.5 cursor-pointer"
+              className="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-extrabold px-3.5 py-1.5 rounded-lg text-xs transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-1.5 cursor-pointer font-bold"
             >
               <Zap size={13} className="fill-current" />
               Deploy to Live Terminal
@@ -168,8 +190,26 @@ export function ClickToChartModal({
 
         {/* Dynamic Canvas Area */}
         <div className="relative mt-4 bg-zinc-950 rounded-xl border border-zinc-900 p-2 min-h-[380px] flex items-center justify-center">
-          {isLoading && <Loader2 className="w-8 h-8 animate-spin text-zinc-500"/>}
-          <div ref={chartContainerRef} className="w-full h-full" />
+          {isLoading && (
+            <div className="flex flex-col items-center gap-3">
+              <Loader2 className="w-8 h-8 animate-spin text-zinc-500" />
+              <span className="text-xs text-zinc-500">Loading live data from connected Broker API gateway...</span>
+            </div>
+          )}
+
+          {hasError && !isLoading && (
+            <div className="text-center space-y-3 p-6 animate-in fade-in duration-300">
+              <AlertCircle className="w-10 h-10 text-red-400 mx-auto" />
+              <h4 className="font-bold text-zinc-200 text-sm">Failed to stream data</h4>
+              <p className="text-xs text-zinc-500 max-w-sm mx-auto leading-relaxed">
+                Awaiting streaming credentials from connected Broker API gateway...
+              </p>
+            </div>
+          )}
+
+          {!isLoading && !hasError && chartData.length > 0 && (
+            <div ref={chartContainerRef} className="w-full h-full" />
+          )}
 
           {/* Prompt Registration Interceptor Dim Overlay */}
           {showGatePrompt && (
@@ -188,7 +228,7 @@ export function ClickToChartModal({
                   onClick={() => {
                     window.location.href = `/auth/signup?source=gate&reason=${encodeURIComponent(gateReason)}`;
                   }}
-                  className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:opacity-90 text-white font-extrabold py-2.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer"
+                  className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:opacity-90 text-white font-extrabold py-2.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer font-bold"
                 >
                   Create Free Account <ArrowRight size={13} />
                 </button>
