@@ -15,7 +15,8 @@ import {
   Activity,
   ArrowUpRight,
   Menu,
-  X
+  X,
+  Layers
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import LiveTickerTape from '@/components/dashboard/LiveTickerTape';
@@ -83,6 +84,10 @@ export default function DashboardLayout({
             <Link href="/dashboard/builder" className={getLinkClass('/dashboard/builder')}>
               <SlidersHorizontal size={18} />
               Strategy Builder
+            </Link>
+            <Link href="/dashboard/workspace" className={getLinkClass('/dashboard/workspace')}>
+              <Layers size={18} />
+              Workspace Layout
             </Link>
             <Link href="/dashboard/charts" className={getLinkClass('/dashboard/charts')}>
               <BarChart2 size={18} />
