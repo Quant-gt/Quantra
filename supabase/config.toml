@@ -3,9 +3,4 @@ project_id = "tksqjksuijekmmsvxhpe"
 [functions.todos]
 verify_jwt = true # Set to false if you change auth mode to "none", "secret" or "publishable"
 
-[auth]
-minimum_password_length = 8
 
-[auth.password]
-leaked_passwords = true
-required_characters = "abcdefghijklmnopqrstuvwxyz:ABCDEFGHIJKLMNOPQRSTUVWXYZ:0123456789:!@#$%^&*()_+-=[]{}|;':\",./<>?"
