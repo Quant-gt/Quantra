@@ -1,11 +1,6 @@
--- Migration: enable_rls_for_api_tables
--- Description: Enables Row-Level Security (RLS) and defines secure policies for all exposed API tables.
+-- Optimize RLS policies by wrapping auth.uid() in (SELECT auth.uid()) to prevent row-by-row re-evaluation (InitPlan optimization)
 
--- ========================================================
 -- 1. COMPLIANCE AUDIT
--- ========================================================
-ALTER TABLE public.compliance_audit ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Users can view own compliance audit" ON public.compliance_audit;
 CREATE POLICY "Users can view own compliance audit" 
 ON public.compliance_audit 
@@ -13,11 +8,7 @@ FOR SELECT
 TO authenticated 
 USING (user_id = (select auth.uid()));
 
--- ========================================================
 -- 2. ADMIN ALERTS
--- ========================================================
-ALTER TABLE public.admin_alerts ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Users can view own admin alerts" ON public.admin_alerts;
 CREATE POLICY "Users can view own admin alerts" 
 ON public.admin_alerts 
@@ -25,11 +16,7 @@ FOR SELECT
 TO authenticated 
 USING (user_id = (select auth.uid()));
 
--- ========================================================
--- 3. USER WATCHLIST (Singular - from API migrations)
--- ========================================================
-ALTER TABLE public.user_watchlist ENABLE ROW LEVEL SECURITY;
-
+-- 3. USER WATCHLIST
 DROP POLICY IF EXISTS "Users can manage own watchlist" ON public.user_watchlist;
 CREATE POLICY "Users can manage own watchlist" 
 ON public.user_watchlist 
@@ -38,23 +25,7 @@ TO authenticated
 USING (user_id = (select auth.uid()))
 WITH CHECK (user_id = (select auth.uid()));
 
--- ========================================================
--- 4. STRATEGY METRICS
--- ========================================================
-ALTER TABLE public.strategy_metrics ENABLE ROW LEVEL SECURITY;
-
-DROP POLICY IF EXISTS "Anyone can view strategy metrics" ON public.strategy_metrics;
-CREATE POLICY "Anyone can view strategy metrics" 
-ON public.strategy_metrics 
-FOR SELECT 
-TO anon, authenticated 
-USING (true);
-
--- ========================================================
 -- 5. STRATEGY VERSIONS
--- ========================================================
-ALTER TABLE public.strategy_versions ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Creators can view own strategy versions" ON public.strategy_versions;
 CREATE POLICY "Creators can view own strategy versions" 
 ON public.strategy_versions 
@@ -68,11 +39,7 @@ USING (
   )
 );
 
--- ========================================================
 -- 6. BACKTEST RESULTS
--- ========================================================
-ALTER TABLE public.backtest_results ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Users can manage own backtest results" ON public.backtest_results;
 CREATE POLICY "Users can manage own backtest results" 
 ON public.backtest_results 
@@ -81,11 +48,7 @@ TO authenticated
 USING (user_id = (select auth.uid()))
 WITH CHECK (user_id = (select auth.uid()));
 
--- ========================================================
 -- 7. SCANNER CONFIGS
--- ========================================================
-ALTER TABLE public.scanner_configs ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Users can manage own scanner configs" ON public.scanner_configs;
 CREATE POLICY "Users can manage own scanner configs" 
 ON public.scanner_configs 
@@ -94,11 +57,7 @@ TO authenticated
 USING (user_id = (select auth.uid()))
 WITH CHECK (user_id = (select auth.uid()));
 
--- ========================================================
 -- 8. SCAN RESULTS
--- ========================================================
-ALTER TABLE public.scan_results ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Users can view own scan results" ON public.scan_results;
 CREATE POLICY "Users can view own scan results" 
 ON public.scan_results 
@@ -112,11 +71,7 @@ USING (
   )
 );
 
--- ========================================================
 -- 9. NOTIFICATION PREFERENCES
--- ========================================================
-ALTER TABLE public.notification_preferences ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Users can manage own notification preferences" ON public.notification_preferences;
 CREATE POLICY "Users can manage own notification preferences" 
 ON public.notification_preferences 
@@ -125,11 +80,7 @@ TO authenticated
 USING (user_id = (select auth.uid()))
 WITH CHECK (user_id = (select auth.uid()));
 
--- ========================================================
 -- 10. CREATOR EARNINGS
--- ========================================================
-ALTER TABLE public.creator_earnings ENABLE ROW LEVEL SECURITY;
-
 DROP POLICY IF EXISTS "Creators can view own earnings" ON public.creator_earnings;
 CREATE POLICY "Creators can view own earnings" 
 ON public.creator_earnings 
