@@ -39,6 +39,11 @@ CREATE POLICY "Admin can delete users" ON public.users
 FOR DELETE USING (public.is_admin());
 
 -- 4. LOCK DOWN PUBLIC.STRATEGIES
+-- Safely add columns in case the production DB missed earlier migrations
+ALTER TABLE public.strategies ADD COLUMN IF NOT EXISTS is_public_marketplace boolean default false;
+ALTER TABLE public.strategies ADD COLUMN IF NOT EXISTS monthly_fee numeric(10, 2) default 0.00;
+ALTER TABLE public.strategies ADD COLUMN IF NOT EXISTS logic_graph jsonb not null default '{}'::jsonb;
+
 ALTER TABLE public.strategies ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Anyone can view public strategies" ON public.strategies;
