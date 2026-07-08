@@ -2,24 +2,24 @@
 create extension if not exists "uuid-ossp";
 
 -- 1. USERS TABLE (Extends Supabase Auth)
-create table public.users (
+create table if not exists public.users (
   id uuid references auth.users on delete cascade primary key,
-  full_name text,
   email text unique not null,
-  phone_number text,
-  pan_number text unique, -- CRITICAL: For SEBI compliance and KYC
-  is_creator boolean default false,
-  
-  -- Platform SaaS Subscription
-  subscription_tier text check (subscription_tier in ('hobbyist', 'pro', 'institutional')) default 'hobbyist',
-  subscription_status text check (subscription_status in ('active', 'past_due', 'canceled')) default 'active',
-  preferences jsonb default '{}'::jsonb,
-  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
-  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Alter table to add missing fields safely
+alter table public.users add column if not exists full_name text;
+alter table public.users add column if not exists phone_number text;
+alter table public.users add column if not exists pan_number text unique;
+alter table public.users add column if not exists is_creator boolean default false;
+alter table public.users add column if not exists subscription_tier text check (subscription_tier in ('hobbyist', 'pro', 'institutional')) default 'hobbyist';
+alter table public.users add column if not exists subscription_status text check (subscription_status in ('active', 'past_due', 'canceled')) default 'active';
+alter table public.users add column if not exists preferences jsonb default '{}'::jsonb;
+alter table public.users add column if not exists updated_at timestamp with time zone default timezone('utc'::text, now()) not null;
+
 -- 1.5 USER PAYMENTS (Dedicated Table for SaaS Billing)
-create table public.user_payments (
+create table if not exists public.user_payments (
   user_id uuid references public.users on delete cascade primary key,
   razorpay_customer_id text not null,
   razorpay_subscription_id text, -- ID for their Quantra SaaS Monthly Fee
@@ -28,7 +28,7 @@ create table public.user_payments (
 );
 
 -- 2. USER KYC (For Creators and Compliance)
-create table public.user_kyc (
+create table if not exists public.user_kyc (
   user_id uuid references public.users on delete cascade primary key,
   pan_verified boolean default false,
   sebi_registration_number text, -- E.g. INA000000000 (If they are an RIA)
@@ -39,7 +39,7 @@ create table public.user_kyc (
 );
 
 -- 3. BROKER CONNECTIONS
-create table public.broker_connections (
+create table if not exists public.broker_connections (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references public.users on delete cascade not null,
   broker text check (broker in ('fyers', 'zerodha', 'upstox', 'angelone')) not null,
@@ -52,7 +52,7 @@ create table public.broker_connections (
 );
 
 -- 4. STRATEGIES (The Algos)
-create table public.strategies (
+create table if not exists public.strategies (
   id uuid default uuid_generate_v4() primary key,
   creator_id uuid references public.users on delete cascade not null,
   name text not null,
@@ -69,7 +69,7 @@ create table public.strategies (
 );
 
 -- 5. MARKETPLACE SUBSCRIPTIONS (Subscribers buying Creator Algos)
-create table public.marketplace_subscriptions (
+create table if not exists public.marketplace_subscriptions (
   id uuid default uuid_generate_v4() primary key,
   subscriber_id uuid references public.users on delete cascade not null,
   strategy_id uuid references public.strategies on delete cascade not null,
@@ -81,7 +81,7 @@ create table public.marketplace_subscriptions (
 );
 
 -- 6. EXECUTION LOGS (For Backtesting & Live Trading History)
-create table public.execution_logs (
+create table if not exists public.execution_logs (
   id uuid default uuid_generate_v4() primary key,
   user_id uuid references public.users on delete cascade not null,
   strategy_id uuid references public.strategies on delete set null,
@@ -104,13 +104,24 @@ alter table public.marketplace_subscriptions enable row level security;
 alter table public.execution_logs enable row level security;
 
 -- Basic RLS: Users can only see/edit their own data
+drop policy if exists "Users can view own profile" on public.users;
 create policy "Users can view own profile" on public.users for select using (auth.uid() = id);
+
+drop policy if exists "Users can update own profile" on public.users;
 create policy "Users can update own profile" on public.users for update using (auth.uid() = id);
 
+drop policy if exists "Users can view own KYC" on public.user_kyc;
 create policy "Users can view own KYC" on public.user_kyc for select using (auth.uid() = user_id);
+
+drop policy if exists "Users can view own brokers" on public.broker_connections;
 create policy "Users can view own brokers" on public.broker_connections for select using (auth.uid() = user_id);
+
+drop policy if exists "Users can view own execution logs" on public.execution_logs;
 create policy "Users can view own execution logs" on public.execution_logs for select using (auth.uid() = user_id);
 
 -- Strategies: Anyone can see public strategies, but only creators can edit them
+drop policy if exists "Anyone can view public strategies" on public.strategies;
 create policy "Anyone can view public strategies" on public.strategies for select using (is_public_marketplace = true);
+
+drop policy if exists "Creators can manage own strategies" on public.strategies;
 create policy "Creators can manage own strategies" on public.strategies for all using (auth.uid() = creator_id);

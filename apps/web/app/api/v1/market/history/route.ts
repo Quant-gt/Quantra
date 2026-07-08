@@ -2,6 +2,11 @@ import { NextResponse } from 'next/server';
 
 function normalizeSymbol(ticker: string, exchange: "NSE" | "BSE") {
   const clean = ticker.toUpperCase().replace(/\.NS$/, '').replace(/\.BO$/, '').trim();
+  
+  if (!/^[A-Z0-9.-]{1,20}$/.test(clean)) {
+    throw new Error('Invalid ticker format');
+  }
+
   const suffix = exchange === 'BSE' ? '.BO' : '.NS';
   return `${clean}${suffix}`;
 }
@@ -10,16 +15,33 @@ export async function GET(request: Request) {
   try {
     const { searchParams } = new URL(request.url);
     const ticker = searchParams.get('ticker');
-    const exchange = (searchParams.get('exchange') || 'NSE') as 'NSE' | 'BSE';
+    const exchangeParam = searchParams.get('exchange') || 'NSE';
 
     if (!ticker) {
       return NextResponse.json({ error: 'Ticker is required' }, { status: 400 });
     }
 
-    const yahooSymbol = normalizeSymbol(ticker, exchange);
-    const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?range=1y&interval=1d`;
+    if (exchangeParam !== 'NSE' && exchangeParam !== 'BSE') {
+      return NextResponse.json({ error: 'Invalid exchange' }, { status: 400 });
+    }
 
-    const response = await fetch(url, {
+    const exchange = exchangeParam as 'NSE' | 'BSE';
+
+    let yahooSymbol: string;
+    try {
+      yahooSymbol = normalizeSymbol(ticker, exchange);
+    } catch (err: any) {
+      return NextResponse.json({ error: err.message }, { status: 400 });
+    }
+
+    const targetUrl = new URL(
+      `/v8/finance/chart/${encodeURIComponent(yahooSymbol)}`,
+      'https://query1.finance.yahoo.com'
+    );
+    targetUrl.searchParams.set('range', '1y');
+    targetUrl.searchParams.set('interval', '1d');
+
+    const response = await fetch(targetUrl.toString(), {
       headers: {
         'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
       },
@@ -27,7 +49,7 @@ export async function GET(request: Request) {
     });
 
     if (!response.ok) {
-      throw new Error(`Yahoo chart API returned status: ${response.status}`);
+      return NextResponse.json({ error: `Yahoo chart API returned status: ${response.status}` }, { status: 400 });
     }
 
     const data = await response.json();
