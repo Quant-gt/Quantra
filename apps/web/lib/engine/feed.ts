@@ -100,19 +100,13 @@ class MockWebSocketFeed {
     for (let i = 0; i < numTicks; i++) {
       const symbol = symbols[Math.floor(Math.random() * symbols.length)] as string;
       
-      // Random walk: -0.05% to +0.05% change
-      const volatility = 0.0005; 
-      const changeFactor = 1 + ((Math.random() - 0.5) * volatility);
-      
+      // No random walk: real prices will update via syncLivePrices()
       this.prevPrices[symbol] = this.currentPrices[symbol] as number;
-      const newPrice = (this.currentPrices[symbol] as number) * changeFactor;
-      this.currentPrices[symbol] = newPrice;
+      const newPrice = this.currentPrices[symbol] as number;
       
-      const change = newPrice - (this.prevPrices[symbol] as number);
-      const direction = change > 0 ? 'up' : change < 0 ? 'down' : 'none';
-
-      // Ensure price doesn't drift too crazy for the mock
-      const changePct = ((newPrice - 22500) / 22500) * 100; // Simplified mock logic
+      const change = 0; // We keep it simple since we aren't mutating locally
+      const direction = 'none';
+      const changePct = 0;
 
       const tick: Tick = {
         symbol,
