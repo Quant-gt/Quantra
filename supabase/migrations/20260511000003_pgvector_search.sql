@@ -13,8 +13,8 @@ CREATE INDEX IF NOT EXISTS strategies_search_idx ON strategies USING GIN (search
 
 -- RPC function for hybrid magic search
 -- Combines: 50% semantic similarity + 30% cagr + 20% popularity
-CREATE OR REPLACE FUNCTION search_magic_strategies(
-  query_embedding vector(384),
+CREATE OR REPLACE FUNCTION public.search_magic_strategies(
+  query_embedding public.vector(384),
   match_threshold float,
   match_count int,
   fulltext_query text DEFAULT NULL
@@ -31,14 +31,16 @@ CREATE OR REPLACE FUNCTION search_magic_strategies(
   subscriber_count int,
   similarity float,
   final_score float
-) LANGUAGE plpgsql AS $$
+) LANGUAGE plpgsql 
+SET search_path = '' 
+AS $$
 BEGIN
   RETURN QUERY
   WITH semantic_matches AS (
     SELECT 
       s.id,
       1 - (s.embedding <=> query_embedding) as similarity
-    FROM strategies s
+    FROM public.strategies s
     WHERE 1 - (s.embedding <=> query_embedding) > match_threshold
       AND s.status = 'live'
   ),
@@ -46,7 +48,7 @@ BEGIN
     SELECT 
       s.id,
       ts_rank(s.search_vector, to_tsquery('english', fulltext_query)) as similarity
-    FROM strategies s
+    FROM public.strategies s
     WHERE s.search_vector @@ to_tsquery('english', fulltext_query)
       AND s.status = 'live'
   ),
@@ -73,8 +75,8 @@ BEGIN
       ((LEAST(COALESCE(m.subscriber_count, 0), 1000) / 1000.0) * 0.2)
     ) as final_score
   FROM combined_matches cm
-  JOIN strategies s ON cm.id = s.id
-  LEFT JOIN strategy_metrics m ON s.id = m.strategy_id
+  JOIN public.strategies s ON cm.id = s.id
+  LEFT JOIN public.strategy_metrics m ON s.id = m.strategy_id
   ORDER BY final_score DESC
   LIMIT match_count;
 END;
