@@ -1,5 +1,5 @@
 -- 7. USER PORTFOLIO RISK SETTINGS
-create table public.user_portfolio_risk (
+create table if not exists public.user_portfolio_risk (
   user_id uuid references public.users on delete cascade primary key,
   max_daily_drawdown_limit numeric(10, 2) default -5000.00, -- Maximum loss per day across all algos
   trailing_stop_loss_pct numeric(5, 2) default 0.00, -- 0.00 means disabled
@@ -10,12 +10,20 @@ create table public.user_portfolio_risk (
 
 -- We also need a way to track today's PnL. For simplicity, we can add it to the user's main record or a portfolio_stats table.
 -- Let's add it to user_portfolio_risk for this sprint as a cached value updated by a cron job or webhook
-alter table public.user_portfolio_risk
-add column today_unrealised_pnl numeric(10, 2) default 0.00,
-add column today_realised_pnl numeric(10, 2) default 0.00;
+DO $$
+BEGIN
+  IF NOT EXISTS (SELECT 1 FROM information_schema.columns WHERE table_schema='public' AND table_name='user_portfolio_risk' AND column_name='today_unrealised_pnl') THEN
+    alter table public.user_portfolio_risk
+    add column today_unrealised_pnl numeric(10, 2) default 0.00,
+    add column today_realised_pnl numeric(10, 2) default 0.00;
+  END IF;
+END $$;
 
 -- Enable RLS
 alter table public.user_portfolio_risk enable row level security;
+drop policy if exists "Users can view own risk settings" on public.user_portfolio_risk;
 create policy "Users can view own risk settings" on public.user_portfolio_risk for select using (auth.uid() = user_id);
+drop policy if exists "Users can update own risk settings" on public.user_portfolio_risk;
 create policy "Users can update own risk settings" on public.user_portfolio_risk for update using (auth.uid() = user_id);
+drop policy if exists "Users can insert own risk settings" on public.user_portfolio_risk;
 create policy "Users can insert own risk settings" on public.user_portfolio_risk for insert with check (auth.uid() = user_id);

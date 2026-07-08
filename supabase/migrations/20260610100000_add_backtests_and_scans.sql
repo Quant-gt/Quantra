@@ -1,6 +1,6 @@
 -- Migration: add_backtests_and_scans
 
-CREATE TABLE public.backtest_runs (
+CREATE TABLE IF NOT EXISTS public.backtest_runs (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     strategy_id UUID REFERENCES public.strategies(id) ON DELETE CASCADE,
@@ -17,7 +17,7 @@ CREATE TABLE public.backtest_runs (
     created_at TIMESTAMP WITH TIME ZONE DEFAULT timezone('utc'::text, now()) NOT NULL
 );
 
-CREATE TABLE public.saved_scans (
+CREATE TABLE IF NOT EXISTS public.saved_scans (
     id UUID DEFAULT gen_random_uuid() PRIMARY KEY,
     user_id UUID REFERENCES auth.users(id) ON DELETE CASCADE,
     scan_name TEXT NOT NULL,
@@ -30,11 +30,18 @@ CREATE TABLE public.saved_scans (
 ALTER TABLE public.backtest_runs ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.saved_scans ENABLE ROW LEVEL SECURITY;
 
+DROP POLICY IF EXISTS "Users can view their own backtests" ON public.backtest_runs;
 CREATE POLICY "Users can view their own backtests" ON public.backtest_runs FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert their own backtests" ON public.backtest_runs;
 CREATE POLICY "Users can insert their own backtests" ON public.backtest_runs FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete their own backtests" ON public.backtest_runs;
 CREATE POLICY "Users can delete their own backtests" ON public.backtest_runs FOR DELETE USING (auth.uid() = user_id);
 
+DROP POLICY IF EXISTS "Users can view their own scans" ON public.saved_scans;
 CREATE POLICY "Users can view their own scans" ON public.saved_scans FOR SELECT USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can insert their own scans" ON public.saved_scans;
 CREATE POLICY "Users can insert their own scans" ON public.saved_scans FOR INSERT WITH CHECK (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can update their own scans" ON public.saved_scans;
 CREATE POLICY "Users can update their own scans" ON public.saved_scans FOR UPDATE USING (auth.uid() = user_id);
+DROP POLICY IF EXISTS "Users can delete their own scans" ON public.saved_scans;
 CREATE POLICY "Users can delete their own scans" ON public.saved_scans FOR DELETE USING (auth.uid() = user_id);

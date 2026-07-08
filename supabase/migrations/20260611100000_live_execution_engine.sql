@@ -1,5 +1,5 @@
 -- 1. Create strategy_positions to track what each strategy holds
-CREATE TABLE public.strategy_positions (
+CREATE TABLE IF NOT EXISTS public.strategy_positions (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     strategy_id uuid REFERENCES public.strategies ON DELETE CASCADE,
     symbol text NOT NULL,
@@ -10,7 +10,7 @@ CREATE TABLE public.strategy_positions (
 );
 
 -- 2. Create master_execution_log to audit the real Fyers orders
-CREATE TABLE public.master_execution_log (
+CREATE TABLE IF NOT EXISTS public.master_execution_log (
     id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
     fyers_order_id text, -- ID returned by the broker
     symbol text NOT NULL,
@@ -27,5 +27,7 @@ ALTER TABLE public.strategy_positions ENABLE ROW LEVEL SECURITY;
 ALTER TABLE public.master_execution_log ENABLE ROW LEVEL SECURITY;
 
 -- Admins and system processes can read/write. For now, we will just allow authenticated reads since the AI engine bypasses RLS via Service Role Key.
+DROP POLICY IF EXISTS "Public read strategy positions" ON public.strategy_positions;
 CREATE POLICY "Public read strategy positions" ON public.strategy_positions FOR SELECT USING (true);
+DROP POLICY IF EXISTS "Public read execution logs" ON public.master_execution_log;
 CREATE POLICY "Public read execution logs" ON public.master_execution_log FOR SELECT USING (true);
