@@ -15,6 +15,8 @@ CREATE TABLE IF NOT EXISTS user_watchlist (
   PRIMARY KEY (user_id, strategy_id)
 );
 
+CREATE INDEX IF NOT EXISTS user_watchlist_strategy_id_idx ON user_watchlist (strategy_id);
+
 -- Mock metrics table for the view
 CREATE TABLE IF NOT EXISTS strategy_metrics (
   strategy_id UUID PRIMARY KEY REFERENCES strategies(id) ON DELETE CASCADE,

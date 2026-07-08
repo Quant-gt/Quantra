@@ -16,3 +16,4 @@ CREATE TABLE IF NOT EXISTS creator_earnings (
 -- Index
 CREATE INDEX IF NOT EXISTS creator_earnings_creator_id_idx ON creator_earnings(creator_id);
 CREATE INDEX IF NOT EXISTS creator_earnings_month_year_idx ON creator_earnings(month_year);
+CREATE INDEX IF NOT EXISTS creator_earnings_strategy_id_idx ON creator_earnings(strategy_id);

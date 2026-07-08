@@ -66,3 +66,11 @@ CREATE TABLE IF NOT EXISTS admin_alerts (
   status TEXT DEFAULT 'open',
   created_at TIMESTAMP WITH TIME ZONE DEFAULT NOW()
 );
+
+-- Indexes for foreign keys to optimize performance and cascade deletes
+CREATE INDEX IF NOT EXISTS strategies_creator_id_idx ON strategies (creator_id);
+CREATE INDEX IF NOT EXISTS marketplace_subscriptions_strategy_id_idx ON marketplace_subscriptions (strategy_id);
+CREATE INDEX IF NOT EXISTS marketplace_subscriptions_user_id_idx ON marketplace_subscriptions (user_id);
+CREATE INDEX IF NOT EXISTS compliance_audit_user_id_idx ON compliance_audit (user_id);
+CREATE INDEX IF NOT EXISTS admin_alerts_strategy_id_idx ON admin_alerts (strategy_id);
+CREATE INDEX IF NOT EXISTS admin_alerts_user_id_idx ON admin_alerts (user_id);
