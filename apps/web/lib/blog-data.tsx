@@ -38,7 +38,7 @@ export const BLOG_POSTS: BlogPost[] = [
         <p>
           Your journey begins entirely risk-free. The moment you create an account on Quantra, you are automatically enrolled in <strong>The Sandbox Pass</strong>. This introductory tier is completely free forever. We believe that before you risk a single rupee in the live markets, you must thoroughly understand the mechanics of automated execution.
         </p>
-        <img src="/blog/sandbox.png" alt="Quantra Sandbox Dashboard" className="rounded-xl border border-white/10 w-full my-6 shadow-2xl" />
+        
         <p>
           In the Sandbox, you gain full access to the visual terminal interface and charting dashboards. The most powerful feature of this tier is <strong>Paper Trading</strong>. Paper trading allows you to simulate live order flows using real-time market data without risking actual capital. 
         </p>
@@ -61,7 +61,7 @@ export const BLOG_POSTS: BlogPost[] = [
         <p>
           Once you identify a strategy that aligns with your investment goals—for instance, a mean-reverting Nifty Options Scalper—you can acquire a software license to utilize that specific model. Clicking "Subscribe" initiates a highly secure checkout process powered by <strong>Razorpay</strong>.
         </p>
-        <img src="/blog/checkout.png" alt="Secure Razorpay Checkout" className="rounded-xl border border-white/10 w-full my-6 shadow-2xl" />
+        
         <p>
           Quantra utilizes a highly advanced split-payment routing architecture known as Razorpay Route. When you pay the monthly licensing fee (e.g., ₹2,500), your payment is instantly and securely divided at the gateway level. The vast majority of the fee (90%) is routed directly to the strategy creator's bank account, while Quantra retains a minimal 10% technology fee.
         </p>
@@ -89,7 +89,7 @@ export const BLOG_POSTS: BlogPost[] = [
         <p>
           You are now fully equipped to conquer the markets systematically. Head to your Dashboard, locate your licensed strategy, and toggle the execution mode from "Paper" to "Live." 
         </p>
-        <img src="/blog/dashboard.png" alt="Live Execution Dashboard" className="rounded-xl border border-white/10 w-full my-6 shadow-2xl" />
+        
         <p>
           Before activating the strategy, you must define your strict capital allocation limits and risk multipliers. The Quantra engine will immediately take over execution, analyzing market ticks in real-time and firing orders based on the algorithm's precise mathematical rules.
         </p>
@@ -128,7 +128,7 @@ export const BLOG_POSTS: BlogPost[] = [
         <p>
           Your journey as a strategy creator begins in the <strong>Private Dev Sandbox</strong>. This free tier grants you unrestricted access to the Quantra Strategy Builder environment—a powerful IDE tailored specifically for financial engineering.
         </p>
-        <img src="/blog/builder.png" alt="Quantra Strategy Builder" className="rounded-xl border border-white/10 w-full my-6 shadow-2xl" />
+        
         <p>
           Within the Sandbox, you can code your trading logic utilizing our robust Python and Node.js SDKs, or leverage our visual drag-and-drop node builder for rapid prototyping. The platform natively supports complex time-series analysis, multi-timeframe aggregations, and custom indicator development.
         </p>
