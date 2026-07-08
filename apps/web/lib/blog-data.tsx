@@ -592,5 +592,139 @@ export const BLOG_POSTS: BlogPost[] = [
         </p>
       </div>
     )
+  },
+  {
+    id: "buyer-customer-journey",
+    title: "The Trader's Guide: From Sandbox to Live Automated Execution",
+    excerpt: "A complete step-by-step journey for retail traders using Quantra—from backtesting in the free sandbox to purchasing and deploying live algorithmic strategies.",
+    date: "July 8, 2026",
+    readTime: "6 min read",
+    category: "Systematic Trading",
+    tags: ["Onboarding", "Buyers", "Paper Trading", "Execution", "Marketplace"],
+    content: (
+      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
+        <p>
+          Welcome to Quantra! If you are a discretionary trader looking to automate your execution, or an investor 
+          wanting to deploy professional quantitative models without writing a single line of code, you are in the right place. 
+        </p>
+        <p>
+          Quantra operates as a high-performance **Software-as-a-Service (SaaS)** and code-licensing marketplace. 
+          This means you retain complete control of your capital in your own brokerage account while our low-latency 
+          engines execute trades on your behalf. Here is your step-by-step journey to algorithmic trading.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 1: The Free Sandbox Pass</h3>
+        <p>
+          Your journey begins entirely risk-free. When you create an account, you are automatically enrolled in **The Sandbox Pass**. 
+          This tier costs nothing and allows you to explore the platform's visual terminal interface and charting dashboards. 
+        </p>
+        <ul className="list-disc pl-6 space-y-2">
+          <li><strong>Paper Trading:</strong> Simulate live order flows using real-time market data without risking real money.</li>
+          <li><strong>Basic Backtesting:</strong> Run historical tests using core indicators (RSI, MACD) to see how simple strategies performed in the past.</li>
+          <li><strong>Explore the Marketplace:</strong> Browse public algorithms built by professional quants and verified SEBI Research Analysts.</li>
+        </ul>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 2: Acquiring a Strategy License</h3>
+        <p>
+          Once you find a strategy on the Marketplace that matches your risk profile (e.g., a Nifty Options Scalper), 
+          you can purchase a license. Clicking "Subscribe" opens a highly secure **Razorpay Checkout**.
+        </p>
+        <p>
+          Thanks to our split-payment routing architecture, your payment is instantly and securely divided—the majority 
+          goes directly to the strategy creator's bank account, and Quantra retains a small technology fee. You are 
+          simply buying a software license to use their mathematical model.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 3: Connecting Your Broker</h3>
+        <p>
+          To deploy your new algorithm, you must connect your brokerage account (e.g., Zerodha, Fyers, AngelOne). 
+          Navigate to the <strong>Broker Integration</strong> panel, generate your API keys from your broker's portal, 
+          and paste them into Quantra. These keys are encrypted at rest; we can only send trade signals, we cannot 
+          withdraw your funds.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 4: Upgrading to a Live Execution Tier</h3>
+        <p>
+          To send signals from Quantra to your live broker, you will need to upgrade to a commercial SaaS tier. 
+          Navigate to the <strong>Pricing</strong> page and select **The Live Execution Pass** (₹499/mo). 
+          This recurring subscription unlocks the ability to route real money trades via our infrastructure.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 5: Go Live!</h3>
+        <p>
+          Head to the Dashboard, toggle your licensed strategy from "Paper" to "Live", and set your capital allocation limit. 
+          The engine takes over. You can monitor every execution tick-by-tick on the Live Feed. 
+          If the market crashes, you always have access to the **Instant Kill Switch** to flatten positions and halt execution immediately.
+        </p>
+      </div>
+    )
+  },
+  {
+    id: "creator-customer-journey",
+    title: "The Quant's Journey: Building, Backtesting, and Monetizing Your Strategies",
+    excerpt: "Learn how quantitative developers and SEBI RAs use Quantra to build low-latency algorithms, encrypt their IP, and monetize their code via the marketplace.",
+    date: "July 8, 2026",
+    readTime: "7 min read",
+    category: "Engineering",
+    tags: ["Onboarding", "Creators", "Strategy Builder", "Monetization", "IP Protection"],
+    content: (
+      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
+        <p>
+          Are you a quantitative developer, a financial content creator, or a SEBI-registered Research Analyst (RA) with 
+          a profitable edge? Quantra provides you with institutional-grade infrastructure to build, test, and monetize 
+          your algorithms without giving up your Intellectual Property (IP).
+        </p>
+        <p>
+          Here is how you can leverage Quantra to turn your trading logic into a scalable, recurring revenue stream.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 1: The Private Dev Sandbox</h3>
+        <p>
+          As a Creator, your journey begins in the free **Private Dev Sandbox**. This tier grants you unrestricted access 
+          to the Strategy Builder environment. You can write your logic using our Python/Node SDKs or our visual drag-and-drop builder.
+        </p>
+        <p>
+          Run heavy backtests across 5-years of deep historical tick data. Refine your parameters, optimize your stop-losses, 
+          and simulate forward-testing (Paper Trading) in real-time market conditions. In this free tier, your strategies 
+          remain strictly private.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 2: IP Protection and Obfuscation</h3>
+        <p>
+          We know that your algorithm is your most valuable asset. When you finalize a strategy on Quantra, the source code 
+          is securely encrypted and compiled. When a retail user licenses your strategy, they never see your underlying code, 
+          moving averages, or entry logic. They only see the *results* and the live trade executions hitting their broker.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 3: Vendor Onboarding and Payouts</h3>
+        <p>
+          Ready to monetize? Head to the **Creator Studio**. Before you can list a strategy publicly, you must connect 
+          your bank account via our **Razorpay Linked Accounts** portal. 
+        </p>
+        <p>
+          Because Quantra is a pure software licensing platform, we use multi-party split routing. When a subscriber buys 
+          your strategy for ₹2,500/month, the payment gateway instantly splits the transaction. **90% routes directly to your bank account**, 
+          and 10% is routed to Quantra as a platform fee. You get paid instantly, with zero delayed payouts or withdrawal minimums.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 4: The SaaS Vendor Tiers</h3>
+        <p>
+          To list your strategies publicly on the Marketplace, you must hold an active Creator SaaS pass. 
+          Navigate to the Pricing page and subscribe to **The Rising Vendor Pass** (₹999/mo). This allows you to publicly list 
+          up to 2 strategies and unlocks subscriber analytics. 
+        </p>
+        <p>
+          As your business grows, you can upgrade to the **Institutional Studio** to list up to 10 strategies and access advanced 
+          churn tracking.
+        </p>
+
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">Step 5: The SEBI Partner Program</h3>
+        <p>
+          If you are a verified SEBI-registered RA or IA, you can apply for the **SEBI Compliance Partner** tier. 
+          Once verified by our team, your public profile receives a prominent "SEBI Registered" trust-badge, significantly 
+          boosting your conversion rates. You also unlock unlimited strategy listings and dedicated API support.
+        </p>
+      </div>
+    )
   }
 ];
