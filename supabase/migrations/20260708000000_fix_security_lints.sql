@@ -1,18 +1,8 @@
--- Add embedding column to strategies
-ALTER TABLE strategies ADD COLUMN IF NOT EXISTS embedding extensions.vector(384);
+-- 1. Extension in Public: Move vector to extensions schema
+CREATE SCHEMA IF NOT EXISTS extensions;
+ALTER EXTENSION vector SET SCHEMA extensions;
 
--- Create IVFFlat index for similarity search
-CREATE INDEX IF NOT EXISTS strategies_embedding_idx ON strategies USING ivfflat (embedding extensions.vector_cosine_ops) WITH (lists=100);
-
--- Also prepare fulltext search tsvector column
-ALTER TABLE strategies ADD COLUMN IF NOT EXISTS search_vector tsvector GENERATED ALWAYS AS (
-    setweight(to_tsvector('english', coalesce(name, '')), 'A')
-) STORED;
-
-CREATE INDEX IF NOT EXISTS strategies_search_idx ON strategies USING GIN (search_vector);
-
--- RPC function for hybrid magic search
--- Combines: 50% semantic similarity + 30% cagr + 20% popularity
+-- 2. Update search_magic_strategies to use extensions.vector instead of public.vector
 CREATE OR REPLACE FUNCTION public.search_magic_strategies(
   query_embedding extensions.vector(384),
   match_threshold float,
@@ -53,9 +43,9 @@ BEGIN
       AND s.status = 'live'
   ),
   combined_matches AS (
-    SELECT id, similarity FROM semantic_matches
+    SELECT semantic_matches.id, semantic_matches.similarity FROM semantic_matches
     UNION
-    SELECT id, similarity FROM fulltext_matches
+    SELECT fulltext_matches.id, fulltext_matches.similarity FROM fulltext_matches
   )
   SELECT 
     s.id,
@@ -81,3 +71,6 @@ BEGIN
   LIMIT match_count;
 END;
 $$;
+
+-- 3. Materialized View in API: Revoke API access to portfolio_stats
+REVOKE ALL ON public.portfolio_stats FROM anon, authenticated;
