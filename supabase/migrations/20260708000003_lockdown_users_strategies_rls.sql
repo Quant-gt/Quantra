@@ -56,6 +56,19 @@ FOR ALL TO authenticated USING (creator_id = (SELECT auth.uid()) OR public.is_ad
 WITH CHECK (creator_id = (SELECT auth.uid()) OR public.is_admin());
 
 -- 5. SECURE PUBLIC.MASTER_EXECUTION_LOG (Was previously USING (true))
+-- Ensure table exists in case of missing earlier migrations
+CREATE TABLE IF NOT EXISTS public.master_execution_log (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    fyers_order_id text,
+    symbol text NOT NULL,
+    order_type text CHECK (order_type IN ('BUY', 'SELL')) NOT NULL,
+    quantity integer NOT NULL,
+    price numeric(10, 2),
+    status text DEFAULT 'PENDING',
+    executed_at timestamp with time zone DEFAULT timezone('utc'::text, now()),
+    strategy_allocations jsonb
+);
+
 ALTER TABLE public.master_execution_log ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public read execution logs" ON public.master_execution_log;
@@ -63,6 +76,17 @@ CREATE POLICY "Admin can view master execution logs" ON public.master_execution_
 FOR SELECT TO authenticated USING (public.is_admin());
 
 -- 6. SECURE PUBLIC.STRATEGY_POSITIONS (Was previously USING (true))
+-- Ensure table exists in case of missing earlier migrations
+CREATE TABLE IF NOT EXISTS public.strategy_positions (
+    id uuid DEFAULT gen_random_uuid() PRIMARY KEY,
+    strategy_id uuid REFERENCES public.strategies ON DELETE CASCADE,
+    symbol text NOT NULL,
+    quantity integer NOT NULL DEFAULT 0,
+    average_price numeric(10, 2) NOT NULL DEFAULT 0.00,
+    updated_at timestamp with time zone DEFAULT timezone('utc'::text, now()) NOT NULL,
+    UNIQUE(strategy_id, symbol)
+);
+
 ALTER TABLE public.strategy_positions ENABLE ROW LEVEL SECURITY;
 
 DROP POLICY IF EXISTS "Public read strategy positions" ON public.strategy_positions;
