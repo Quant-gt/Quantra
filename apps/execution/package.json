@@ -10,6 +10,7 @@
     "test": "echo \"Error: no test specified\" && exit 0"
   },
   "dependencies": {
+    "@repo/notifications": "*",
     "@supabase/supabase-js": "^2.105.4",
     "@types/cors": "^2.8.19",
     "@upstash/redis": "^1.38.0",

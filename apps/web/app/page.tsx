@@ -198,9 +198,9 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.2 }}
           className="text-5xl md:text-6xl font-black text-white mb-6 tracking-tight leading-tight"
         >
-          Your Algorithm.<br />
-          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-500 to-cyan-500">Your Mantra.</span><br />
-          Your Edge.
+          Best Hyper-Visual<br />
+          <span className="text-transparent bg-clip-text bg-gradient-to-r from-emerald-400 via-emerald-500 to-cyan-500">Trading Terminal</span><br />
+          for Indian Markets.
         </motion.h1>
         
         <motion.p 
@@ -209,8 +209,7 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium"
         >
-          Quantra is a hyper-visual, zero-latency terminal designed for serious traders. 
-          Deploy complex strategies across global markets with institutional-grade precision.
+          Quantra is a zero-latency, institutional-grade systematic trading platform designed for serious Indian retail and quant traders. Build, backtest, and automate your algorithmic trading edge directly on the NSE.
         </motion.p>
 
         <motion.div 
@@ -225,7 +224,7 @@ export default function Home() {
               onHoverEnd={() => setIsHovered(false)}
               className="w-full px-10 py-5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-2xl font-black text-lg hover:shadow-[0_0_40px_-5px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2"
             >
-              Build Your Edge 
+              Build Your Edge on Quantra 
               <motion.span animate={{ x: isHovered ? 5 : 0 }}>
                 <ChevronRight className="h-5 w-5" />
               </motion.span>
@@ -279,7 +278,7 @@ export default function Home() {
             <Activity className="text-emerald-500 h-5 w-5" />
             Institutional FII / DII Tracker
           </h3>
-          <p className="text-zinc-500 text-xs mb-6">Daily institutional market activity snapshot</p>
+          <p className="text-zinc-500 text-xs mb-6 leading-relaxed">Track live FII DII data and daily institutional volume flow on the NSE. Quantra's proprietary trackers reveal gross purchases, sales, and net institutional market positioning for advanced quantitative analysis.</p>
           
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
@@ -409,7 +408,7 @@ export default function Home() {
               <h3 className="text-white text-xl font-bold flex items-center gap-2">
                 Live Alpha Discovery Engines
               </h3>
-              <p className="text-zinc-500 text-xs mt-0.5">Explore active quantitative core scanner segments</p>
+              <p className="text-zinc-500 text-xs mt-0.5 leading-relaxed max-w-xl">Leverage Quantra's structural momentum stock scanner and volume inflow shock scanner to identify live alpha on the NSE. Instantly filter assets by Value Core Low P/E Multiples or RSI overbought conditions.</p>
             </div>
 
             {/* Strategy Selectors */}
@@ -568,8 +567,8 @@ export default function Home() {
           </div>
           <div>
             <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-4">Quantra</h4>
-            <p className="text-gray-600 text-xs leading-relaxed">
-              Institutional-grade systematic trading terminals for active market participants. SEBI registered RA integrations.
+            <p className="text-gray-600 text-xs leading-relaxed pr-4">
+              Quantra provides institutional direct market access infrastructure and zero-latency execution APIs for the active quant trader in India. Integrate your automated strategy development Python SDK and utilize our SEBI registered RA automated trading integrations. Explore our API Docs for ultra-fast algorithmic backtesting and live deployment.
             </p>
           </div>
         </div>

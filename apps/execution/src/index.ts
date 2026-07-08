@@ -3,7 +3,7 @@ import { Redis } from '@upstash/redis';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import { runBacktest } from './backtester.js';
-
+import { NotificationService } from '@repo/notifications';
 const app = express();
 app.set('trust proxy', 1);
 app.use(cors());
@@ -84,6 +84,25 @@ app.post('/execute', authMiddleware, async (req, res) => {
         message: `Subscription ${subscription_id} hit 10 OPS and was hard-paused.`,
       });
 
+      const { data: notifPrefs } = await supabase
+        .from('notification_preferences')
+        .select('*, users!inner(email, telegram_chat_id)')
+        .eq('user_id', user_id)
+        .single();
+        
+      if (notifPrefs) {
+        const mergedPrefs = { 
+          ...notifPrefs, 
+          user_email: (notifPrefs.users as any)?.email,
+          telegram_chat_id: (notifPrefs.users as any)?.telegram_chat_id
+        };
+        await NotificationService.notifyComplianceThrottle(
+          user_id, 
+          mergedPrefs,
+          '10 OPS Limit Breached (SEBI Guard)'
+        );
+      }
+
       return res.status(429).json({
         success: false,
         error: 'SEBI Compliance: OPS limit (10/sec) breached. Strategy paused.',
@@ -98,7 +117,7 @@ app.post('/execute', authMiddleware, async (req, res) => {
     // 3. Place Broker Order: Verify real database broker config
     const { data: userData } = await supabase
       .from('users')
-      .select('preferences')
+      .select('preferences, email, telegram_chat_id, notification_preferences(*)')
       .eq('id', user_id || verifiedUserId)
       .single();
 
@@ -128,6 +147,16 @@ app.post('/execute', authMiddleware, async (req, res) => {
       ops_at_event: currentOps,
       payload: { ...req.body },
     });
+
+    if (userData?.notification_preferences?.[0]) {
+      const prefs = userData.notification_preferences[0];
+      const mergedPrefs = { ...prefs, user_email: userData.email, telegram_chat_id: userData.telegram_chat_id };
+      await NotificationService.notifyTradeExecution(
+        user_id,
+        mergedPrefs,
+        { symbol, qty, price, action: 'TRADE', status: broker_status }
+      );
+    }
 
     return res.json({ success: true, broker_order_id, broker_status });
 
@@ -266,6 +295,24 @@ app.post('/execute/fanout', authMiddleware, async (req, res) => {
     // Execute all broker API calls simultaneously
     await Promise.all(promises);
 
+    const { data: userPrefsData } = await supabase
+      .from('users')
+      .select('id, email, telegram_chat_id, notification_preferences(*)')
+      .in('id', subscriberIds);
+
+    const userPrefsMap: Record<string, any> = {};
+    if (userPrefsData) {
+      userPrefsData.forEach(u => {
+        if (u.notification_preferences?.[0]) {
+          userPrefsMap[u.id] = {
+            ...u.notification_preferences[0],
+            user_email: u.email,
+            telegram_chat_id: u.telegram_chat_id
+          };
+        }
+      });
+    }
+
     // 4. Bulk insert logs into execution_logs table so subscribers can see it on their dashboard
     if (executionLogs.length > 0) {
       const { error: logError } = await supabase
@@ -275,6 +322,18 @@ app.post('/execute/fanout', authMiddleware, async (req, res) => {
       if (logError) {
         console.error('[FAN-OUT] Error writing execution logs:', logError);
       }
+
+      // Send notifications async
+      Promise.allSettled(executionLogs.map(log => {
+        const prefs = userPrefsMap[log.user_id];
+        if (prefs) {
+          return NotificationService.notifyTradeExecution(
+            log.user_id,
+            prefs,
+            { symbol: log.symbol, qty: log.quantity, price: log.price, action: log.action, status: log.status }
+          );
+        }
+      }));
     }
 
     return res.json({ 
