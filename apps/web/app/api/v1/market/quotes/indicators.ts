@@ -200,12 +200,27 @@ export function calculateSMA(closes: number[], period: number): number {
 
 export function calculateEMA(closes: number[], period: number): number[] {
   const ema: number[] = [];
-  const k = 2 / (period + 1);
   if (closes.length === 0) return [];
   
-  // Seed with first close
-  ema.push(closes[0]!);
-  for (let i = 1; i < closes.length; i++) {
+  if (closes.length < period) {
+    const k = 2 / (closes.length + 1);
+    ema.push(closes[0]!);
+    for (let i = 1; i < closes.length; i++) {
+      ema.push(closes[i]! * k + ema[i - 1]! * (1 - k));
+    }
+    return ema;
+  }
+  
+  const k = 2 / (period + 1);
+  const initialSMA = closes.slice(0, period).reduce((a, b) => a + b, 0) / period;
+  
+  // Seed initial values up to period - 1
+  for (let i = 0; i < period - 1; i++) {
+    ema.push(initialSMA);
+  }
+  ema.push(initialSMA);
+  
+  for (let i = period; i < closes.length; i++) {
     ema.push(closes[i]! * k + ema[i - 1]! * (1 - k));
   }
   return ema;
@@ -234,15 +249,16 @@ export function checkMACDCrossover(closes: number[]): boolean {
 export function checkGoldenCross(closes: number[]): boolean {
   if (closes.length < 201) return false;
   
-  const prevCloses = closes.slice(0, closes.length - 1);
-  
-  const currentSma50 = calculateSMA(closes, 50);
+  const ema50Arr = calculateEMA(closes, 50);
+  const currentEma50 = ema50Arr[ema50Arr.length - 1] || 0;
   const currentSma200 = calculateSMA(closes, 200);
   
-  const prevSma50 = calculateSMA(prevCloses, 50);
+  const prevCloses = closes.slice(0, closes.length - 1);
+  const prevEma50Arr = calculateEMA(prevCloses, 50);
+  const prevEma50 = prevEma50Arr[prevEma50Arr.length - 1] || 0;
   const prevSma200 = calculateSMA(prevCloses, 200);
   
-  return prevSma50 <= prevSma200 && currentSma50 > currentSma200;
+  return prevEma50 <= prevSma200 && currentEma50 > currentSma200;
 }
 
 export function checkVolumeSurge(candles: Candle[]): boolean {
@@ -283,7 +299,7 @@ export function isHammer(candles: Candle[]): boolean {
   const lowerShadow = Math.min(last.open, last.close) - last.low;
   const upperShadow = last.high - Math.max(last.open, last.close);
   
-  return lowerShadow > 2 * body && upperShadow < 0.2 * body;
+  return lowerShadow >= 2 * body && upperShadow <= 0.1 * range;
 }
 
 export function isShootingStar(candles: Candle[]): boolean {
@@ -296,7 +312,7 @@ export function isShootingStar(candles: Candle[]): boolean {
   const lowerShadow = Math.min(last.open, last.close) - last.low;
   const upperShadow = last.high - Math.max(last.open, last.close);
   
-  return upperShadow > 2 * body && lowerShadow < 0.2 * body;
+  return upperShadow >= 2 * body && lowerShadow <= 0.1 * range;
 }
 
 export function isMarubozu(candles: Candle[]): boolean {
