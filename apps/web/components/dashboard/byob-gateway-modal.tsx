@@ -29,6 +29,10 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
     if (!brokerName && !isSandbox) {
       setIsOpen(true);
     }
+    
+    const handleOpen = () => setIsOpen(true);
+    window.addEventListener('open-byob-modal', handleOpen);
+    return () => window.removeEventListener('open-byob-modal', handleOpen);
   }, []);
 
   const handleSave = async (e: React.FormEvent) => {
@@ -82,7 +86,7 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={() => {}}>
+    <Dialog open={isOpen} onOpenChange={setIsOpen}>
       <DialogContent 
         className="max-w-2xl bg-zinc-950 border border-zinc-900 text-zinc-100 shadow-2xl p-8 rounded-2xl [&>button]:hidden"
       >

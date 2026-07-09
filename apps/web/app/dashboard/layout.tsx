@@ -86,20 +86,29 @@ export default function DashboardLayout({
             <div className="flex flex-col">
               <span className="text-xl font-bold text-white tracking-tight">SigmaSpire</span>
               {isSandbox ? (
-                <span className="text-[10px] text-cyan-400 font-bold flex items-center gap-1 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
-                  Sandbox (Active)
-                </span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[10px] text-cyan-400 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
+                    Sandbox (Active)
+                  </span>
+                  <button onClick={() => window.dispatchEvent(new CustomEvent('open-byob-modal'))} className="text-[10px] text-zinc-500 hover:text-white underline decoration-zinc-600 underline-offset-2 transition-colors cursor-pointer">Switch</button>
+                </div>
               ) : activeBroker ? (
-                <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 mt-0.5 uppercase">
-                  <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
-                  {activeBroker} (Linked)
-                </span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[10px] text-emerald-400 font-bold flex items-center gap-1 uppercase">
+                    <span className="w-1.5 h-1.5 rounded-full bg-emerald-400" />
+                    {activeBroker} (Linked)
+                  </span>
+                  <button onClick={() => window.dispatchEvent(new CustomEvent('open-byob-modal'))} className="text-[10px] text-zinc-500 hover:text-white underline decoration-zinc-600 underline-offset-2 transition-colors cursor-pointer">Change</button>
+                </div>
               ) : (
-                <span className="text-[10px] text-red-400 font-bold flex items-center gap-1 mt-0.5">
-                  <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
-                  Broker Unlinked
-                </span>
+                <div className="flex items-center gap-2 mt-0.5">
+                  <span className="text-[10px] text-red-400 font-bold flex items-center gap-1">
+                    <span className="w-1.5 h-1.5 rounded-full bg-red-500 animate-pulse" />
+                    Broker Unlinked
+                  </span>
+                  <button onClick={() => window.dispatchEvent(new CustomEvent('open-byob-modal'))} className="text-[10px] text-emerald-500 hover:text-emerald-400 underline decoration-emerald-500/50 underline-offset-2 transition-colors font-bold cursor-pointer">Link API</button>
+                </div>
               )}
             </div>
           </div>
