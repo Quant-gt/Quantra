@@ -10,13 +10,18 @@ interface BYOBGatewayModalProps {
 
 export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
   const [isOpen, setIsOpen] = useState(false);
-  const [activeTab, setActiveTab] = useState<"angelone" | "dhan" | "fyers" | "shoonya" | "sandbox">("angelone");
+  const [activeTab, setActiveTab] = useState<"angelone" | "dhan" | "fyers" | "shoonya" | "upstox" | "kotakneo" | "aliceblue" | "sandbox">("angelone");
   
   // Form configs
   const [angelOneConfig, setAngelOneConfig] = useState({ apiKey: "", clientId: "", mpin: "", totpSecret: "" });
   const [dhanConfig, setDhanConfig] = useState({ clientId: "", accessToken: "" });
   const [fyersConfig, setFyersConfig] = useState({ appId: "", secretKey: "", redirectUri: "http://127.0.0.1:8000/api/v1/fyers/callback" });
   const [shoonyaConfig, setShoonyaConfig] = useState({ vendorCode: "", userId: "", password: "", apiKey: "" });
+
+  // New Brokers
+  const [upstoxConfig, setUpstoxConfig] = useState({ apiKey: "", apiSecret: "", redirectUri: "http://127.0.0.1:8000/api/v1/upstox/callback" });
+  const [kotakConfig, setKotakConfig] = useState({ consumerKey: "", consumerSecret: "", accessToken: "", userId: "" });
+  const [aliceBlueConfig, setAliceBlueConfig] = useState({ appId: "", appSecret: "" });
 
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState("");
@@ -70,6 +75,21 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
             throw new Error("All Shoonya configuration fields are required.");
           }
           configData = shoonyaConfig;
+        } else if (activeTab === "upstox") {
+          if (!upstoxConfig.apiKey || !upstoxConfig.apiSecret || !upstoxConfig.redirectUri) {
+            throw new Error("All Upstox configuration fields are required.");
+          }
+          configData = upstoxConfig;
+        } else if (activeTab === "kotakneo") {
+          if (!kotakConfig.consumerKey || !kotakConfig.consumerSecret || !kotakConfig.accessToken || !kotakConfig.userId) {
+            throw new Error("All Kotak Neo configuration fields are required.");
+          }
+          configData = kotakConfig;
+        } else if (activeTab === "aliceblue") {
+          if (!aliceBlueConfig.appId || !aliceBlueConfig.appSecret) {
+            throw new Error("All Alice Blue configuration fields are required.");
+          }
+          configData = aliceBlueConfig;
         }
         
         localStorage.setItem("sigmaspire_broker_config", JSON.stringify(configData));
@@ -128,6 +148,9 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
               <option value="dhan">Dhan</option>
               <option value="fyers">Fyers</option>
               <option value="shoonya">Shoonya</option>
+              <option value="upstox">Upstox API</option>
+              <option value="kotakneo">Kotak Neo API</option>
+              <option value="aliceblue">Alice Blue (Ant API)</option>
               <option value="sandbox">Paper Trading (Sandbox)</option>
             </select>
             <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
@@ -305,6 +328,120 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
                   value={shoonyaConfig.apiKey}
                   onChange={(e) => setShoonyaConfig({ ...shoonyaConfig, apiKey: e.target.value })}
                   placeholder="Shoonya Developer API Key"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "upstox" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">Upstox API Key</label>
+                <input
+                  type="text"
+                  required
+                  value={upstoxConfig.apiKey}
+                  onChange={(e) => setUpstoxConfig({ ...upstoxConfig, apiKey: e.target.value })}
+                  placeholder="Upstox API Key"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">Upstox API Secret</label>
+                <input
+                  type="password"
+                  required
+                  value={upstoxConfig.apiSecret}
+                  onChange={(e) => setUpstoxConfig({ ...upstoxConfig, apiSecret: e.target.value })}
+                  placeholder="Upstox API Secret"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
+                />
+              </div>
+              <div className="space-y-1.5 md:col-span-2">
+                <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">Redirect URI</label>
+                <input
+                  type="text"
+                  required
+                  value={upstoxConfig.redirectUri}
+                  onChange={(e) => setUpstoxConfig({ ...upstoxConfig, redirectUri: e.target.value })}
+                  placeholder="http://127.0.0.1:8000/api/v1/upstox/callback"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "kotakneo" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">Consumer Key</label>
+                <input
+                  type="text"
+                  required
+                  value={kotakConfig.consumerKey}
+                  onChange={(e) => setKotakConfig({ ...kotakConfig, consumerKey: e.target.value })}
+                  placeholder="Kotak Neo Consumer Key"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">Consumer Secret</label>
+                <input
+                  type="password"
+                  required
+                  value={kotakConfig.consumerSecret}
+                  onChange={(e) => setKotakConfig({ ...kotakConfig, consumerSecret: e.target.value })}
+                  placeholder="Kotak Neo Consumer Secret"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">User ID</label>
+                <input
+                  type="text"
+                  required
+                  value={kotakConfig.userId}
+                  onChange={(e) => setKotakConfig({ ...kotakConfig, userId: e.target.value })}
+                  placeholder="Kotak User ID"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">Access Token</label>
+                <input
+                  type="password"
+                  required
+                  value={kotakConfig.accessToken}
+                  onChange={(e) => setKotakConfig({ ...kotakConfig, accessToken: e.target.value })}
+                  placeholder="API Access Token"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
+                />
+              </div>
+            </div>
+          )}
+
+          {activeTab === "aliceblue" && (
+            <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">App ID</label>
+                <input
+                  type="text"
+                  required
+                  value={aliceBlueConfig.appId}
+                  onChange={(e) => setAliceBlueConfig({ ...aliceBlueConfig, appId: e.target.value })}
+                  placeholder="Alice Blue App ID"
+                  className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
+                />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">App Secret</label>
+                <input
+                  type="password"
+                  required
+                  value={aliceBlueConfig.appSecret}
+                  onChange={(e) => setAliceBlueConfig({ ...aliceBlueConfig, appSecret: e.target.value })}
+                  placeholder="Alice Blue App Secret"
                   className="w-full bg-zinc-900/60 border border-zinc-800 rounded-xl px-3.5 py-2.5 text-xs text-white focus:outline-none focus:border-emerald-500 animate-none"
                 />
               </div>
