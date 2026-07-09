@@ -1,7 +1,7 @@
 "use client";
 
 import React, { memo, useEffect, useRef, useState } from 'react';
-import { createChart, ColorType, IChartApi, ISeriesApi } from 'lightweight-charts';
+import { createChart, ColorType, IChartApi, ISeriesApi, CandlestickSeries, HistogramSeries } from 'lightweight-charts';
 import { Loader2 } from 'lucide-react';
 
 function TVChart({ symbol, interval = "D" }: { symbol: string, interval?: string }) {
@@ -23,15 +23,15 @@ function TVChart({ symbol, interval = "D" }: { symbol: string, interval?: string
     if (interval === '1' || interval === '5' || interval === '15' || interval === '30') {
       const d = new Date();
       d.setDate(d.getDate() - 7); // Last 7 days
-      range_from = d.toISOString().split('T')[0];
+      range_from = d.toISOString().split('T')[0] || '';
     } else if (interval === '60') {
       const d = new Date();
       d.setDate(d.getDate() - 30); // Last 30 days
-      range_from = d.toISOString().split('T')[0];
+      range_from = d.toISOString().split('T')[0] || '';
     } else {
       const d = new Date();
       d.setFullYear(d.getFullYear() - 1); // Last 1 year
-      range_from = d.toISOString().split('T')[0];
+      range_from = d.toISOString().split('T')[0] || '';
     }
 
     let chart: IChartApi | null = null;
@@ -101,17 +101,17 @@ function TVChart({ symbol, interval = "D" }: { symbol: string, interval?: string
         });
 
         // Add candlestick series
-        const candlestickSeries = chart.addCandlestickSeries({
+        const mainSeries = chart.addSeries(CandlestickSeries, {
           upColor: '#26a69a',
           downColor: '#ef5350',
           borderVisible: false,
           wickUpColor: '#26a69a',
           wickDownColor: '#ef5350',
         });
-        candlestickSeries.setData(formattedCandles);
+        mainSeries.setData(formattedCandles);
 
         // Add volume series
-        const volumeSeries = chart.addHistogramSeries({
+        const volumeSeries = chart.addSeries(HistogramSeries, {
           priceFormat: {
             type: 'volume',
           },
