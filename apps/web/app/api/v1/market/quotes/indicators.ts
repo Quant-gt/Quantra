@@ -4,73 +4,91 @@ export interface Candle {
   low: number;
   close: number;
   volume: number;
+  timestamp?: number;
 }
 
-export function calculateRSI(closes: number[], period = 14): number {
-  if (closes.length <= period) return 50;
+// ============================================================================
+// Core Indicators
+// ============================================================================
+
+export function calculateRSI(closes: number[], period = 14): (number | null)[] {
+  const rsi: (number | null)[] = Array(closes.length).fill(null);
+  if (closes.length <= period) return rsi;
+
   let gains = 0;
   let losses = 0;
+
   for (let i = 1; i <= period; i++) {
-    const prev = closes[i - 1]!;
-    const cur = closes[i]!;
-    const diff = cur - prev;
+    const diff = closes[i]! - closes[i - 1]!;
     if (diff > 0) gains += diff;
     else losses -= diff;
   }
+
   let avgGain = gains / period;
   let avgLoss = losses / period;
+
+  if (avgLoss === 0) rsi[period] = 100;
+  else {
+    const rs = avgGain / avgLoss;
+    rsi[period] = Math.round(100 - 100 / (1 + rs));
+  }
+
   for (let i = period + 1; i < closes.length; i++) {
-    const prev = closes[i - 1]!;
-    const cur = closes[i]!;
-    const diff = cur - prev;
+    const diff = closes[i]! - closes[i - 1]!;
     avgGain = (avgGain * (period - 1) + (diff > 0 ? diff : 0)) / period;
     avgLoss = (avgLoss * (period - 1) + (diff < 0 ? -diff : 0)) / period;
+
+    if (avgLoss === 0) {
+      rsi[i] = 100;
+    } else {
+      const rs = avgGain / avgLoss;
+      rsi[i] = Math.round(100 - 100 / (1 + rs));
+    }
   }
-  if (avgLoss === 0) return 100;
-  const rs = avgGain / avgLoss;
-  return Math.round(100 - 100 / (1 + rs));
+  return rsi;
 }
 
-export function calculateATR(candles: Candle[], period = 14): number[] {
-  const atr: number[] = [];
-  if (candles.length === 0) return [];
+export function calculateATR(candles: Candle[], period = 14): (number | null)[] {
+  const atr: (number | null)[] = Array(candles.length).fill(null);
+  if (candles.length <= period) return atr;
+
   const trs = candles.map((c, i) => {
     if (i === 0) return c.high - c.low;
     const prevClose = candles[i - 1]!.close;
     return Math.max(c.high - c.low, Math.abs(c.high - prevClose), Math.abs(c.low - prevClose));
   });
+
   let sum = 0;
-  for (let i = 0; i < Math.min(period, trs.length); i++) {
+  for (let i = 1; i <= period; i++) {
     sum += trs[i]!;
   }
-  let avg = sum / Math.min(period, trs.length);
-  for (let i = 0; i < trs.length; i++) {
-    if (i < period - 1) {
-      atr.push(avg);
-    } else if (i === period - 1) {
-      atr.push(avg);
-    } else {
-      avg = (avg * (period - 1) + trs[i]!) / period;
-      atr.push(avg);
-    }
+  let avg = sum / period;
+  atr[period] = avg;
+
+  for (let i = period + 1; i < trs.length; i++) {
+    avg = (avg * (period - 1) + trs[i]!) / period;
+    atr[i] = avg;
   }
   return atr;
 }
 
-export function calculateSupertrend(candles: Candle[], period = 10, multiplier = 3): number {
-  if (candles.length < period) {
-    const last = candles[candles.length - 1];
-    return last ? last.close : 0;
-  }
+export function calculateSupertrend(candles: Candle[], period = 10, multiplier = 3): (number | null)[] {
+  const st: (number | null)[] = Array(candles.length).fill(null);
+  if (candles.length <= period) return st;
+
   const atr = calculateATR(candles, period);
   
-  const basicUpper = candles.map((c, i) => (c.high + c.low) / 2 + multiplier * atr[i]!);
-  const basicLower = candles.map((c, i) => (c.high + c.low) / 2 - multiplier * atr[i]!);
+  const basicUpper = candles.map((c, i) => (c.high + c.low) / 2 + multiplier * (atr[i] || 0));
+  const basicLower = candles.map((c, i) => (c.high + c.low) / 2 - multiplier * (atr[i] || 0));
   
-  const finalUpper = [...basicUpper];
-  const finalLower = [...basicLower];
+  const finalUpper: number[] = Array(candles.length).fill(0);
+  const finalLower: number[] = Array(candles.length).fill(0);
   
-  for (let i = 1; i < candles.length; i++) {
+  finalUpper[period] = basicUpper[period]!;
+  finalLower[period] = basicLower[period]!;
+  st[period] = finalUpper[period]!; // Default to bearish start
+
+  for (let i = period + 1; i < candles.length; i++) {
     const prevClose = candles[i - 1]!.close;
     const bu = basicUpper[i]!;
     const bl = basicLower[i]!;
@@ -88,51 +106,37 @@ export function calculateSupertrend(candles: Candle[], period = 10, multiplier =
     } else {
       finalLower[i] = flPrev;
     }
-  }
-  
-  const supertrend = [...finalUpper];
-  for (let i = 1; i < candles.length; i++) {
-    const fu = finalUpper[i]!;
-    const fl = finalLower[i]!;
-    const fuPrev = finalUpper[i - 1]!;
-    const stPrev = supertrend[i - 1]!;
+
+    const stPrev = st[i - 1]!;
     const c = candles[i]!;
 
     if (stPrev === fuPrev) {
-      if (c.close > fu) {
-        supertrend[i] = fl;
+      if (c.close > finalUpper[i]!) {
+        st[i] = finalLower[i]!;
       } else {
-        supertrend[i] = fu;
+        st[i] = finalUpper[i]!;
       }
     } else {
-      if (c.close < fl) {
-        supertrend[i] = fu;
+      if (c.close < finalLower[i]!) {
+        st[i] = finalUpper[i]!;
       } else {
-        supertrend[i] = fl;
+        st[i] = finalLower[i]!;
       }
     }
   }
   
-  const lastVal = supertrend[supertrend.length - 1];
-  return lastVal !== undefined ? parseFloat(lastVal.toFixed(2)) : 0;
+  return st.map(val => val !== null ? parseFloat(val.toFixed(2)) : null);
 }
 
-export function calculateADX(candles: Candle[], period = 14): number {
-  if (candles.length <= period * 2) return 20;
+export function calculateADX(candles: Candle[], period = 14): (number | null)[] {
+  const adx: (number | null)[] = Array(candles.length).fill(null);
+  if (candles.length <= period * 2) return adx;
   
-  const trs: number[] = [];
-  const plusDM: number[] = [];
-  const minusDM: number[] = [];
+  const trs: number[] = [0];
+  const plusDM: number[] = [0];
+  const minusDM: number[] = [0];
   
-  for (let i = 0; i < candles.length; i++) {
-    if (i === 0) {
-      const c = candles[0]!;
-      trs.push(c.high - c.low);
-      plusDM.push(0);
-      minusDM.push(0);
-      continue;
-    }
-    
+  for (let i = 1; i < candles.length; i++) {
     const c = candles[i]!;
     const p = candles[i - 1]!;
     
@@ -149,7 +153,8 @@ export function calculateADX(candles: Candle[], period = 14): number {
   let smoothedPlusDM = plusDM.slice(1, period + 1).reduce((a, b) => a + b, 0);
   let smoothedMinusDM = minusDM.slice(1, period + 1).reduce((a, b) => a + b, 0);
   
-  const dxs: number[] = [];
+  const dxs: (number | null)[] = Array(candles.length).fill(null);
+  dxs[period] = (smoothedTR === 0) ? 0 : 100 * Math.abs(smoothedPlusDM - smoothedMinusDM) / (smoothedPlusDM + smoothedMinusDM);
   
   for (let i = period + 1; i < candles.length; i++) {
     smoothedTR = smoothedTR - smoothedTR / period + trs[i]!;
@@ -157,7 +162,7 @@ export function calculateADX(candles: Candle[], period = 14): number {
     smoothedMinusDM = smoothedMinusDM - smoothedMinusDM / period + minusDM[i]!;
     
     if (smoothedTR === 0) {
-      dxs.push(0);
+      dxs[i] = 0;
       continue;
     }
     
@@ -166,27 +171,126 @@ export function calculateADX(candles: Candle[], period = 14): number {
     const sum = plusDI + minusDI;
     const diff = Math.abs(plusDI - minusDI);
     
-    dxs.push(sum === 0 ? 0 : (100 * diff) / sum);
+    dxs[i] = sum === 0 ? 0 : (100 * diff) / sum;
   }
   
-  if (dxs.length < period) return 20;
-  let adx = dxs.slice(0, period).reduce((a, b) => a + b, 0) / period;
-  for (let i = period; i < dxs.length; i++) {
-    adx = (adx * (period - 1) + dxs[i]!) / period;
+  let adxSum = 0;
+  for (let i = period; i < period * 2; i++) {
+    adxSum += dxs[i]!;
+  }
+  let currentAdx = adxSum / period;
+  adx[period * 2 - 1] = Math.round(currentAdx);
+  
+  for (let i = period * 2; i < dxs.length; i++) {
+    currentAdx = (currentAdx * (period - 1) + dxs[i]!) / period;
+    adx[i] = Math.round(currentAdx);
   }
   
-  return Math.round(adx);
+  return adx;
 }
 
-export function calculateFVGBull(candles: Candle[]): number {
-  if (candles.length < 3) return 0;
-  const len = candles.length;
-  const c1 = candles[len - 3]!;
-  const c2 = candles[len - 2]!;
-  const c3 = candles[len - 1]!;
+export function calculateVWAP(candles: Candle[]): (number | null)[] {
+  const vwap: (number | null)[] = Array(candles.length).fill(null);
   
-  const gap = c3.low - c1.high;
-  return gap > 0 && c2.close > c2.open ? parseFloat(gap.toFixed(2)) : 0.0;
+  let cumulativeTPV = 0;
+  let cumulativeVolume = 0;
+  let currentDay = -1;
+
+  for (let i = 0; i < candles.length; i++) {
+    const c = candles[i]!;
+    
+    let candleDay = -1;
+    if (c.timestamp) {
+      candleDay = new Date(c.timestamp).getUTCDate();
+    } else {
+      // Fallback for non-intraday data if timestamp is missing
+      candleDay = -1; 
+    }
+
+    if (candleDay !== currentDay && currentDay !== -1) {
+      cumulativeTPV = 0;
+      cumulativeVolume = 0;
+    }
+    currentDay = candleDay;
+
+    const typicalPrice = (c.high + c.low + c.close) / 3;
+    cumulativeTPV += typicalPrice * c.volume;
+    cumulativeVolume += c.volume;
+
+    if (cumulativeVolume === 0) {
+      vwap[i] = i > 0 ? (vwap[i - 1] ?? typicalPrice) : typicalPrice;
+    } else {
+      vwap[i] = parseFloat((cumulativeTPV / cumulativeVolume).toFixed(4));
+    }
+  }
+
+  return vwap;
+}
+
+export function calculateSMAArray(closes: number[], period: number): (number | null)[] {
+  const sma: (number | null)[] = Array(closes.length).fill(null);
+  let sum = 0;
+  for (let i = 0; i < closes.length; i++) {
+    sum += closes[i]!;
+    if (i === period - 1) {
+      sma[i] = sum / period;
+    } else if (i >= period) {
+      sum -= closes[i - period]!;
+      sma[i] = sum / period;
+    }
+  }
+  return sma;
+}
+
+export function calculateStochRSI(closes: number[], rsiPeriod = 14, stochPeriod = 14, kSmooth = 3, dSmooth = 3): { k: (number | null)[], d: (number | null)[] } {
+  const rsi = calculateRSI(closes, rsiPeriod);
+  const stochRsi: (number | null)[] = Array(closes.length).fill(null);
+
+  for (let i = rsiPeriod + stochPeriod - 1; i < closes.length; i++) {
+    let minRSI = Infinity;
+    let maxRSI = -Infinity;
+    for (let j = 0; j < stochPeriod; j++) {
+      const val = rsi[i - j]!;
+      if (val < minRSI) minRSI = val;
+      if (val > maxRSI) maxRSI = val;
+    }
+
+    if (maxRSI === minRSI) {
+      stochRsi[i] = 0;
+    } else {
+      stochRsi[i] = 100 * (rsi[i]! - minRSI) / (maxRSI - minRSI);
+    }
+  }
+
+  // Calculate %K (SMA of StochRSI)
+  const kLine: (number | null)[] = Array(closes.length).fill(null);
+  const stochStartIndex = rsiPeriod + stochPeriod - 1;
+  let kSum = 0;
+  for (let i = stochStartIndex; i < closes.length; i++) {
+    kSum += stochRsi[i]!;
+    if (i - stochStartIndex === kSmooth - 1) {
+      kLine[i] = kSum / kSmooth;
+    } else if (i - stochStartIndex >= kSmooth) {
+      kSum -= stochRsi[i - kSmooth]!;
+      kLine[i] = kSum / kSmooth;
+    }
+  }
+
+  // Calculate %D (SMA of %K)
+  const dLine: (number | null)[] = Array(closes.length).fill(null);
+  const kStartIndex = stochStartIndex + kSmooth - 1;
+  let dSum = 0;
+  for (let i = kStartIndex; i < closes.length; i++) {
+    dSum += kLine[i]!;
+    if (i - kStartIndex === dSmooth - 1) {
+      dLine[i] = dSum / dSmooth;
+    } else if (i - kStartIndex >= dSmooth) {
+      dSum -= kLine[i - dSmooth]!;
+      dLine[i] = dSum / dSmooth;
+    }
+  }
+
+  return { k: kLine, d: dLine };
 }
 
 export function calculateSMA(closes: number[], period: number): number {
@@ -214,7 +318,6 @@ export function calculateEMA(closes: number[], period: number): number[] {
   const k = 2 / (period + 1);
   const initialSMA = closes.slice(0, period).reduce((a, b) => a + b, 0) / period;
   
-  // Seed initial values up to period - 1
   for (let i = 0; i < period - 1; i++) {
     ema.push(initialSMA);
   }
@@ -247,18 +350,29 @@ export function checkMACDCrossover(closes: number[]): boolean {
 }
 
 export function checkGoldenCross(closes: number[]): boolean {
-  if (closes.length < 201) return false;
+  if (closes.length < 51) return false;
   
-  const ema50Arr = calculateEMA(closes, 50);
-  const currentEma50 = ema50Arr[ema50Arr.length - 1] || 0;
-  const currentSma200 = calculateSMA(closes, 200);
+  const ema20Arr = calculateEMA(closes, 20);
+  const currentEma20 = ema20Arr[ema20Arr.length - 1] || 0;
+  const currentSma50 = calculateSMA(closes, 50);
   
   const prevCloses = closes.slice(0, closes.length - 1);
-  const prevEma50Arr = calculateEMA(prevCloses, 50);
-  const prevEma50 = prevEma50Arr[prevEma50Arr.length - 1] || 0;
-  const prevSma200 = calculateSMA(prevCloses, 200);
+  const prevEma20Arr = calculateEMA(prevCloses, 20);
+  const prevEma20 = prevEma20Arr[prevEma20Arr.length - 1] || 0;
+  const prevSma50 = calculateSMA(prevCloses, 50);
   
-  return prevEma50 <= prevSma200 && currentEma50 > currentSma200;
+  return prevEma20 <= prevSma50 && currentEma20 > currentSma50;
+}
+
+export function calculateFVGBull(candles: Candle[]): number {
+  if (candles.length < 3) return 0;
+  const len = candles.length;
+  const c1 = candles[len - 3]!;
+  const c2 = candles[len - 2]!;
+  const c3 = candles[len - 1]!;
+  
+  const gap = c3.low - c1.high;
+  return gap > 0 && c2.close > c2.open ? parseFloat(gap.toFixed(2)) : 0.0;
 }
 
 export function checkVolumeSurge(candles: Candle[]): boolean {

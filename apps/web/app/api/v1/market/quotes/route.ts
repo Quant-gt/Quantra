@@ -158,9 +158,14 @@ export async function POST(request: Request) {
         if (candles.length === 0) return null;
         
         const closes = candles.map(c => c.close);
-        const rsi = calculateRSI(closes, 14);
-        const adx = calculateADX(candles, 14);
-        const supertrend = calculateSupertrend(candles, 10, 3);
+        const rsiArr = calculateRSI(closes, 14);
+        const rsi = rsiArr[rsiArr.length - 1] || 50;
+        
+        const adxArr = calculateADX(candles, 14);
+        const adx = adxArr[adxArr.length - 1] || 20;
+        
+        const stArr = calculateSupertrend(candles, 10, 3);
+        const supertrend = stArr[stArr.length - 1] || (closes[closes.length - 1] || 0);
         const fvgBull = calculateFVGBull(candles);
         const goldenCross = checkGoldenCross(closes);
         const volumeSurge = checkVolumeSurge(candles);
