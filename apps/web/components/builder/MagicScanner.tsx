@@ -1427,9 +1427,9 @@ export default function MagicScanner() {
                                       <span className="block text-[10px] text-gray-500 font-normal truncate max-w-[120px]">{r.name}</span>
                                     </div>
                                   </td>
-                                  <td className="px-4 py-3 text-right font-mono text-white">₹{r.price.toFixed(2)}</td>
-                                  <td className={`px-4 py-3 text-right font-mono font-bold ${r.change >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
-                                    {r.change >= 0 ? '+' : ''}{r.change.toFixed(2)}%
+                                  <td className="px-4 py-3 text-right font-mono text-white">₹{r.closeVal.toFixed(2)}</td>
+                                  <td className={`px-4 py-3 text-right font-mono font-bold ${r.rawChange >= 0 ? 'text-emerald-400' : 'text-red-400'}`}>
+                                    {r.rawChange >= 0 ? '+' : ''}{r.rawChange.toFixed(2)}%
                                   </td>
                                   <td className="px-4 py-3 text-right font-mono">
                                     <span className={r.rsi > 70 ? 'text-orange-400' : r.rsi < 30 ? 'text-cyan-400' : 'text-gray-300'}>
