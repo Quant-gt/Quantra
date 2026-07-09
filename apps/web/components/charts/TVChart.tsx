@@ -4,8 +4,8 @@ import React, { memo } from 'react';
 import { AdvancedRealTimeChart } from 'react-ts-tradingview-widgets';
 
 function TVChart({ symbol, interval = "D" }: { symbol: string, interval?: string }) {
-  // Ensure the symbol is properly formatted for TradingView (usually NSE:SYMBOL for better intraday support)
-  const tvSymbol = symbol.includes(":") || symbol.includes(".") ? symbol : `NSE:${symbol}`;
+  // Ensure the symbol is properly formatted for TradingView (usually BSE:SYMBOL)
+  const tvSymbol = symbol.includes(":") || symbol.includes(".") ? symbol : `BSE:${symbol}`;
 
   return (
     <div className="w-full h-full min-h-[400px] relative">

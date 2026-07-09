@@ -252,36 +252,6 @@ export default function DashboardChartsPage() {
       <div className="flex-1 grid grid-cols-1 lg:grid-cols-4 gap-6">
         {/* Main Chart Area */}
         <div className="lg:col-span-3 bg-[#161B22]/80 backdrop-blur-xl border border-[#30363D] rounded-xl shadow-2xl flex flex-col overflow-hidden">
-          {/* Chart Header */}
-          <div className="p-4 border-b border-[#30363D] bg-[#0D1117]/80 flex justify-between items-center">
-            <div className="flex gap-6 items-center">
-              <div>
-                <div className="flex items-center gap-3">
-                  <span className="font-black text-white text-2xl tracking-tight">{activeSymbol}</span>
-                  <span className="text-[10px] uppercase font-bold tracking-wider bg-[#388BFD]/10 text-[#58A6FF] px-2 py-0.5 rounded border border-[#388BFD]/30">NSE:EQ</span>
-                </div>
-                <div className="text-gray-400 text-xs mt-1">Live Tick Data Feed</div>
-              </div>
-              <div className="h-10 w-px bg-[#30363D]"></div>
-              <div>
-                <div className={`text-3xl font-mono font-bold flex items-center gap-2 ${liveData.change >= 0 ? 'text-[#39D353]' : 'text-[#F85149]'}`}>
-                  ₹ {liveData.price.toLocaleString('en-IN', { minimumFractionDigits: 2 })}
-                  {liveData.change >= 0 ? <ArrowUpRight size={24} /> : <ArrowDownRight size={24} />}
-                </div>
-                <div className={`text-sm font-mono font-bold tracking-wide ${liveData.change >= 0 ? 'text-[#39D353]' : 'text-[#F85149]'}`}>
-                  {liveData.change > 0 ? "+" : ""}{liveData.change} ({liveData.changePct > 0 ? "+" : ""}{liveData.changePct}%)
-                </div>
-              </div>
-            </div>
-            
-            <div className="hidden md:flex gap-6 text-sm font-mono text-gray-400 bg-[#0D1117] border border-[#30363D] px-4 py-2 rounded-lg">
-              <div className="flex flex-col"><span className="text-[10px] text-gray-600">HIGH</span><span className="text-white">--</span></div>
-              <div className="flex flex-col"><span className="text-[10px] text-gray-600">LOW</span><span className="text-white">--</span></div>
-              <div className="flex flex-col"><span className="text-[10px] text-gray-600">OPEN</span><span className="text-white">--</span></div>
-              <div className="flex flex-col"><span className="text-[10px] text-gray-600">VOLUME</span><span className="text-white">--</span></div>
-            </div>
-          </div>
-
           {/* TV Chart Container */}
           <div className="flex-1 relative min-h-[400px]">
             <TVChart symbol={activeSymbol} interval={getTVInterval(activeTab)} />
