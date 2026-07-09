@@ -149,9 +149,13 @@ async def get_market_history(symbol: str, resolution: str, range_from: str, rang
 
     # 2. Yahoo Finance Fallback
     try:
+        import requests
+        from datetime import datetime
+        import time
+
         yahoo_sym = SymbolResolver.resolve_to_yahoo(symbol)
         
-        # Map TV resolution to yfinance interval
+        # Map TV resolution to Yahoo interval
         interval = "1d"
         if resolution == "1":
             interval = "1m"
@@ -168,24 +172,39 @@ async def get_market_history(symbol: str, resolution: str, range_from: str, rang
         elif resolution == "W":
             interval = "1wk"
 
-        df = yf.download(yahoo_sym, start=range_from, end=range_to, interval=interval)
-        if not df.empty:
-            candles = []
-            for index, row in df.iterrows():
-                t = int(index.timestamp())
-                val = lambda col: float(row[col].iloc[0]) if hasattr(row[col], 'iloc') else float(row[col])
-                
-                candles.append({
-                    "time": t,
-                    "open": val("Open"),
-                    "high": val("High"),
-                    "low": val("Low"),
-                    "close": val("Close"),
-                    "volume": int(val("Volume"))
-                })
-            return {"candles": candles, "source": "yahoo"}
+        p1 = int(datetime.strptime(range_from, "%Y-%m-%d").timestamp())
+        p2 = int(time.time()) # Use current time to get the latest intraday candles
+
+        url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_sym}?period1={p1}&period2={p2}&interval={interval}"
+        res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
+        if res.status_code == 200:
+            chart_data = res.json()
+            result = chart_data.get("chart", {}).get("result", [None])[0]
+            if result:
+                timestamps = result.get("timestamp", [])
+                quote = result.get("indicators", {}).get("quote", [{}])[0]
+                opens = quote.get("open", [])
+                highs = quote.get("high", [])
+                lows = quote.get("low", [])
+                closes = quote.get("close", [])
+                volumes = quote.get("volume", [])
+
+                candles = []
+                for i in range(len(timestamps)):
+                    if (opens[i] is not None and highs[i] is not None and 
+                        lows[i] is not None and closes[i] is not None):
+                        candles.append({
+                            "time": timestamps[i],
+                            "open": float(opens[i]),
+                            "high": float(highs[i]),
+                            "low": float(lows[i]),
+                            "close": float(closes[i]),
+                            "volume": int(volumes[i]) if volumes[i] is not None else 0
+                        })
+                if candles:
+                    return {"candles": candles, "source": "yahoo"}
     except Exception as e:
-        print(f"Yahoo history query failed: {e}")
+        print(f"Yahoo HTTP fallback query failed: {e}")
         
     raise HTTPException(status_code=500, detail="Failed to fetch history from all sources")
 
