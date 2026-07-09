@@ -1,6 +1,7 @@
 "use client";
 
 import Link from 'next/link';
+import Image from 'next/image';
 import { ChevronRight } from 'lucide-react';
 
 export default function PublicNavbar() {
@@ -8,12 +9,8 @@ export default function PublicNavbar() {
     <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-7xl">
       <div className="bg-[#0B0F19]/60 backdrop-blur-md border border-white/5 rounded-2xl px-6 py-4 flex justify-between items-center shadow-2xl">
         <Link href="/" className="flex items-center gap-3 group">
-          <div className="w-8 h-8 bg-white flex items-center justify-center rounded-lg shadow-sm group-hover:scale-105 transition-transform">
-            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="12 2 2 7 12 12 22 7 12 2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
+          <div className="w-8 h-8 flex items-center justify-center rounded-lg shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
+            <Image src="/sigmaspire-icon-dark-bg.png" alt="SigmaSpire" width={32} height={32} className="object-contain" />
           </div>
           <span className="text-xl font-bold text-white tracking-tight group-hover:text-emerald-400 transition-colors">SigmaSpire</span>
         </Link>

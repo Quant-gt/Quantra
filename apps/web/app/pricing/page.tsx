@@ -178,8 +178,8 @@ export default function PricingPage() {
         {activeData.map((tier) => {
           const isFree = tier.price === '₹0';
           const buttonClass = tier.popular
-            ? 'w-full py-3 px-4 bg-gradient-to-r from-blue-600 to-blue-700 hover:from-blue-500 hover:to-blue-600 text-white font-bold rounded-lg shadow-[0_0_15px_-3px_rgba(37,99,235,0.4)] transition-all transform hover:scale-[1.02]'
-            : 'w-full py-3 px-4 bg-[#21262D] hover:bg-[#30363D] border border-[#30363D] text-white font-bold rounded-lg shadow-sm transition-all';
+            ? 'w-full py-3 px-4 bg-gradient-to-r from-emerald-500 to-teal-400 hover:from-emerald-400 hover:to-teal-300 text-zinc-950 font-bold rounded-lg shadow-[0_0_15px_-3px_rgba(16,185,129,0.4)] transition-all transform hover:scale-[1.02]'
+            : 'w-full py-3 px-4 bg-zinc-900 border border-zinc-800 hover:bg-zinc-800 text-zinc-100 font-bold rounded-lg shadow-sm transition-all transform hover:scale-[1.02]';
 
           return (
             <div 

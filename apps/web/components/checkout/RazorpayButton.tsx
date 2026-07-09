@@ -25,10 +25,18 @@ export default function RazorpayButton({
   className = "w-full py-3 px-4 bg-blue-600 hover:bg-blue-700 text-white font-semibold rounded-lg shadow-md transition-all duration-200"
 }: RazorpayButtonProps) {
   const [loading, setLoading] = useState(false);
+  const [showError, setShowError] = useState(false);
 
   const handlePayment = async () => {
     setLoading(true);
     try {
+      const keyId = process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID;
+      if (!keyId) {
+        setShowError(true);
+        setLoading(false);
+        return;
+      }
+      
       let orderId, subscriptionId;
       let amount = amountInr;
 
@@ -56,7 +64,7 @@ export default function RazorpayButton({
       }
 
       const options = {
-        key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Use public key here
+        key: keyId, // Use the verified public key here
         amount: amount ? amount * 100 : undefined,
         currency: "INR",
         name: "SigmaSpire Technologies",
@@ -99,6 +107,25 @@ export default function RazorpayButton({
       >
         {loading ? 'Processing...' : buttonText}
       </button>
+      {showError && (
+        <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/60 backdrop-blur-sm p-4">
+          <div className="bg-zinc-900 border border-zinc-800 rounded-xl p-6 max-w-md shadow-2xl text-center transform transition-all">
+            <div className="w-12 h-12 bg-zinc-800 rounded-full flex items-center justify-center mx-auto mb-4 border border-zinc-700">
+              <span className="text-zinc-400 text-xl">⚠️</span>
+            </div>
+            <h3 className="text-white font-bold text-lg mb-2">Integration Pending</h3>
+            <p className="text-zinc-400 text-sm mb-6 leading-relaxed">
+              Payment integration gateway initializing. Please ensure your workspace credentials or broker connection profiles are active to continue checkout operations.
+            </p>
+            <button 
+              onClick={() => setShowError(false)}
+              className="px-6 py-2 bg-emerald-600 hover:bg-emerald-500 text-white font-semibold rounded-lg transition-colors w-full"
+            >
+              Acknowledge
+            </button>
+          </div>
+        </div>
+      )}
     </>
   );
 }
