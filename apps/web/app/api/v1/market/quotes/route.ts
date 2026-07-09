@@ -101,22 +101,6 @@ export async function POST(request: Request) {
     
     // Normalize and fetch live quotes
     const normalized = symbols.map(s => normalizeSymbol(s));
-    const yahooSymbols = normalized.map(n => n.yahooSymbol).join(',');
-    const url = `https://query1.finance.yahoo.com/v7/finance/quote?symbols=${yahooSymbols}`;
-    
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      },
-      next: { revalidate: 15 }
-    });
-    
-    if (!response.ok) {
-      throw new Error(`Yahoo API returned status: ${response.status}`);
-    }
-    
-    const data = await response.json();
-    const quotes = data.quoteResponse?.result || [];
     const quotesMap: { [key: string]: any } = {};
 
     // Compute indicators and compile data
@@ -190,7 +174,9 @@ export async function POST(request: Request) {
           bullishEngulfing,
           hammer,
           shootingStar,
-          marubozu
+          marubozu,
+          meta: result.meta,
+          latestCandle: candles[candles.length - 1]
         };
       } catch (err) {
         console.error(`Error computing indicators for ${s}:`, err);
@@ -207,17 +193,19 @@ export async function POST(request: Request) {
     });
     
     normalized.forEach((norm) => {
-      const q = quotes.find((quote: any) => quote.symbol === norm.yahooSymbol);
       const s = norm.symbol;
       const inds = indicatorMap[s] || {};
       const fund = getDeterministicMetrics(s);
+      const meta = inds.meta || {};
+      const latest = inds.latestCandle || {};
       
-      const price = q?.regularMarketPrice || 100;
-      const change = q?.regularMarketChangePercent || 0;
-      const open = q?.regularMarketOpen || price;
-      const high = q?.regularMarketDayHigh || price;
-      const low = q?.regularMarketDayLow || price;
-      const volume = q?.regularMarketVolume || 10000;
+      const price = meta.regularMarketPrice || latest.close || 100;
+      const prevClose = meta.chartPreviousClose || price;
+      const change = price === 100 ? 0 : ((price - prevClose) / prevClose) * 100;
+      const open = latest.open || price;
+      const high = meta.regularMarketDayHigh || latest.high || price;
+      const low = meta.regularMarketDayLow || latest.low || price;
+      const volume = meta.regularMarketVolume || latest.volume || 10000;
       
       let finalPrice = price;
       let finalChange = change;
