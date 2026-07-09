@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { Check, Flame, Zap, Shield, Code, Briefcase, TrendingUp } from 'lucide-react';
+import Link from 'next/link';
 import PublicNavbar from '@/components/PublicNavbar';
 import RazorpayButton from '@/components/checkout/RazorpayButton';
 import { createClient } from '@supabase/supabase-js'; // Placeholder for auth check
@@ -215,7 +216,7 @@ export default function PricingPage() {
 
               <div className="mt-auto pt-4 border-t border-[#30363D]/50">
                 {isFree ? (
-                  <button className={buttonClass}>{tier.cta}</button>
+                  <Link href="/auth?mode=signup" className={`${buttonClass} block text-center`}>{tier.cta}</Link>
                 ) : (
                   <RazorpayButton 
                     type="subscription"
