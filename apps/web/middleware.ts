@@ -2,6 +2,13 @@ import { createServerClient, type CookieOptions } from '@supabase/ssr'
 import { NextResponse, type NextRequest } from 'next/server'
 
 export async function middleware(request: NextRequest) {
+  // Catch OAuth callback codes landing on root and redirect to callback handler
+  const code = request.nextUrl.searchParams.get('code')
+  if (code && request.nextUrl.pathname === '/') {
+    const next = request.nextUrl.searchParams.get('next') || '/dashboard'
+    return NextResponse.redirect(new URL(`/auth/callback?code=${code}&next=${next}`, request.url))
+  }
+
   let response = NextResponse.next({
     request: {
       headers: request.headers,
