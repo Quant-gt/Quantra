@@ -12,6 +12,18 @@ const TVChart = dynamic(() => import('@/components/charts/TVChart'), {
   loading: () => <div className="w-full h-full flex items-center justify-center bg-[#0B0F19]"><Loader2 className="animate-spin text-[#388BFD]" size={32} /></div>
 });
 
+const getTVInterval = (tab: string) => {
+  switch(tab) {
+    case '1M': return '1';
+    case '5M': return '5';
+    case '15M': return '15';
+    case '1H': return '60';
+    case '1D': return 'D';
+    case '1W': return 'W';
+    default: return 'D';
+  }
+};
+
 export default function DashboardChartsPage() {
   const [activeTab, setActiveTab] = useState('1D');
   const [activeSymbol, setActiveSymbol] = useState('RELIANCE');
@@ -272,7 +284,7 @@ export default function DashboardChartsPage() {
 
           {/* TV Chart Container */}
           <div className="flex-1 relative min-h-[400px]">
-            <TVChart symbol={activeSymbol} />
+            <TVChart symbol={activeSymbol} interval={getTVInterval(activeTab)} />
           </div>
         </div>
 

@@ -3,9 +3,9 @@
 import React, { memo } from 'react';
 import { AdvancedRealTimeChart } from 'react-ts-tradingview-widgets';
 
-function TVChart({ symbol }: { symbol: string }) {
-  // Ensure the symbol is properly formatted for TradingView (usually BSE:SYMBOL or NSE:SYMBOL)
-  const tvSymbol = symbol.includes(":") || symbol.includes(".") ? symbol : `BSE:${symbol}`;
+function TVChart({ symbol, interval = "D" }: { symbol: string, interval?: string }) {
+  // Ensure the symbol is properly formatted for TradingView (usually NSE:SYMBOL for better intraday support)
+  const tvSymbol = symbol.includes(":") || symbol.includes(".") ? symbol : `NSE:${symbol}`;
 
   return (
     <div className="w-full h-full min-h-[400px] relative">
@@ -13,7 +13,7 @@ function TVChart({ symbol }: { symbol: string }) {
         symbol={tvSymbol}
         theme="dark"
         autosize
-        interval="D"
+        interval={interval as any}
         timezone="Asia/Kolkata"
         style="1"
         locale="en"
