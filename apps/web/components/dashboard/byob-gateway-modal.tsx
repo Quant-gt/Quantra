@@ -108,32 +108,30 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
           </p>
         </div>
 
-        {/* Tab Selection */}
-        <div className="mt-6 flex flex-wrap gap-1.5 p-1 bg-zinc-900/50 border border-zinc-900 rounded-xl">
-          {[
-            { id: "angelone", label: "Angel One" },
-            { id: "dhan", label: "Dhan" },
-            { id: "fyers", label: "Fyers" },
-            { id: "shoonya", label: "Shoonya" },
-            { id: "sandbox", label: "Paper Trading" }
-          ].map((tab) => (
-            <button
-              key={tab.id}
-              onClick={() => {
-                setActiveTab(tab.id as any);
+        {/* Dropdown Selection */}
+        <div className="mt-6 space-y-1.5">
+          <label className="text-[11px] text-zinc-400 font-bold block uppercase tracking-wider">Select Broker</label>
+          <div className="relative">
+            <select
+              value={activeTab}
+              onChange={(e) => {
+                setActiveTab(e.target.value as any);
                 setError("");
               }}
-              className={`flex-1 min-w-[90px] py-2 px-3 text-xs font-bold rounded-lg transition-all cursor-pointer ${
-                activeTab === tab.id
-                  ? tab.id === "sandbox"
-                    ? "bg-cyan-500 text-gray-950 shadow-md font-bold"
-                    : "bg-emerald-500 text-gray-950 shadow-md font-bold"
-                  : "text-zinc-400 hover:text-zinc-200 hover:bg-zinc-850"
-              }`}
+              className="w-full bg-zinc-900/80 border border-zinc-800 rounded-xl px-4 py-3 text-sm font-semibold text-white focus:outline-none focus:ring-2 focus:ring-emerald-500/50 focus:border-emerald-500 appearance-none cursor-pointer transition-all hover:bg-zinc-900"
             >
-              {tab.label}
-            </button>
-          ))}
+              <option value="angelone">Angel One</option>
+              <option value="dhan">Dhan</option>
+              <option value="fyers">Fyers</option>
+              <option value="shoonya">Shoonya</option>
+              <option value="sandbox">Paper Trading (Sandbox)</option>
+            </select>
+            <div className="absolute right-4 top-1/2 -translate-y-1/2 pointer-events-none text-zinc-500">
+              <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+                <polyline points="6 9 12 15 18 9"></polyline>
+              </svg>
+            </div>
+          </div>
         </div>
 
         <form onSubmit={handleSave} className="mt-6 space-y-5">
