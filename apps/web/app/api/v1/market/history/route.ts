@@ -1,94 +1,44 @@
-import { NextResponse } from 'next/server';
+import { NextResponse } from "next/server";
 
-function normalizeSymbol(ticker: string, exchange: "NSE" | "BSE") {
-  const clean = ticker.toUpperCase().replace(/\.NS$/, '').replace(/\.BO$/, '').trim();
-  
-  if (!/^[A-Z0-9.-]{1,20}$/.test(clean)) {
-    throw new Error('Invalid ticker format');
-  }
+const AI_ENGINE_URL = process.env.AI_ENGINE_URL || "http://localhost:8000";
 
-  const suffix = exchange === 'BSE' ? '.BO' : '.NS';
-  return `${clean}${suffix}`;
-}
-
-export async function GET(request: Request) {
+export async function GET(req: Request) {
   try {
-    const { searchParams } = new URL(request.url);
-    const ticker = searchParams.get('ticker');
-    const exchangeParam = searchParams.get('exchange') || 'NSE';
+    const { searchParams } = new URL(req.url);
+    const symbol = searchParams.get("symbol");
+    const resolution = searchParams.get("resolution");
+    const range_from = searchParams.get("range_from");
+    const range_to = searchParams.get("range_to");
 
-    if (!ticker) {
-      return NextResponse.json({ error: 'Ticker is required' }, { status: 400 });
+    if (!symbol || !resolution || !range_from || !range_to) {
+      return NextResponse.json({ error: "Missing required parameters" }, { status: 400 });
     }
 
-    if (exchangeParam !== 'NSE' && exchangeParam !== 'BSE') {
-      return NextResponse.json({ error: 'Invalid exchange' }, { status: 400 });
-    }
-
-    const exchange = exchangeParam as 'NSE' | 'BSE';
-
-    let yahooSymbol: string;
-    try {
-      yahooSymbol = normalizeSymbol(ticker, exchange);
-    } catch (err: any) {
-      return NextResponse.json({ error: err.message }, { status: 400 });
-    }
-
-    const targetUrl = new URL(
-      `/v8/finance/chart/${encodeURIComponent(yahooSymbol)}`,
-      'https://query1.finance.yahoo.com'
+    const response = await fetch(
+      `${AI_ENGINE_URL}/api/v1/market/history?symbol=${symbol}&resolution=${resolution}&range_from=${range_from}&range_to=${range_to}`,
+      {
+        method: "GET",
+        headers: {
+          "Content-Type": "application/json",
+        },
+      }
     );
-    targetUrl.searchParams.set('range', '1y');
-    targetUrl.searchParams.set('interval', '1d');
-
-    const response = await fetch(targetUrl.toString(), {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      },
-      next: { revalidate: 60 }
-    });
 
     if (!response.ok) {
-      return NextResponse.json({ error: `Yahoo chart API returned status: ${response.status}` }, { status: 400 });
+      const errorText = await response.text();
+      return NextResponse.json(
+        { error: `AI Engine Error: ${errorText}` },
+        { status: response.status }
+      );
     }
 
     const data = await response.json();
-    const result = data.chart?.result?.[0];
-    if (!result) {
-      return NextResponse.json({ success: true, data: [] });
-    }
-
-    const timestamps = result.timestamp || [];
-    const quote = result.indicators?.quote?.[0];
-    if (!quote || timestamps.length === 0) {
-      return NextResponse.json({ success: true, data: [] });
-    }
-
-    const candles = [];
-    for (let i = 0; i < timestamps.length; i++) {
-      const close = quote.close?.[i];
-      const open = quote.open?.[i];
-      const high = quote.high?.[i];
-      const low = quote.low?.[i];
-      const volume = quote.volume?.[i];
-      const timeSec = timestamps[i];
-
-      if (
-        close !== null && open !== null && high !== null && low !== null && volume !== null &&
-        close !== undefined && open !== undefined && high !== undefined && low !== undefined && volume !== undefined
-      ) {
-        const date = new Date(timeSec * 1000);
-        const time = date.toISOString().split('T')[0]!;
-        candles.push({ time, open, high, low, close, volume });
-      }
-    }
-
-    candles.sort((a, b) => a.time.localeCompare(b.time));
-    const limitedCandles = candles.slice(-180);
-
-    return NextResponse.json({ success: true, data: limitedCandles });
+    return NextResponse.json(data);
   } catch (error: any) {
-    console.error("Market history fetch error:", error);
-    return NextResponse.json({ success: false, data: [] }, { status: 500 });
+    console.error("Market History Route Error:", error);
+    return NextResponse.json(
+      { error: "Failed to connect to the AI engine." },
+      { status: 500 }
+    );
   }
 }

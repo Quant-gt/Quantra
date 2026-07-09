@@ -7,8 +7,11 @@ from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel
 from agents.intent_parser import parse_intent, StrategySchema
 from market_data import start_fyers_websocket, get_latest_prices
-from fyers_auth import get_fyers_login_url, generate_token_from_auth_code
+from fyers_auth import get_fyers_login_url, generate_token_from_auth_code, get_fyers_access_token
 from engine.async_executor import run_execution_loop
+from core.symbol_resolver import SymbolResolver
+from fyers_apiv3 import fyersModel
+import yfinance as yf
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from auto_auth_agent import run_automated_login
@@ -108,6 +111,83 @@ async def market_stream():
 @app.get("/health")
 def health_check():
     return {"status": "healthy", "service": "ai_engine"}
+
+@app.get("/api/v1/market/history")
+async def get_market_history(symbol: str, resolution: str, range_from: str, range_to: str):
+    # Try Fyers
+    access_token = get_fyers_access_token()
+    app_id = os.getenv("FYERS_APP_ID")
+    
+    # 1. Fyers Fetching
+    if access_token and app_id:
+        try:
+            fyers_sym = SymbolResolver.resolve_to_fyers(symbol)
+            fyers = fyersModel.FyersModel(client_id=app_id, token=access_token, log_path="./")
+            data = {
+                "symbol": fyers_sym,
+                "resolution": resolution,
+                "date_format": "1",
+                "range_from": range_from,
+                "range_to": range_to,
+                "cont_flag": "1"
+            }
+            res = fyers.history(data=data)
+            if res and res.get("s") == "ok":
+                candles = []
+                for c in res.get("candles", []):
+                    candles.append({
+                        "time": c[0], # epoch
+                        "open": c[1],
+                        "high": c[2],
+                        "low": c[3],
+                        "close": c[4],
+                        "volume": c[5]
+                    })
+                return {"candles": candles, "source": "fyers"}
+        except Exception as e:
+            print(f"Fyers history query failed: {e}. Falling back to Yahoo...")
+
+    # 2. Yahoo Finance Fallback
+    try:
+        yahoo_sym = SymbolResolver.resolve_to_yahoo(symbol)
+        
+        # Map TV resolution to yfinance interval
+        interval = "1d"
+        if resolution == "1":
+            interval = "1m"
+        elif resolution == "5":
+            interval = "5m"
+        elif resolution == "15":
+            interval = "15m"
+        elif resolution == "30":
+            interval = "30m"
+        elif resolution == "60":
+            interval = "1h"
+        elif resolution == "D":
+            interval = "1d"
+        elif resolution == "W":
+            interval = "1wk"
+
+        df = yf.download(yahoo_sym, start=range_from, end=range_to, interval=interval)
+        if not df.empty:
+            candles = []
+            for index, row in df.iterrows():
+                t = int(index.timestamp())
+                val = lambda col: float(row[col].iloc[0]) if hasattr(row[col], 'iloc') else float(row[col])
+                
+                candles.append({
+                    "time": t,
+                    "open": val("Open"),
+                    "high": val("High"),
+                    "low": val("Low"),
+                    "close": val("Close"),
+                    "volume": int(val("Volume"))
+                })
+            return {"candles": candles, "source": "yahoo"}
+    except Exception as e:
+        print(f"Yahoo history query failed: {e}")
+        
+    raise HTTPException(status_code=500, detail="Failed to fetch history from all sources")
 
 @app.get("/")
 def read_root():
