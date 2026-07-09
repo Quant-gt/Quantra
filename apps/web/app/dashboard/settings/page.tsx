@@ -99,7 +99,7 @@ export default function SettingsPage() {
                   <Info className="shrink-0 mt-0.5" size={18} />
                   <div className="text-sm">
                     <strong className="block mb-1">Security Notice</strong>
-                    Quantra encrypts all API secrets at rest using AES-256-GCM. We never store your broker passwords or 2FA TOTP secrets.
+                    SigmaSpire encrypts all API secrets at rest using AES-256-GCM. We never store your broker passwords or 2FA TOTP secrets.
                   </div>
                 </div>
 
@@ -193,7 +193,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
-                  <input type="email" defaultValue="admin@quantra.io" disabled className="w-full bg-[#0D1117]/50 border border-[#30363D] rounded-lg px-4 py-2 text-gray-500 cursor-not-allowed" />
+                  <input type="email" defaultValue="admin@sigmaspire.io" disabled className="w-full bg-[#0D1117]/50 border border-[#30363D] rounded-lg px-4 py-2 text-gray-500 cursor-not-allowed" />
                 </div>
 
                 <div className="pt-4 border-t border-[#30363D] flex justify-end">

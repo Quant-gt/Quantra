@@ -23,8 +23,8 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
 
   useEffect(() => {
     // Check if broker credentials exist in client browser memory
-    const brokerName = localStorage.getItem("quantra_broker_name");
-    const isSandbox = localStorage.getItem("quantra_broker_sandbox") === "true";
+    const brokerName = localStorage.getItem("sigmaspire_broker_name");
+    const isSandbox = localStorage.getItem("sigmaspire_broker_sandbox") === "true";
     
     if (!brokerName && !isSandbox) {
       setIsOpen(true);
@@ -38,12 +38,12 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
 
     try {
       if (activeTab === "sandbox") {
-        localStorage.setItem("quantra_broker_sandbox", "true");
-        localStorage.removeItem("quantra_broker_name");
-        localStorage.removeItem("quantra_broker_config");
+        localStorage.setItem("sigmaspire_broker_sandbox", "true");
+        localStorage.removeItem("sigmaspire_broker_name");
+        localStorage.removeItem("sigmaspire_broker_config");
       } else {
-        localStorage.setItem("quantra_broker_sandbox", "false");
-        localStorage.setItem("quantra_broker_name", activeTab);
+        localStorage.setItem("sigmaspire_broker_sandbox", "false");
+        localStorage.setItem("sigmaspire_broker_name", activeTab);
         
         let configData = {};
         if (activeTab === "angelone") {
@@ -68,7 +68,7 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
           configData = shoonyaConfig;
         }
         
-        localStorage.setItem("quantra_broker_config", JSON.stringify(configData));
+        localStorage.setItem("sigmaspire_broker_config", JSON.stringify(configData));
       }
 
       // Notify host and close modal
@@ -104,7 +104,7 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
         <div className="mt-4 flex gap-3 p-3.5 bg-zinc-900/40 border border-zinc-900/60 rounded-xl text-[11px] text-zinc-400 leading-relaxed">
           <Info size={16} className="text-emerald-400 shrink-0 mt-0.5" />
           <p>
-            <strong className="text-zinc-200">Non-Custodial Security Policy:</strong> All API keys, client codes, and tokens are stored directly in your browser's local memory. Quantra platform servers never receive, store, or log these credentials, ensuring strict regulatory compliance.
+            <strong className="text-zinc-200">Non-Custodial Security Policy:</strong> All API keys, client codes, and tokens are stored directly in your browser's local memory. SigmaSpire platform servers never receive, store, or log these credentials, ensuring strict regulatory compliance.
           </p>
         </div>
 

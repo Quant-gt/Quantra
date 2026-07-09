@@ -28,7 +28,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="p-6 border-b border-[#30363D]">
           <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 flex items-center gap-2">
             <Shield size={24} className="text-red-500" />
-            Quantra Admin
+            SigmaSpire Admin
           </h1>
           <p className="text-xs text-gray-500 mt-1">Platform Management</p>
         </div>
@@ -79,7 +79,7 @@ export default function AdminLayout({ children }: { children: React.ReactNode })
         <div className="md:hidden flex items-center justify-between p-4 bg-[#0D1117] border-b border-[#30363D]">
           <h1 className="text-xl font-black text-transparent bg-clip-text bg-gradient-to-r from-red-500 to-orange-500 flex items-center gap-2">
             <Shield size={24} className="text-red-500" />
-            Quantra Admin
+            SigmaSpire Admin
           </h1>
           <button 
             onClick={() => setIsMobileMenuOpen(true)}

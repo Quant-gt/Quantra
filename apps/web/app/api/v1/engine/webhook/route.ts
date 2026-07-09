@@ -5,7 +5,7 @@ export async function POST(request: Request) {
   try {
     // Verify the webhook signature / secret token
     const webhookSecret = request.headers.get('x-webhook-secret');
-    const secret = process.env.WEBHOOK_SECRET || 'quantra_webhook_secret_2026';
+    const secret = process.env.WEBHOOK_SECRET || 'sigmaspire_webhook_secret_2026';
     if (!webhookSecret || webhookSecret !== secret) {
       return NextResponse.json({ error: 'Unauthorized webhook signature' }, { status: 401 });
     }

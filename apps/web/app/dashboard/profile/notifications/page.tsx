@@ -25,7 +25,7 @@ export default function NotificationSettingsPage() {
         <div className="mb-8 border-b border-white/10 pb-6">
           <h1 className="text-3xl font-bold text-white mb-2">Notification Settings</h1>
           <p className="text-white/60">
-            Control how and when you receive alerts from QUANTRA.
+            Control how and when you receive alerts from SIGMASPIRE.
           </p>
         </div>
 
@@ -57,7 +57,7 @@ export default function NotificationSettingsPage() {
               <div className="bg-white/5 p-4 rounded-lg mt-4 text-sm text-white/70">
                 <p className="font-semibold mb-1">To link your account:</p>
                 <ol className="list-decimal list-inside space-y-1">
-                  <li>Search for <span className="text-primary font-mono">@QuantraAlgoBot</span> on Telegram.</li>
+                  <li>Search for <span className="text-primary font-mono">@SigmaSpireAlgoBot</span> on Telegram.</li>
                   <li>Send the command <span className="text-primary font-mono">/start</span>.</li>
                   <li>Enter the verification code the bot gives you here.</li>
                 </ol>

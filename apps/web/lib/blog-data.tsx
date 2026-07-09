@@ -14,8 +14,8 @@ export interface BlogPost {
 export const BLOG_POSTS: BlogPost[] = [
   {
     id: "buyer-customer-journey-2026",
-    title: "The Ultimate Trader's Guide: From Sandbox to Live Automated Execution on Quantra",
-    excerpt: "Discover the definitive step-by-step journey for retail traders using Quantra. Learn how to backtest in a risk-free sandbox, acquire algorithmic licenses, and deploy live automated trading strategies.",
+    title: "The Ultimate Trader's Guide: From Sandbox to Live Automated Execution on SigmaSpire",
+    excerpt: "Discover the definitive step-by-step journey for retail traders using SigmaSpire. Learn how to backtest in a risk-free sandbox, acquire algorithmic licenses, and deploy live automated trading strategies.",
     date: "July 9, 2026",
     readTime: "12 min read",
     category: "Systematic Trading",
@@ -23,20 +23,20 @@ export const BLOG_POSTS: BlogPost[] = [
     content: (
       <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
         <p>
-          Welcome to Quantra! If you are a discretionary trader seeking to eliminate emotional bias and automate your execution, or an investor wanting to deploy professional quantitative models without writing a single line of code, you have arrived at the definitive ecosystem. In this comprehensive guide, we will explore the complete customer journey for buyers on the Quantra platform—from your very first login to deploying a live algorithmic strategy. 
+          Welcome to SigmaSpire! If you are a discretionary trader seeking to eliminate emotional bias and automate your execution, or an investor wanting to deploy professional quantitative models without writing a single line of code, you have arrived at the definitive ecosystem. In this comprehensive guide, we will explore the complete customer journey for buyers on the SigmaSpire platform—from your very first login to deploying a live algorithmic strategy. 
         </p>
 
-        <h3 className="text-2xl font-black text-white mt-10 mb-4">Introduction to Systematic Trading on Quantra</h3>
+        <h3 className="text-2xl font-black text-white mt-10 mb-4">Introduction to Systematic Trading on SigmaSpire</h3>
         <p>
           Algorithmic trading, once the exclusive domain of Wall Street hedge funds and quantitative analysts, is now accessible to retail traders. However, the technical barrier to entry has traditionally been insurmountable for most. Setting up servers, managing API rate limits, handling websocket disconnections, and writing complex Python logic requires years of software engineering experience.
         </p>
         <p>
-          Quantra operates as a high-performance <strong>Software-as-a-Service (SaaS)</strong> and code-licensing marketplace that completely abstracts this complexity. We provide the infrastructure; you provide the broker. This means you retain absolute control of your capital within your own brokerage account (such as Zerodha, Fyers, or AngelOne) while our low-latency engines execute trades on your behalf. 
+          SigmaSpire operates as a high-performance <strong>Software-as-a-Service (SaaS)</strong> and code-licensing marketplace that completely abstracts this complexity. We provide the infrastructure; you provide the broker. This means you retain absolute control of your capital within your own brokerage account (such as Zerodha, Fyers, or AngelOne) while our low-latency engines execute trades on your behalf. 
         </p>
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Step 1: Onboarding into The Sandbox Pass</h3>
         <p>
-          Your journey begins entirely risk-free. The moment you create an account on Quantra, you are automatically enrolled in <strong>The Sandbox Pass</strong>. This introductory tier is completely free forever. We believe that before you risk a single rupee in the live markets, you must thoroughly understand the mechanics of automated execution.
+          Your journey begins entirely risk-free. The moment you create an account on SigmaSpire, you are automatically enrolled in <strong>The Sandbox Pass</strong>. This introductory tier is completely free forever. We believe that before you risk a single rupee in the live markets, you must thoroughly understand the mechanics of automated execution.
         </p>
         
         <p>
@@ -48,7 +48,7 @@ export const BLOG_POSTS: BlogPost[] = [
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Step 2: Exploring the Algorithmic Marketplace</h3>
         <p>
-          While the Sandbox allows you to build simple strategies, the true power of Quantra lies in its <strong>Algorithmic Marketplace</strong>. This is a curated ecosystem where professional quants, quantitative developers, and verified SEBI-registered Research Analysts (RAs) list their proprietary trading models for public licensing.
+          While the Sandbox allows you to build simple strategies, the true power of SigmaSpire lies in its <strong>Algorithmic Marketplace</strong>. This is a curated ecosystem where professional quants, quantitative developers, and verified SEBI-registered Research Analysts (RAs) list their proprietary trading models for public licensing.
         </p>
         <p>
           As a buyer, you can browse the marketplace and filter strategies based on your specific risk profile, preferred asset class (e.g., Nifty Options, BankNifty Futures, Equity Cash), and historical performance metrics. Each strategy listing provides deep analytics, including Maximum Drawdown, Sharpe Ratio, Win Rate, and detailed equity curves.
@@ -63,23 +63,23 @@ export const BLOG_POSTS: BlogPost[] = [
         </p>
         
         <p>
-          Quantra utilizes a highly advanced split-payment routing architecture known as Razorpay Route. When you pay the monthly licensing fee (e.g., ₹2,500), your payment is instantly and securely divided at the gateway level. The vast majority of the fee (90%) is routed directly to the strategy creator's bank account, while Quantra retains a minimal 10% technology fee.
+          SigmaSpire utilizes a highly advanced split-payment routing architecture known as Razorpay Route. When you pay the monthly licensing fee (e.g., ₹2,500), your payment is instantly and securely divided at the gateway level. The vast majority of the fee (90%) is routed directly to the strategy creator's bank account, while SigmaSpire retains a minimal 10% technology fee.
         </p>
         <p>
-          This architecture is critically important for regulatory compliance. By structuring the transaction purely as a software licensing fee and avoiding the pooling of client funds, Quantra operates strictly as a Technology Service Provider (TSP). You are simply purchasing a SaaS license to utilize mathematical logic.
+          This architecture is critically important for regulatory compliance. By structuring the transaction purely as a software licensing fee and avoiding the pooling of client funds, SigmaSpire operates strictly as a Technology Service Provider (TSP). You are simply purchasing a SaaS license to utilize mathematical logic.
         </p>
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Step 4: Broker Integration and Security</h3>
         <p>
-          To deploy your newly licensed algorithm into the live markets, you must connect your brokerage account. Quantra supports seamless API integrations with India's leading discount brokers, including Zerodha (Kite Connect), Fyers, and AngelOne.
+          To deploy your newly licensed algorithm into the live markets, you must connect your brokerage account. SigmaSpire supports seamless API integrations with India's leading discount brokers, including Zerodha (Kite Connect), Fyers, and AngelOne.
         </p>
         <p>
-          Navigate to the <strong>Broker Integration</strong> panel within your dashboard. You will need to generate API keys from your broker's developer portal and paste them into Quantra. Security is our paramount concern. Your API keys are encrypted at rest using military-grade AES-256 encryption. Furthermore, these API keys only grant Quantra the permission to execute trade signals and read order status. We physically cannot withdraw your funds or transfer assets out of your brokerage account.
+          Navigate to the <strong>Broker Integration</strong> panel within your dashboard. You will need to generate API keys from your broker's developer portal and paste them into SigmaSpire. Security is our paramount concern. Your API keys are encrypted at rest using military-grade AES-256 encryption. Furthermore, these API keys only grant SigmaSpire the permission to execute trade signals and read order status. We physically cannot withdraw your funds or transfer assets out of your brokerage account.
         </p>
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Step 5: Upgrading to a Live Execution Tier</h3>
         <p>
-          With your broker connected and your strategy licensed, you are almost ready to go live. To send automated signals from Quantra's execution engine to your live brokerage account, you must hold an active commercial SaaS tier. 
+          With your broker connected and your strategy licensed, you are almost ready to go live. To send automated signals from SigmaSpire's execution engine to your live brokerage account, you must hold an active commercial SaaS tier. 
         </p>
         <p>
           Navigate to the <strong>Pricing</strong> page and subscribe to <strong>The Live Execution Pass</strong> (₹499/month). This recurring subscription unlocks our low-latency infrastructure, allowing you to route real-money trades. For more advanced traders requiring multiple broker connections and priority execution queues, we offer <strong>The Quant Pro Pass</strong> and <strong>The Alpha Terminal Elite</strong>.
@@ -91,7 +91,7 @@ export const BLOG_POSTS: BlogPost[] = [
         </p>
         
         <p>
-          Before activating the strategy, you must define your strict capital allocation limits and risk multipliers. The Quantra engine will immediately take over execution, analyzing market ticks in real-time and firing orders based on the algorithm's precise mathematical rules.
+          Before activating the strategy, you must define your strict capital allocation limits and risk multipliers. The SigmaSpire engine will immediately take over execution, analyzing market ticks in real-time and firing orders based on the algorithm's precise mathematical rules.
         </p>
         <p>
           You can monitor every single execution tick-by-tick on the Live Feed. Transparency is key; you will see exactly when an order was placed, the latency in milliseconds, and the fill price. 
@@ -102,7 +102,7 @@ export const BLOG_POSTS: BlogPost[] = [
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Conclusion: Welcome to the Future of Trading</h3>
         <p>
-          By embracing systematic trading on Quantra, you are taking a monumental step toward disciplined, emotionless, and scalable wealth generation. The journey from the free Sandbox to live automated execution is designed to be educational, secure, and empowering. Explore the marketplace, test relentlessly, and let the algorithms do the heavy lifting. Welcome to the future of trading.
+          By embracing systematic trading on SigmaSpire, you are taking a monumental step toward disciplined, emotionless, and scalable wealth generation. The journey from the free Sandbox to live automated execution is designed to be educational, secure, and empowering. Explore the marketplace, test relentlessly, and let the algorithms do the heavy lifting. Welcome to the future of trading.
         </p>
       </div>
     )
@@ -110,7 +110,7 @@ export const BLOG_POSTS: BlogPost[] = [
   {
     id: "creator-customer-journey-2026",
     title: "The Quant's Journey: Building, Backtesting, and Monetizing Algorithmic Strategies",
-    excerpt: "A deep dive for quantitative developers and SEBI RAs on how to leverage Quantra's institutional infrastructure to build low-latency algorithms, protect Intellectual Property, and generate recurring revenue.",
+    excerpt: "A deep dive for quantitative developers and SEBI RAs on how to leverage SigmaSpire's institutional infrastructure to build low-latency algorithms, protect Intellectual Property, and generate recurring revenue.",
     date: "July 9, 2026",
     readTime: "14 min read",
     category: "Engineering",
@@ -121,12 +121,12 @@ export const BLOG_POSTS: BlogPost[] = [
           Are you a quantitative developer, a financial data scientist, or a SEBI-registered Research Analyst (RA) with a demonstrable and profitable edge in the markets? For years, the challenge for algorithmic creators hasn't been finding alpha—it has been scaling it. 
         </p>
         <p>
-          Building reliable, low-latency execution infrastructure, managing concurrent WebSocket connections across multiple brokers, and distributing signals securely to a client base is a logistical nightmare. Quantra solves this entirely. We provide the institutional-grade infrastructure required to build, test, and monetize your algorithms without ever compromising your Intellectual Property (IP).
+          Building reliable, low-latency execution infrastructure, managing concurrent WebSocket connections across multiple brokers, and distributing signals securely to a client base is a logistical nightmare. SigmaSpire solves this entirely. We provide the institutional-grade infrastructure required to build, test, and monetize your algorithms without ever compromising your Intellectual Property (IP).
         </p>
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Step 1: Ideation in The Private Dev Sandbox</h3>
         <p>
-          Your journey as a strategy creator begins in the <strong>Private Dev Sandbox</strong>. This free tier grants you unrestricted access to the Quantra Strategy Builder environment—a powerful IDE tailored specifically for financial engineering.
+          Your journey as a strategy creator begins in the <strong>Private Dev Sandbox</strong>. This free tier grants you unrestricted access to the SigmaSpire Strategy Builder environment—a powerful IDE tailored specifically for financial engineering.
         </p>
         
         <p>
@@ -144,7 +144,7 @@ export const BLOG_POSTS: BlogPost[] = [
           We inherently understand that your mathematical model and trading logic are your most valuable assets. The primary hesitation creators have when joining a platform is the fear of reverse engineering. 
         </p>
         <p>
-          Quantra utilizes a proprietary deployment pipeline to ensure your Intellectual Property remains impenetrable. When you finalize a strategy and publish it to the execution engine, the source code is securely encrypted, obfuscated, and compiled into a sterile runtime environment. 
+          SigmaSpire utilizes a proprietary deployment pipeline to ensure your Intellectual Property remains impenetrable. When you finalize a strategy and publish it to the execution engine, the source code is securely encrypted, obfuscated, and compiled into a sterile runtime environment. 
         </p>
         <p>
           When a retail buyer licenses your strategy from the Marketplace, they <strong>never</strong> see your underlying code. They cannot view your proprietary moving average crossovers, your custom volatility thresholds, or your dynamic exit logic. They are strictly granted permission to receive the <em>results</em> of your algorithm—the buy and sell signals—which are routed directly to their connected brokerage accounts. Your alpha remains your alpha.
@@ -152,16 +152,16 @@ export const BLOG_POSTS: BlogPost[] = [
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Step 3: Vendor Onboarding and Payout Infrastructure</h3>
         <p>
-          When you are ready to transition from development to monetization, you will enter the <strong>Creator Studio</strong>. Before you can list a strategy publicly on the Quantra Marketplace, you must establish your financial payout infrastructure.
+          When you are ready to transition from development to monetization, you will enter the <strong>Creator Studio</strong>. Before you can list a strategy publicly on the SigmaSpire Marketplace, you must establish your financial payout infrastructure.
         </p>
         <p>
-          Quantra has integrated deeply with Razorpay to provide a seamless, fully compliant vendor payout experience via <strong>Razorpay Linked Accounts</strong> (Razorpay Route). You will undergo a brief KYC process to link your bank account directly to the platform's payment gateway.
+          SigmaSpire has integrated deeply with Razorpay to provide a seamless, fully compliant vendor payout experience via <strong>Razorpay Linked Accounts</strong> (Razorpay Route). You will undergo a brief KYC process to link your bank account directly to the platform's payment gateway.
         </p>
         <p>
-          Because Quantra operates purely as a Software-as-a-Service (SaaS) and code-licensing platform, we employ multi-party split routing. When a subscriber purchases a monthly license for your strategy (e.g., ₹3,000/month), the payment gateway instantly splits the transaction at the moment of capture. 
+          Because SigmaSpire operates purely as a Software-as-a-Service (SaaS) and code-licensing platform, we employ multi-party split routing. When a subscriber purchases a monthly license for your strategy (e.g., ₹3,000/month), the payment gateway instantly splits the transaction at the moment of capture. 
         </p>
         <p>
-          <strong>90% of the transaction fee is routed directly to your linked bank account.</strong> The remaining 10% is routed to Quantra as a technology and infrastructure fee. This ensures you get paid instantly and transparently, with zero delayed payouts, zero minimum withdrawal thresholds, and zero regulatory headaches regarding fund pooling.
+          <strong>90% of the transaction fee is routed directly to your linked bank account.</strong> The remaining 10% is routed to SigmaSpire as a technology and infrastructure fee. This ensures you get paid instantly and transparently, with zero delayed payouts, zero minimum withdrawal thresholds, and zero regulatory headaches regarding fund pooling.
         </p>
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Step 4: Climbing the SaaS Vendor Tiers</h3>
@@ -177,7 +177,7 @@ export const BLOG_POSTS: BlogPost[] = [
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Step 5: The SEBI Compliance Partner Program</h3>
         <p>
-          Quantra is deeply committed to fostering a trusted, compliant ecosystem. If you are a verified SEBI-registered Research Analyst (RA) or Investment Adviser (IA), we invite you to apply for the elite <strong>SEBI Compliance Partner</strong> tier.
+          SigmaSpire is deeply committed to fostering a trusted, compliant ecosystem. If you are a verified SEBI-registered Research Analyst (RA) or Investment Adviser (IA), we invite you to apply for the elite <strong>SEBI Compliance Partner</strong> tier.
         </p>
         <p>
           Once your regulatory credentials are manually verified by our compliance team, your public profile and all associated strategy listings will receive a highly prominent "SEBI Registered" trust-badge. Empirical data shows that this badge significantly boosts subscriber conversion rates by establishing immediate institutional credibility.
@@ -188,7 +188,7 @@ export const BLOG_POSTS: BlogPost[] = [
 
         <h3 className="text-2xl font-black text-white mt-10 mb-4">Conclusion: Scale Your Alpha</h3>
         <p>
-          The Quantra platform is designed to be the ultimate launchpad for quantitative talent. By abstracting the complexities of low-latency execution, ensuring ironclad IP protection, and providing a direct monetization pipeline via Razorpay Route, we allow you to focus entirely on what you do best: finding alpha. Build your models, list them on the marketplace, and start scaling your algorithmic empire today.
+          The SigmaSpire platform is designed to be the ultimate launchpad for quantitative talent. By abstracting the complexities of low-latency execution, ensuring ironclad IP protection, and providing a direct monetization pipeline via Razorpay Route, we allow you to focus entirely on what you do best: finding alpha. Build your models, list them on the marketplace, and start scaling your algorithmic empire today.
         </p>
       </div>
     )
@@ -240,9 +240,9 @@ export const BLOG_POSTS: BlogPost[] = [
           </li>
         </ul>
 
-        <h3 className="text-xl font-bold text-white mt-8 mb-4">How Quantra Implements the Kill Switch</h3>
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">How SigmaSpire Implements the Kill Switch</h3>
         <p>
-          Quantra implements a server-level risk management dashboard. With a single click on the "Kill Switch" button:
+          SigmaSpire implements a server-level risk management dashboard. With a single click on the "Kill Switch" button:
           - A high-priority payload is dispatched to the execution cluster.
           - Active WebSocket streams are disconnected.
           - A batch cancel request is sent to the broker API.
@@ -396,7 +396,7 @@ export const BLOG_POSTS: BlogPost[] = [
           <div className="pl-8"># Block or queue order if tokens == 0...</div>
         </div>
         <p>
-          By queuing orders locally when approaching the limit, you guarantee that your broker API session remains healthy. Quantra 
+          By queuing orders locally when approaching the limit, you guarantee that your broker API session remains healthy. SigmaSpire 
           natively restricts strategy executions to a safe 5 OPS threshold, protecting user accounts from exchange penalties.
         </p>
       </div>
@@ -547,7 +547,7 @@ export const BLOG_POSTS: BlogPost[] = [
           <li><strong>Hidden Incentives:</strong> Unregulated publishers often make money from affiliate commissions or proprietary trade front-running rather than strategy performance.</li>
         </ul>
         <p>
-          Platforms like Quantra enforce that all public creators list their verified SEBI RA credentials, ensuring a safe, transparent marketplace for retail subscribers.
+          Platforms like SigmaSpire enforce that all public creators list their verified SEBI RA credentials, ensuring a safe, transparent marketplace for retail subscribers.
         </p>
       </div>
     )
@@ -594,7 +594,7 @@ export const BLOG_POSTS: BlogPost[] = [
           that route the actual orders. 
         </p>
         <p>
-          Leading platforms like Quantra implement **AES-256-GCM or AES-256-CBC encryption at rest**. This ensures that even if a 
+          Leading platforms like SigmaSpire implement **AES-256-GCM or AES-256-CBC encryption at rest**. This ensures that even if a 
           database backup is leaked, the encrypted payloads cannot be decrypted without the private server-side master key (which is stored 
           securely outside the database in private cloud environments).
         </p>
@@ -642,12 +642,12 @@ export const BLOG_POSTS: BlogPost[] = [
           <li><strong>Behavior Monitoring:</strong> Allows you to verify strategy logic (such as stop-loss triggers or multi-leg options execution) in real time.</li>
         </ul>
 
-        <h3 className="text-xl font-bold text-white mt-8 mb-4">How It Works in Quantra</h3>
+        <h3 className="text-xl font-bold text-white mt-8 mb-4">How It Works in SigmaSpire</h3>
         <p>
-          When you subscribe to a strategy on Quantra, you are prompted to select an execution mode:
+          When you subscribe to a strategy on SigmaSpire, you are prompted to select an execution mode:
         </p>
         <ol className="list-decimal pl-6 space-y-2">
-          <li><strong>Sandbox Mode (Default):</strong> Directs all execution signals to your virtual account. Quantra's execution engine matches orders against live top-of-book quotes, deducting theoretical slippages and transaction fees.</li>
+          <li><strong>Sandbox Mode (Default):</strong> Directs all execution signals to your virtual account. SigmaSpire's execution engine matches orders against live top-of-book quotes, deducting theoretical slippages and transaction fees.</li>
           <li><strong>Live Mode:</strong> Routes execution signals directly to your connected broker account (e.g. Zerodha, Fyers) for live order matching.</li>
         </ol>
 

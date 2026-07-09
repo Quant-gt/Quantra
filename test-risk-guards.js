@@ -18,7 +18,7 @@ async function runTest() {
 
   // 1. Create a mock creator and strategy
   const { data: creator } = await supabase.auth.admin.createUser({
-    email: `creator_${Date.now()}@quantra.com`,
+    email: `creator_${Date.now()}@sigmaspire.com`,
     password: 'password123',
     email_confirm: true
   });
@@ -34,7 +34,7 @@ async function runTest() {
   const subs = [];
   for (let i = 1; i <= 3; i++) {
     const { data: sub } = await supabase.auth.admin.createUser({
-      email: `sub_${i}_${Date.now()}@quantra.com`,
+      email: `sub_${i}_${Date.now()}@sigmaspire.com`,
       password: 'password123',
       email_confirm: true
     });

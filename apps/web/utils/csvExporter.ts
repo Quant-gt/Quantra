@@ -1,6 +1,6 @@
 export const exportToCSV = <T extends Record<string, any>>(
   data: T[], 
-  filename: string = 'quantra-filtered-export'
+  filename: string = 'sigmaspire-filtered-export'
 ): void => {
   if (!data || data.length === 0) return;
 

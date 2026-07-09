@@ -22,7 +22,7 @@ alter table public.users add column if not exists updated_at timestamp with time
 create table if not exists public.user_payments (
   user_id uuid references public.users on delete cascade primary key,
   razorpay_customer_id text not null,
-  razorpay_subscription_id text, -- ID for their Quantra SaaS Monthly Fee
+  razorpay_subscription_id text, -- ID for their SigmaSpire SaaS Monthly Fee
   last_payment_status text check (last_payment_status in ('success', 'failed', 'pending')),
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );

@@ -209,7 +209,7 @@ export default function Home() {
           transition={{ duration: 0.8, delay: 0.4 }}
           className="text-lg text-gray-400 max-w-2xl mx-auto mb-10 leading-relaxed font-medium"
         >
-          Quantra is a zero-latency, institutional-grade systematic trading platform designed for serious Indian retail and quant traders. Build, backtest, and automate your algorithmic trading edge directly on the NSE.
+          SigmaSpire is a zero-latency, institutional-grade systematic trading platform designed for serious Indian retail and quant traders. Build, backtest, and automate your algorithmic trading edge directly on the NSE.
         </motion.p>
 
         <motion.div 
@@ -224,7 +224,7 @@ export default function Home() {
               onHoverEnd={() => setIsHovered(false)}
               className="w-full px-10 py-5 bg-gradient-to-r from-emerald-500 to-emerald-600 text-white rounded-2xl font-black text-lg hover:shadow-[0_0_40px_-5px_rgba(16,185,129,0.4)] transition-all flex items-center justify-center gap-2"
             >
-              Build Your Edge on Quantra 
+              Build Your Edge on SigmaSpire 
               <motion.span animate={{ x: isHovered ? 5 : 0 }}>
                 <ChevronRight className="h-5 w-5" />
               </motion.span>
@@ -278,7 +278,7 @@ export default function Home() {
             <Activity className="text-emerald-500 h-5 w-5" />
             Institutional FII / DII Tracker
           </h3>
-          <p className="text-zinc-500 text-xs mb-6 leading-relaxed">Track live FII DII data and daily institutional volume flow on the NSE. Quantra's proprietary trackers reveal gross purchases, sales, and net institutional market positioning for advanced quantitative analysis.</p>
+          <p className="text-zinc-500 text-xs mb-6 leading-relaxed">Track live FII DII data and daily institutional volume flow on the NSE. SigmaSpire's proprietary trackers reveal gross purchases, sales, and net institutional market positioning for advanced quantitative analysis.</p>
           
           <div className="overflow-x-auto">
             <table className="w-full text-left border-collapse text-xs">
@@ -408,7 +408,7 @@ export default function Home() {
               <h3 className="text-white text-xl font-bold flex items-center gap-2">
                 Live Alpha Discovery Engines
               </h3>
-              <p className="text-zinc-500 text-xs mt-0.5 leading-relaxed max-w-xl">Leverage Quantra's structural momentum stock scanner and volume inflow shock scanner to identify live alpha on the NSE. Instantly filter assets by Value Core Low P/E Multiples or RSI overbought conditions.</p>
+              <p className="text-zinc-500 text-xs mt-0.5 leading-relaxed max-w-xl">Leverage SigmaSpire's structural momentum stock scanner and volume inflow shock scanner to identify live alpha on the NSE. Instantly filter assets by Value Core Low P/E Multiples or RSI overbought conditions.</p>
             </div>
 
             {/* Strategy Selectors */}
@@ -523,7 +523,7 @@ export default function Home() {
         <div className="max-w-4xl mx-auto text-center relative z-10">
           <h2 className="text-4xl md:text-5xl font-black mb-6 tracking-tight">Ready to master the markets?</h2>
           <p className="text-gray-400 max-w-xl mx-auto text-sm leading-relaxed mb-10">
-            Join thousands of quantitative traders and developers using Quantra to build, backtest, and deploy high-performance automated strategies.
+            Join thousands of quantitative traders and developers using SigmaSpire to build, backtest, and deploy high-performance automated strategies.
           </p>
           <Link href="/auth">
             <button className="px-10 py-5 bg-gradient-to-r from-cyan-500 to-emerald-500 text-white font-black rounded-2xl text-lg hover:shadow-[0_0_45px_-5px_rgba(6,182,212,0.4)] transition-all">
@@ -566,14 +566,14 @@ export default function Home() {
             </div>
           </div>
           <div>
-            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-4">Quantra</h4>
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-4">SigmaSpire</h4>
             <p className="text-gray-600 text-xs leading-relaxed pr-4">
-              Quantra provides institutional direct market access infrastructure and zero-latency execution APIs for the active quant trader in India. Integrate your automated strategy development Python SDK and utilize our SEBI registered RA automated trading integrations. Explore our API Docs for ultra-fast algorithmic backtesting and live deployment.
+              SigmaSpire provides institutional direct market access infrastructure and zero-latency execution APIs for the active quant trader in India. Integrate your automated strategy development Python SDK and utilize our SEBI registered RA automated trading integrations. Explore our API Docs for ultra-fast algorithmic backtesting and live deployment.
             </p>
           </div>
         </div>
         <div className="max-w-7xl mx-auto border-t border-white/5 pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs">
-          <span>&copy; {new Date().getFullYear()} Quantra Technologies Inc. All rights reserved.</span>
+          <span>&copy; {new Date().getFullYear()} SigmaSpire Technologies Inc. All rights reserved.</span>
           <span>Designed for ultra-low latency execution.</span>
         </div>
       </footer>
@@ -592,7 +592,7 @@ export default function Home() {
               <div className="p-5 border-b border-white/5 flex justify-between items-center bg-[#0D1117]">
                 <div className="flex items-center gap-2">
                   <Activity className="text-emerald-500 animate-pulse" size={18} />
-                  <span className="font-bold text-sm text-white">Quantra Live Terminal Simulator (Demo Tour)</span>
+                  <span className="font-bold text-sm text-white">SigmaSpire Live Terminal Simulator (Demo Tour)</span>
                 </div>
                 <button 
                   onClick={() => setIsDemoOpen(false)}
@@ -609,7 +609,7 @@ export default function Home() {
                 <div className="col-span-1 p-6 flex flex-col justify-between bg-[#0B0F19]/40">
                   <div className="space-y-4">
                     <div className="text-[10px] uppercase tracking-widest text-emerald-400 font-bold">Interactive Replay</div>
-                    <h3 className="font-bold text-lg text-white leading-tight">See how Quantra executes</h3>
+                    <h3 className="font-bold text-lg text-white leading-tight">See how SigmaSpire executes</h3>
                     
                     <div className="space-y-3 pt-4">
                       {[
@@ -779,7 +779,7 @@ export default function Home() {
 
                 <div className="space-y-4">
                   <p className="text-xs text-gray-400 leading-relaxed">
-                    You are accessing guest features. Join Quantra Pro to save custom filters, run historical backtests, and link your broker keys.
+                    You are accessing guest features. Join SigmaSpire Pro to save custom filters, run historical backtests, and link your broker keys.
                   </p>
                   
                   <div className="space-y-4 pt-2">

@@ -2,7 +2,7 @@ import { test, expect } from '@playwright/test';
 
 test.describe('System-wide Smoke Tests', () => {
   const publicRoutes = [
-    { path: '/', titleText: 'Quantra' }, // Look for some text on homepage, or just check it doesn't 404
+    { path: '/', titleText: 'SigmaSpire' }, // Look for some text on homepage, or just check it doesn't 404
     { path: '/marketplace', titleText: 'Discover Your Edge' },
     { path: '/auth', titleText: 'Welcome back' },
     { path: '/builder/ai', titleText: 'AI Strategy Prompt Generator' },

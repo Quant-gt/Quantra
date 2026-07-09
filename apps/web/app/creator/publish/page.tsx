@@ -137,14 +137,14 @@ export default function PublishStrategy() {
           {step === 2 && (
             <div className="animate-in fade-in slide-in-from-right-4 duration-300">
               <h2 className="text-xl font-bold text-white mb-2">Logic Integration</h2>
-              <p className="text-sm text-gray-400 mb-6">Connect your TradingView alerts or custom Python scripts to Quantra.</p>
+              <p className="text-sm text-gray-400 mb-6">Connect your TradingView alerts or custom Python scripts to SigmaSpire.</p>
               
               <div className="bg-[#0D1117] border border-[#30363D] rounded-xl p-6 mb-6">
                 <h3 className="text-md font-bold text-white mb-4">Your Unique Webhook URL</h3>
                 <div className="flex gap-2">
                   <input 
                     readOnly
-                    value={`https://api.quantra.io/v1/wh/strat_${Math.random().toString(36).substr(2, 9)}`}
+                    value={`https://api.sigmaspire.io/v1/wh/strat_${Math.random().toString(36).substr(2, 9)}`}
                     className="w-full bg-[#161B22] border border-[#30363D] rounded-lg px-4 py-2 text-green-400 font-mono text-sm focus:outline-none cursor-copy"
                   />
                   <button className="bg-[#21262D] hover:bg-[#30363D] text-white px-4 py-2 rounded-lg text-sm font-semibold transition-colors border border-[#30363D]">
@@ -152,7 +152,7 @@ export default function PublishStrategy() {
                   </button>
                 </div>
                 <p className="text-xs text-gray-500 mt-3 leading-relaxed">
-                  Paste this URL into your TradingView Alert settings. When your alert triggers, Quantra will automatically fan-out the execution to all your active subscribers in real-time.
+                  Paste this URL into your TradingView Alert settings. When your alert triggers, SigmaSpire will automatically fan-out the execution to all your active subscribers in real-time.
                 </p>
               </div>
 

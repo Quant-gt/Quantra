@@ -1,6 +1,6 @@
 services:
   - type: web
-    name: quantra-ai-engine
+    name: sigmaspire-ai-engine
     env: python
     rootDir: apps/ai_engine
     buildCommand: pip install -r requirements.txt

@@ -11,7 +11,7 @@ export default function App() {
     <View style={styles.container}>
       {/* Header */}
       <View style={styles.header}>
-        <Text style={styles.headerTitle}>QUANTRA Mobile</Text>
+        <Text style={styles.headerTitle}>SIGMASPIRE Mobile</Text>
         <Text style={styles.headerSubtitle}>Deployment Monitor</Text>
       </View>
 

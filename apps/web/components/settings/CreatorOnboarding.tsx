@@ -88,7 +88,7 @@ export default function CreatorOnboarding() {
         <ShieldAlert className="shrink-0 mt-0.5" size={20} />
         <div className="text-sm">
           <strong className="block mb-1 text-[#E3B341] text-base">SEBI Compliance Notice</strong>
-          To monetize algorithms on Quantra, you must provide your Permanent Account Number (PAN) for tax and identity verification. If you are providing investment advice or guaranteed returns, you MUST provide your SEBI Registration Number.
+          To monetize algorithms on SigmaSpire, you must provide your Permanent Account Number (PAN) for tax and identity verification. If you are providing investment advice or guaranteed returns, you MUST provide your SEBI Registration Number.
         </div>
       </div>
 

@@ -37,7 +37,7 @@ export async function GET(request: Request) {
     if (error) throw error;
 
     // Simulate S3 upload to Cloudflare R2
-    // await s3Client.send(new PutObjectCommand({ Bucket: 'quantra-audit', Key: `archive-${Date.now()}.parquet` ... }))
+    // await s3Client.send(new PutObjectCommand({ Bucket: 'sigmaspire-audit', Key: `archive-${Date.now()}.parquet` ... }))
 
     return NextResponse.json({ success: true, archivedRows: count || 0 });
   } catch (error: any) {

@@ -55,7 +55,7 @@ export default function SignupPage() {
       <div className="sm:mx-auto sm:w-full sm:max-w-[440px]">
         <div className="bg-white p-10 rounded-[24px] shadow-sm border border-slate-200">
           <div className="mb-8 text-center">
-            <h2 className="text-2xl font-extrabold text-slate-900">Join Quantra Pro</h2>
+            <h2 className="text-2xl font-extrabold text-slate-900">Join SigmaSpire Pro</h2>
             <p className="text-slate-500 text-sm mt-2">Start automating your edge today.</p>
           </div>
 
@@ -81,7 +81,7 @@ export default function SignupPage() {
                       ? "border-red-500 focus:ring-red-500 focus:border-red-500 bg-red-50/10"
                       : "border-slate-200 focus:ring-emerald-500"
                   }`}
-                  placeholder="alex@quantra.io"
+                  placeholder="alex@sigmaspire.io"
                 />
               </motion.div>
               {isDisposable && (
@@ -118,7 +118,7 @@ export default function SignupPage() {
           </form>
 
           <div className="mt-8 pt-6 border-t border-slate-100 flex items-center justify-center gap-2 text-sm text-slate-500">
-            Already using Quantra? 
+            Already using SigmaSpire? 
             <a href="/auth" className="text-slate-900 font-bold hover:text-emerald-600">Sign In</a>
           </div>
         </div>

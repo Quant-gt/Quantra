@@ -81,7 +81,7 @@ export default function RiskDisclosurePage() {
                 In strict compliance with Securities and Exchange Board of India (SEBI) directives regarding the proliferation of derivative trading, all users must acknowledge the statistical probability of net losses. Trading in derivative contracts involves inherently high risk due to embedded leverage.
               </p>
               <p>
-                By linking your broker account to Quantra's execution engine, you declare that you have read and accepted this warning. The automation of trading does not mitigate, reduce, or bypass the fundamental statistical realities of derivative market risks.
+                By linking your broker account to SigmaSpire's execution engine, you declare that you have read and accepted this warning. The automation of trading does not mitigate, reduce, or bypass the fundamental statistical realities of derivative market risks.
               </p>
             </div>
           </section>
@@ -105,7 +105,7 @@ export default function RiskDisclosurePage() {
                 Derivative and margin-based equity trades carry "geared" risks. The fractionally low margins required to open large derivative positions mean that a minute adverse movement in stock indices can trigger immediate, catastrophic margin shortfalls:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Auto Liquidation:</strong> If your account margin drops below your broker's maintenance threshold, the broker's RMS (Risk Management System) reserves the right to square off your positions instantly without notice. Quantra's automation loop is blind to your broker's RMS logic and is not liable for auto-liquidations that disrupt an algorithm's lifecycle.</li>
+                <li><strong>Auto Liquidation:</strong> If your account margin drops below your broker's maintenance threshold, the broker's RMS (Risk Management System) reserves the right to square off your positions instantly without notice. SigmaSpire's automation loop is blind to your broker's RMS logic and is not liable for auto-liquidations that disrupt an algorithm's lifecycle.</li>
                 <li><strong>Peak Margin Penalties:</strong> Exchanges calculate peak margin utilization dynamically across multiple snapshots throughout the day. Rapidly firing algorithms placing excessive open limit orders could temporarily block margins, resulting in penalty assessments by your broker.</li>
               </ul>
             </div>
@@ -118,8 +118,8 @@ export default function RiskDisclosurePage() {
                 Algorithmic trading is entirely, 100% dependent on technology infrastructure. Physical order routing involves a fragile chain of servers, DNS resolvers, APIs, internet service providers (ISPs), and exchange matchmakers:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li><strong>Execution Latency:</strong> Milliseconds matter in fast-moving markets. Network congestion anywhere between Quantra's AWS servers in Mumbai and your broker's endpoints can lead to order fills at rates worse than expected.</li>
-                <li><strong>Dropped Packets:</strong> A TCP/IP packet drop can result in Quantra assuming an order failed when it actually succeeded, or assuming it succeeded when it failed, leading to mismatched virtual and physical portfolios.</li>
+                <li><strong>Execution Latency:</strong> Milliseconds matter in fast-moving markets. Network congestion anywhere between SigmaSpire's AWS servers in Mumbai and your broker's endpoints can lead to order fills at rates worse than expected.</li>
+                <li><strong>Dropped Packets:</strong> A TCP/IP packet drop can result in SigmaSpire assuming an order failed when it actually succeeded, or assuming it succeeded when it failed, leading to mismatched virtual and physical portfolios.</li>
               </ul>
             </div>
           </section>
@@ -140,7 +140,7 @@ export default function RiskDisclosurePage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">6. Overfitting & Curve-Fitting Realities</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                When utilizing Quantra's Strategy Builder or AI-generation tools, users frequently fall into the trap of "Overfitting" (also known as curve-fitting).
+                When utilizing SigmaSpire's Strategy Builder or AI-generation tools, users frequently fall into the trap of "Overfitting" (also known as curve-fitting).
               </p>
               <p>
                 Overfitting occurs when you hyper-optimize indicators (e.g., changing an RSI length from 14 to 13.8) specifically to maximize the equity curve on past historical data. Algorithms optimized to perform exceptionally well on past data almost universally fail when exposed to live, unpredictable, out-of-sample market cycles. Past performance is computationally irrelevant to future results.
@@ -200,7 +200,7 @@ export default function RiskDisclosurePage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">11. Operational Constraints (10 OPS Limit)</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                As detailed in our Terms of Service, Quantra throttles API calls at <strong>10 Operations Per Second (OPS)</strong> per user. 
+                As detailed in our Terms of Service, SigmaSpire throttles API calls at <strong>10 Operations Per Second (OPS)</strong> per user. 
               </p>
               <p>
                 In highly active markets where your strategy tries to place massive scale orders, square off a basket of 50 option strikes simultaneously, or rapidly adjust grids, throttling will delay trade execution. This hard limit acts as a bottleneck that may cause your algorithm to miss critical, fleeting entry windows, fundamentally altering the profitability of the strategy.
@@ -212,10 +212,10 @@ export default function RiskDisclosurePage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">12. Third-Party Broker API Failures</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                Quantra does not execute trades natively; it routes them to your broker (e.g., Zerodha, Fyers, Angel One). Retail broker APIs in India frequently experience connection dropouts, throttle responses during morning volatility (9:15 AM - 9:30 AM), or return undocumented HTTP 500 server errors.
+                SigmaSpire does not execute trades natively; it routes them to your broker (e.g., Zerodha, Fyers, Angel One). Retail broker APIs in India frequently experience connection dropouts, throttle responses during morning volatility (9:15 AM - 9:30 AM), or return undocumented HTTP 500 server errors.
               </p>
               <p>
-                When a broker API fails, Quantra's engine cannot force a trade through. A broker API crash during a market collapse will leave your algorithm stranded, entirely unable to execute its programmed exit protocols.
+                When a broker API fails, SigmaSpire's engine cannot force a trade through. A broker API crash during a market collapse will leave your algorithm stranded, entirely unable to execute its programmed exit protocols.
               </p>
             </div>
           </section>
@@ -224,7 +224,7 @@ export default function RiskDisclosurePage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">13. Exchange Connectivity Outages</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                On rare but devastating occasions, the primary stock exchanges themselves (NSE/BSE) suffer from matching engine halts or leased line disconnections. During exchange halts, neither manual traders, broker apps, nor Quantra algorithms can process orders. The chaotic reopening phase following a halt involves massive price distortions that algorithms are rarely trained to handle safely.
+                On rare but devastating occasions, the primary stock exchanges themselves (NSE/BSE) suffer from matching engine halts or leased line disconnections. During exchange halts, neither manual traders, broker apps, nor SigmaSpire algorithms can process orders. The chaotic reopening phase following a halt involves massive price distortions that algorithms are rarely trained to handle safely.
               </p>
             </div>
           </section>
@@ -245,7 +245,7 @@ export default function RiskDisclosurePage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">15. Drawdown Cascades & Stop-Loss Failure</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                While Quantra offers platform-level "Max Daily Drawdown" limits, these are soft-software locks that trigger market square-offs <em>after</em> the threshold is breached.
+                While SigmaSpire offers platform-level "Max Daily Drawdown" limits, these are soft-software locks that trigger market square-offs <em>after</em> the threshold is breached.
               </p>
               <p>
                 If your limit is ₹10,000, and an illiquid option premium suddenly spikes, pushing your MTM loss to ₹15,000 in a single tick, the system will trigger the square-off at ₹15,000. You acknowledge that during fast market crashes, execution slippage will result in actual realized losses vastly exceeding your configured soft limits.
@@ -269,10 +269,10 @@ export default function RiskDisclosurePage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">17. Marketplace Strategy Risks</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                Subscribing to and deploying third-party strategies from the Quantra Marketplace carries immense risk. You are trusting the logic of an unknown Creator. 
+                Subscribing to and deploying third-party strategies from the SigmaSpire Marketplace carries immense risk. You are trusting the logic of an unknown Creator. 
               </p>
               <p>
-                Creators may design "martingale" systems (doubling down on losers) that show smooth historical equity curves but guarantee eventual account blowouts. Quantra does not audit, endorse, or verify the safety of marketplace algorithms. You subscribe and deploy them entirely at your own peril.
+                Creators may design "martingale" systems (doubling down on losers) that show smooth historical equity curves but guarantee eventual account blowouts. SigmaSpire does not audit, endorse, or verify the safety of marketplace algorithms. You subscribe and deploy them entirely at your own peril.
               </p>
             </div>
           </section>
@@ -293,7 +293,7 @@ export default function RiskDisclosurePage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">19. No Guarantee of Capital or Profit</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                Quantra does not promise, represent, or guarantee that any algorithm, strategy, indicator, or configuration will yield profits or protect capital. <strong>You must only trade with discretionary risk capital that you can afford to lose entirely without affecting your livelihood.</strong>
+                SigmaSpire does not promise, represent, or guarantee that any algorithm, strategy, indicator, or configuration will yield profits or protect capital. <strong>You must only trade with discretionary risk capital that you can afford to lose entirely without affecting your livelihood.</strong>
               </p>
               <p>
                 Any metrics shown on the platform (CAGR, Sharpe Ratio, Max Drawdown, Calmar Ratio) represent historical statistics or calculations and are never forward-looking predictions.
@@ -305,11 +305,11 @@ export default function RiskDisclosurePage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">20. Explicit Client Consent & Declaration</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                By linking your broker API keys, authorizing server access, and deploying algorithms from a `PAUSED` state to a `LIVE` state on Quantra, you legally confirm that:
+                By linking your broker API keys, authorizing server access, and deploying algorithms from a `PAUSED` state to a `LIVE` state on SigmaSpire, you legally confirm that:
               </p>
               <div className="bg-[#161B22] border border-[#30363D] p-6 rounded-lg space-y-4 font-mono text-xs text-gray-400">
                 <div>[X] I understand and accept that 9 out of 10 individual F&O traders incur net losses.</div>
-                <div>[X] I acknowledge that Quantra is a technology interface provider and does not manage, direct, or pool my capital.</div>
+                <div>[X] I acknowledge that SigmaSpire is a technology interface provider and does not manage, direct, or pool my capital.</div>
                 <div>[X] I accept all risks regarding order latency, execution slippage, broker API downtime, and server failures.</div>
                 <div>[X] I understand the mathematical reality of overfitting, sequence of returns risk, and overnight gap wipeouts.</div>
                 <div>[X] I declare that all trades routed through the platform are authorized solely by me and executed strictly on my personal ledger account.</div>

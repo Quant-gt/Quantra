@@ -34,8 +34,8 @@ export default function DashboardLayout({
   const [isSandbox, setIsSandbox] = useState<boolean>(false);
 
   const fetchBrokerStatus = () => {
-    const broker = localStorage.getItem("quantra_broker_name");
-    const sandbox = localStorage.getItem("quantra_broker_sandbox") === "true";
+    const broker = localStorage.getItem("sigmaspire_broker_name");
+    const sandbox = localStorage.getItem("sigmaspire_broker_sandbox") === "true";
     setActiveBroker(broker);
     setIsSandbox(sandbox);
   };
@@ -84,7 +84,7 @@ export default function DashboardLayout({
               </svg>
             </div>
             <div className="flex flex-col">
-              <span className="text-xl font-bold text-white tracking-tight">Quantra</span>
+              <span className="text-xl font-bold text-white tracking-tight">SigmaSpire</span>
               {isSandbox ? (
                 <span className="text-[10px] text-cyan-400 font-bold flex items-center gap-1 mt-0.5">
                   <span className="w-1.5 h-1.5 rounded-full bg-cyan-400 animate-pulse" />
@@ -180,7 +180,7 @@ export default function DashboardLayout({
                   <polyline points="2 12 12 17 22 12" />
                 </svg>
               </div>
-              <span className="text-xl font-bold text-white tracking-tight">Quantra</span>
+              <span className="text-xl font-bold text-white tracking-tight">SigmaSpire</span>
             </div>
             <button 
               onClick={() => setIsMobileMenuOpen(true)}

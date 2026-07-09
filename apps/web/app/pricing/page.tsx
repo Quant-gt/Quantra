@@ -94,7 +94,7 @@ export default function PricingPage() {
       period: 'per month',
       target: 'Part-time strategy creators testing commercial interest.',
       features: [
-        'List up to 2 active strategies publicly on the Quantra Marketplace.',
+        'List up to 2 active strategies publicly on the SigmaSpire Marketplace.',
         'Unlocks basic subscriber tracking analytics and payout panel.',
         'Standard platform convenience split at checkout (90/10).'
       ],
@@ -235,7 +235,7 @@ export default function PricingPage() {
       <div className="max-w-4xl mx-auto px-6 pb-20 text-center">
         <div className="inline-flex items-center gap-2 text-xs text-gray-500 bg-[#161B22] px-4 py-2 rounded-lg border border-[#30363D]">
           <Shield size={14} className="text-gray-400" />
-          Quantra operates exclusively as a Software-as-a-Service (SaaS) and code licensing marketplace. We do not pool or manage client funds.
+          SigmaSpire operates exclusively as a Software-as-a-Service (SaaS) and code licensing marketplace. We do not pool or manage client funds.
         </div>
       </div>
     </div>

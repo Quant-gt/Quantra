@@ -66,7 +66,7 @@ export default function PrivacyPolicyPage() {
             <div>
               <h4 className="font-bold text-white mb-2 text-lg">MILITARY-GRADE CREDENTIAL PROTECTION</h4>
               <p className="text-sm text-gray-300 leading-relaxed">
-                We handle highly sensitive broker API keys, access tokens, and execution profiles. Quantra operates on a zero-trust architecture. Every single API credential stored on our PostgreSQL databases is encrypted at rest using AES-256-GCM cryptography. Our engineering staff, administrators, and customer support representatives cannot decrypt, access, or read your underlying broker passwords or secrets under any circumstances.
+                We handle highly sensitive broker API keys, access tokens, and execution profiles. SigmaSpire operates on a zero-trust architecture. Every single API credential stored on our PostgreSQL databases is encrypted at rest using AES-256-GCM cryptography. Our engineering staff, administrators, and customer support representatives cannot decrypt, access, or read your underlying broker passwords or secrets under any circumstances.
               </p>
             </div>
           </div>
@@ -75,10 +75,10 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">1. Introduction & Scope</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                At Quantra Technologies Private Limited ("Quantra", "We", "Us"), your privacy and the security of your trading data are our highest priorities. This Privacy Policy details the exact types of data we collect, how that data is processed within our execution engines, the cryptographic standards used to protect it, and your rights regarding your personal information.
+                At SigmaSpire Technologies Private Limited ("SigmaSpire", "We", "Us"), your privacy and the security of your trading data are our highest priorities. This Privacy Policy details the exact types of data we collect, how that data is processed within our execution engines, the cryptographic standards used to protect it, and your rights regarding your personal information.
               </p>
               <p>
-                This policy applies to all users accessing the Quantra web application, strategy builder, API routes, and mobile interfaces (the "Services"). By registering an account and linking your broker API, you consent to the data collection practices described herein. If you do not agree with this policy, you must not use the Services.
+                This policy applies to all users accessing the SigmaSpire web application, strategy builder, API routes, and mobile interfaces (the "Services"). By registering an account and linking your broker API, you consent to the data collection practices described herein. If you do not agree with this policy, you must not use the Services.
               </p>
             </div>
           </section>
@@ -119,7 +119,7 @@ export default function PrivacyPolicyPage() {
                 <strong>What we collect:</strong> The alphanumeric strings representing your API keys and your Broker Client ID.
               </p>
               <p>
-                <strong>What we DO NOT collect:</strong> We never ask for, collect, or store your actual broker login password, trading PIN, Time-based One-Time Passwords (TOTP) from Google Authenticator, or biometric login data. You generate the API keys independently on your broker's dashboard and provide only the bridging tokens to Quantra.
+                <strong>What we DO NOT collect:</strong> We never ask for, collect, or store your actual broker login password, trading PIN, Time-based One-Time Passwords (TOTP) from Google Authenticator, or biometric login data. You generate the API keys independently on your broker's dashboard and provide only the bridging tokens to SigmaSpire.
               </p>
             </div>
           </section>
@@ -157,7 +157,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">7. Zero-Monetization Policy</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                Quantra holds a strict <strong>zero-monetization policy</strong> for user data. Our business model is entirely supported by SaaS subscription fees.
+                SigmaSpire holds a strict <strong>zero-monetization policy</strong> for user data. Our business model is entirely supported by SaaS subscription fees.
               </p>
               <p>
                 We absolutely do not rent, sell, trade, or expose your personal information, trading strategies, portfolio holdings, or execution histories to third-party marketing companies, hedge funds, High-Frequency Trading (HFT) firms, or competing broker houses. Your alpha remains yours.
@@ -173,7 +173,7 @@ export default function PrivacyPolicyPage() {
                 <li><strong>Stock Brokers:</strong> Transmitting your order payload (symbol, price, quantity, auth token) to your connected broker endpoints for execution.</li>
                 <li><strong>Cloud Infrastructure:</strong> AWS, Vercel, and Supabase for hosting databases, serverless functions, and frontend assets. Data is encrypted at rest.</li>
                 <li><strong>Communication Services:</strong> Brevo (Email) and Telegram (Webhooks) for routing transactional alerts and OTPs.</li>
-                <li><strong>Payment Processors:</strong> Stripe or Razorpay for handling subscription billing. (Quantra does not process card numbers natively).</li>
+                <li><strong>Payment Processors:</strong> Stripe or Razorpay for handling subscription billing. (SigmaSpire does not process card numbers natively).</li>
               </ul>
             </div>
           </section>
@@ -187,7 +187,7 @@ export default function PrivacyPolicyPage() {
               <ul className="list-disc pl-6 space-y-2">
                 <li>To comply with a valid subpoena, court order, or search warrant.</li>
                 <li>To respond to direct audit requests from the Securities and Exchange Board of India (SEBI), the NSE, BSE, or allied clearing corporations investigating market manipulation, wash trading, or fraud.</li>
-                <li>To protect the physical safety of any person or to defend Quantra against legal liability.</li>
+                <li>To protect the physical safety of any person or to defend SigmaSpire against legal liability.</li>
               </ul>
             </div>
           </section>
@@ -211,7 +211,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">11. Network Security & TLS 1.3</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                All data transmitted between your browser, the Quantra mobile app, our backend servers, and the broker APIs is encrypted in transit using <strong>Transport Layer Security (TLS 1.3)</strong>. 
+                All data transmitted between your browser, the SigmaSpire mobile app, our backend servers, and the broker APIs is encrypted in transit using <strong>Transport Layer Security (TLS 1.3)</strong>. 
               </p>
               <p>
                 We enforce HTTP Strict Transport Security (HSTS) across all domains to prevent protocol downgrade attacks and cookie hijacking. Internal microservices communicate exclusively over encrypted Virtual Private Cloud (VPC) peering connections, isolated from the public internet.
@@ -261,7 +261,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">15. Cross-Border Data Transfers</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                Quantra operates server infrastructure primarily in the `ap-south-1` (Mumbai) region to guarantee ultra-low latency to Indian stock exchanges. However, certain edge network functions (like Vercel Edge caching or Supabase auth nodes) may process transient data globally.
+                SigmaSpire operates server infrastructure primarily in the `ap-south-1` (Mumbai) region to guarantee ultra-low latency to Indian stock exchanges. However, certain edge network functions (like Vercel Edge caching or Supabase auth nodes) may process transient data globally.
               </p>
               <p>
                 By using the Services, you consent to the transfer, storage, and processing of your data across international borders in accordance with this policy, provided the recipient infrastructure maintains equivalent or superior cryptographic standards.
@@ -298,7 +298,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">18. Data Breach Notification Protocols</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                In the highly unlikely event of a cryptographic failure resulting in unauthorized access to sensitive user data, Quantra is bound by strict incident response protocols.
+                In the highly unlikely event of a cryptographic failure resulting in unauthorized access to sensitive user data, SigmaSpire is bound by strict incident response protocols.
               </p>
               <p>
                 We will notify the Indian Computer Emergency Response Team (CERT-In) and affected users within 72 hours of confirming a breach, detailing the nature of the compromised data, the potential risks, and the immediate mitigation steps deployed (e.g., forcing global password resets and flushing API tokens).
@@ -310,7 +310,7 @@ export default function PrivacyPolicyPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">19. Children's Privacy</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                The Services involve financial markets and derivative trading routing. Quantra is strictly restricted to individuals who are at least eighteen (18) years of age, or the legal age of majority in their jurisdiction.
+                The Services involve financial markets and derivative trading routing. SigmaSpire is strictly restricted to individuals who are at least eighteen (18) years of age, or the legal age of majority in their jurisdiction.
               </p>
               <p>
                 We do not knowingly collect, solicit, or maintain PII from anyone under the age of 18. If we become aware that a minor has created an account and linked a broker API, we will immediately freeze the account, cancel all active orders, and purge the personal data.
@@ -329,8 +329,8 @@ export default function PrivacyPolicyPage() {
               </p>
               <div className="bg-[#161B22] border border-[#30363D] p-6 rounded-lg space-y-2 font-mono text-[13px]">
                 <div><strong>Grievance Officer:</strong> Legal & Compliance Department</div>
-                <div><strong>Company:</strong> Quantra Technologies Private Limited</div>
-                <div><strong>Email:</strong> compliance@quantra.com</div>
+                <div><strong>Company:</strong> SigmaSpire Technologies Private Limited</div>
+                <div><strong>Email:</strong> compliance@sigmaspire.com</div>
                 <div><strong>Address:</strong> Bandra Kurla Complex (BKC), Mumbai, Maharashtra, 400051, India</div>
                 <div className="text-gray-500 mt-2 italic">*Please allow 48-72 hours for initial grievance acknowledgment.*</div>
               </div>

@@ -13,7 +13,7 @@ from engine.async_executor import run_execution_loop
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from auto_auth_agent import run_automated_login
 
-app = FastAPI(title="Quantra AI Engine", description="Multi-Agent Strategy Generator & Backtester")
+app = FastAPI(title="The I.N.D.I.A. Engine by SigmaSpire", description="Intelligent Network for Dynamic Investment Analytics - Multi-Agent Strategy Generator & Backtester")
 
 # Global In-Memory Order Queue
 order_queue = asyncio.Queue()

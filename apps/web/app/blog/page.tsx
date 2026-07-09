@@ -45,7 +45,7 @@ export default function BlogIndex() {
             className="inline-flex items-center gap-2 bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-4 py-1.5 rounded-full text-xs font-black tracking-widest uppercase mb-6"
           >
             <BookOpen className="h-3.5 w-3.5" />
-            Quantra Chronicles
+            SigmaSpire Chronicles
           </motion.div>
           <motion.h1 
             initial={{ opacity: 0, y: 20 }}

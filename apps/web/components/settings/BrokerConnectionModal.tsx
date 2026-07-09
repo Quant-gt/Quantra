@@ -127,7 +127,7 @@ export default function BrokerConnectionModal({ isOpen, onClose, onSuccess }: Br
                 exit={{ opacity: 0, x: 20 }}
               >
                 <p className="text-gray-400 text-sm mb-6">
-                  Select your primary brokerage account to enable algorithmic execution. Quantra supports India's most popular retail and institutional brokers.
+                  Select your primary brokerage account to enable algorithmic execution. SigmaSpire supports India's most popular retail and institutional brokers.
                 </p>
                 <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-4">
                   {BROKERS.map(broker => (

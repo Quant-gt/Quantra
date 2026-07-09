@@ -32,10 +32,10 @@ export async function POST(req: Request) {
       );
     }
 
-    // 3. Create the Split Order (90% to Creator, 10% to Quantra)
+    // 3. Create the Split Order (90% to Creator, 10% to SigmaSpire)
     // Amounts in Razorpay are in paise (multiply INR by 100)
     const amountInPaise = amountInr * 100;
-    const quantraFeePaise = Math.round(amountInPaise * 0.10); // 10%
+    const sigmaspireFeePaise = Math.round(amountInPaise * 0.10); // 10%
 
     const options = {
       amount: amountInPaise,
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       transfers: [
         {
           account: settlementAcc.razorpay_account_id,
-          amount: amountInPaise - quantraFeePaise, // 90% to creator
+          amount: amountInPaise - sigmaspireFeePaise, // 90% to creator
           currency: 'INR',
           notes: {
             strategy_id: strategyId,

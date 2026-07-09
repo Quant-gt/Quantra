@@ -41,10 +41,10 @@ export async function POST(req: Request) {
         if (mergedPrefs.email_marketing || mergedPrefs.email_trade_alerts) {
            await NotificationService.sendEmail(
              mergedPrefs.user_email,
-             'New Login Alert - Quantra',
+             'New Login Alert - SigmaSpire',
              `
                <b>Security Alert</b><br/>
-               A new login was detected on your Quantra account at ${new Date().toUTCString()}.<br/>
+               A new login was detected on your SigmaSpire account at ${new Date().toUTCString()}.<br/>
                If this was you, you can safely ignore this email.
              `
            )

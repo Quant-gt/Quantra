@@ -59,7 +59,7 @@ export default function RazorpayButton({
         key: process.env.NEXT_PUBLIC_RAZORPAY_KEY_ID, // Use public key here
         amount: amount ? amount * 100 : undefined,
         currency: "INR",
-        name: "Quantra Technologies",
+        name: "SigmaSpire Technologies",
         description: type === 'subscription' ? "SaaS Platform Pass" : "Marketplace Strategy License",
         order_id: orderId,
         subscription_id: subscriptionId,
@@ -68,7 +68,7 @@ export default function RazorpayButton({
           // Polling the backend or relying on webhook to update UI state
         },
         prefill: {
-          name: "Quantra User", // Fetch dynamically if available
+          name: "SigmaSpire User", // Fetch dynamically if available
           email: "user@example.com"
         },
         theme: {

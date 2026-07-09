@@ -3,10 +3,10 @@ const path = require('path');
 
 const pages = [
   { path: 'app/status/page.tsx', title: 'System Status', desc: 'All systems are operational. Execution engine latency is currently under 15ms.' },
-  { path: 'app/terms/page.tsx', title: 'Terms of Service', desc: 'By using Quantra, you agree to our terms of service regarding algorithmic trading and API usage.' },
+  { path: 'app/terms/page.tsx', title: 'Terms of Service', desc: 'By using SigmaSpire, you agree to our terms of service regarding algorithmic trading and API usage.' },
   { path: 'app/privacy/page.tsx', title: 'Privacy Policy', desc: 'We take your privacy seriously. Your trading data and API keys are encrypted at rest and in transit.' },
   { path: 'app/risk-disclosure/page.tsx', title: 'Risk Disclosure', desc: 'Algorithmic trading involves significant risk of loss. Past performance is not indicative of future results.' },
-  { path: 'app/sebi/page.tsx', title: 'SEBI Regulations', desc: 'Quantra acts as a technology provider. Users must comply with SEBI regulations for automated trading.' },
+  { path: 'app/sebi/page.tsx', title: 'SEBI Regulations', desc: 'SigmaSpire acts as a technology provider. Users must comply with SEBI regulations for automated trading.' },
   { path: 'app/github/page.tsx', title: 'Github Repository', desc: 'Our open-source SDKs and client libraries will be available on Github soon.' },
   { path: 'app/features/page.tsx', title: 'Features', desc: 'Explore our visual strategy builder, backtesting engine, and live execution dashboard.' },
 ];

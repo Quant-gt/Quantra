@@ -88,7 +88,7 @@ export default function PlaygroundPage() {
     };
     
     // Store rule state into sessionStorage to be loaded post signup
-    sessionStorage.setItem('quantra_playground_strategy', JSON.stringify(playgroundState));
+    sessionStorage.setItem('sigmaspire_playground_strategy', JSON.stringify(playgroundState));
     toast.success("Strategy rules saved to sandbox cache! Redirecting to sign-up...");
     
     setTimeout(() => {

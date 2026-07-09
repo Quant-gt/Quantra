@@ -36,7 +36,7 @@ export const ScreenerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
 
   // Hydrate watchlist from localStorage on client-side mount
   useEffect(() => {
-    const savedWatchlist = localStorage.getItem('quantra_watchlist');
+    const savedWatchlist = localStorage.getItem('sigmaspire_watchlist');
     if (savedWatchlist) setWatchlist(JSON.parse(savedWatchlist));
   }, []);
 
@@ -45,7 +45,7 @@ export const ScreenerProvider: React.FC<{ children: React.ReactNode }> = ({ chil
       const updated = prev.includes(symbol)
         ? prev.filter((s) => s !== symbol)
         : [...prev, symbol];
-      localStorage.setItem('quantra_watchlist', JSON.stringify(updated));
+      localStorage.setItem('sigmaspire_watchlist', JSON.stringify(updated));
       return updated;
     });
   };

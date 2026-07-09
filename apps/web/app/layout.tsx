@@ -6,8 +6,8 @@ import { Toaster } from "sonner";
 const inter = Inter({ subsets: ["latin"] });
 
 export const metadata: Metadata = {
-  title: "Quantra | Zero-Latency Systematic Trading Terminal India",
-  description: "Quantra is the institutional-grade systematic trading platform for Indian retail traders. Build, backtest & deploy zero-latency quant strategies on the NSE.",
+  title: "SigmaSpire | Zero-Latency Systematic Trading Terminal India",
+  description: "SigmaSpire is the institutional-grade systematic trading platform for Indian retail traders. Build, backtest & deploy zero-latency quant strategies on the NSE.",
 };
 
 export default function RootLayout({

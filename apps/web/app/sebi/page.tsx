@@ -66,7 +66,7 @@ export default function SebiRegulationsPage() {
             <div>
               <h4 className="font-bold text-white mb-2 text-lg">STATUTORY SEBI REGULATORY FRAMEWORK</h4>
               <p className="text-sm text-gray-300 leading-relaxed">
-                Quantra operates strictly within the guidelines issued by the Securities and Exchange Board of India (SEBI) regarding algorithmic trading interfaces and Retail API tech providers. In order to comply with current circulars, we do not run pooled trading accounts, do not promise fixed returns, and mandate that all live algorithmic deployments connect exclusively via the client's direct, legally verified broker credentials.
+                SigmaSpire operates strictly within the guidelines issued by the Securities and Exchange Board of India (SEBI) regarding algorithmic trading interfaces and Retail API tech providers. In order to comply with current circulars, we do not run pooled trading accounts, do not promise fixed returns, and mandate that all live algorithmic deployments connect exclusively via the client's direct, legally verified broker credentials.
               </p>
             </div>
           </div>
@@ -78,7 +78,7 @@ export default function SebiRegulationsPage() {
                 Algorithmic trading in India is governed strictly by SEBI circulars, primarily focused on preventing market manipulation, protecting retail capital from sophisticated predatory algorithms, and reducing systemic risks (like flash crashes) on recognized stock exchanges such as the NSE and BSE.
               </p>
               <p>
-                Quantra is fully committed to maintaining the integrity of these circulars by enforcing hard-coded client-side validations, auditing signal routing paths, and preventing any automated actions that might lead to unfair trade execution or artificial market volume creation.
+                SigmaSpire is fully committed to maintaining the integrity of these circulars by enforcing hard-coded client-side validations, auditing signal routing paths, and preventing any automated actions that might lead to unfair trade execution or artificial market volume creation.
               </p>
             </div>
           </section>
@@ -87,7 +87,7 @@ export default function SebiRegulationsPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">2. Technology Provider (TSP) Exemption Status</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                Quantra is structured strictly as a <strong>Technology Service Provider (TSP)</strong>. We supply a SaaS (Software as a Service) graphical interface and server compute environment to assist users in routing trades.
+                SigmaSpire is structured strictly as a <strong>Technology Service Provider (TSP)</strong>. We supply a SaaS (Software as a Service) graphical interface and server compute environment to assist users in routing trades.
               </p>
               <ul className="list-disc pl-6 space-y-2">
                 <li>We are <strong>not</strong> an investment advisor, research analyst, portfolio manager, or stock broker.</li>
@@ -104,7 +104,7 @@ export default function SebiRegulationsPage() {
                 SEBI strictly prohibits tech platforms from operating pooled investment structures or soliciting funds to trade on behalf of users without an AMC (Asset Management Company) license.
               </p>
               <p>
-                All trading capital, margin, and collateral stays exclusively in your personal Demat/Trading account with your SEBI-registered stock broker. Quantra has no legal or technical access to your capital, does not handle withdraw/deposit queries, and cannot direct funds. Every transaction is settled directly between your bank account, your broker, and the clearing corporation.
+                All trading capital, margin, and collateral stays exclusively in your personal Demat/Trading account with your SEBI-registered stock broker. SigmaSpire has no legal or technical access to your capital, does not handle withdraw/deposit queries, and cannot direct funds. Every transaction is settled directly between your bank account, your broker, and the clearing corporation.
               </p>
             </div>
           </section>
@@ -116,7 +116,7 @@ export default function SebiRegulationsPage() {
                 Operating an unregistered Portfolio Management Service (PMS) is a severe criminal offense under Indian securities law.
               </p>
               <p>
-                Quantra does not offer "fully managed" accounts. We do not operate mutualized mirror trading where users blindly copy trades into automated accounts without manual configuration or license setup. You must proactively log in, connect your API, manually select or build a strategy, and click "Deploy" to initiate automation. 
+                SigmaSpire does not offer "fully managed" accounts. We do not operate mutualized mirror trading where users blindly copy trades into automated accounts without manual configuration or license setup. You must proactively log in, connect your API, manually select or build a strategy, and click "Deploy" to initiate automation. 
               </p>
             </div>
           </section>
@@ -131,7 +131,7 @@ export default function SebiRegulationsPage() {
                 All API keys (such as Zerodha Kite Connect, Fyers API, or Upstox API) are issued directly to the client under the broker's terms of service. It is the broker's statutory responsibility to validate client logins, conduct KYC, and manage the approval of API credentials.
               </p>
               <p>
-                You must ensure your API keys are authorized for algorithmic routing under your broker's terms. Quantra does not bypass broker checks. If a broker revokes your API access for violating their terms, Quantra is not liable for your suspended automation.
+                You must ensure your API keys are authorized for algorithmic routing under your broker's terms. SigmaSpire does not bypass broker checks. If a broker revokes your API access for violating their terms, SigmaSpire is not liable for your suspended automation.
               </p>
             </div>
           </section>
@@ -143,7 +143,7 @@ export default function SebiRegulationsPage() {
                 Historically, SEBI mandated that every individual algorithmic strategy required explicit exchange approval. However, for retail API routing where the logic executes on the client-side (or a TSP cloud) and routes standard order packets to a broker's pre-approved API gateway, the exchange approves the broker's API infrastructure rather than the individual retail strategy.
               </p>
               <p>
-                You are utilizing Quantra to send standard REST API order payloads (e.g., LIMIT BUY 100 QTY) to your broker. The broker's Risk Management System (RMS) is responsible for vetting that payload before transmitting it to the exchange matching engine.
+                You are utilizing SigmaSpire to send standard REST API order payloads (e.g., LIMIT BUY 100 QTY) to your broker. The broker's Risk Management System (RMS) is responsible for vetting that payload before transmitting it to the exchange matching engine.
               </p>
             </div>
           </section>
@@ -155,7 +155,7 @@ export default function SebiRegulationsPage() {
                 To prevent unauthorized or "zombie" algorithmic execution, SEBI circulars require brokers to enforce a daily manual login to activate API tokens. 
               </p>
               <p>
-                Quantra complies with this entirely by enforcing daily re-authentication protocols on our dashboard. You must log in manually every trading morning to generate a fresh access token from your broker. Strategies will not route live signals if your broker session token is expired. We do not employ headless browser scraping to bypass this SEBI 2FA mandate.
+                SigmaSpire complies with this entirely by enforcing daily re-authentication protocols on our dashboard. You must log in manually every trading morning to generate a fresh access token from your broker. Strategies will not route live signals if your broker session token is expired. We do not employ headless browser scraping to bypass this SEBI 2FA mandate.
               </p>
             </div>
           </section>
@@ -164,10 +164,10 @@ export default function SebiRegulationsPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">8. Operational Auditing & IP Logging</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                To support compliance investigations into market abuse, Quantra maintains rigorous, immutable system logs in our TimescaleDB clusters:
+                To support compliance investigations into market abuse, SigmaSpire maintains rigorous, immutable system logs in our TimescaleDB clusters:
               </p>
               <p>
-                Every API request and order execution routed through our engine is logged with your platform User ID, your static/public IP address, and the precise millisecond timestamp. In the event of a regulatory query regarding a specific trade, Quantra is mandated to compile this data and share it with broker houses, exchanges, or SEBI compliance officers.
+                Every API request and order execution routed through our engine is logged with your platform User ID, your static/public IP address, and the precise millisecond timestamp. In the event of a regulatory query regarding a specific trade, SigmaSpire is mandated to compile this data and share it with broker houses, exchanges, or SEBI compliance officers.
               </p>
             </div>
           </section>
@@ -176,7 +176,7 @@ export default function SebiRegulationsPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">9. Half-Yearly System Audit Requirements</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                Brokers providing API access are required to conduct half-yearly system audits of their algorithmic infrastructure. As a TSP bridging to these brokers, Quantra maintains architectural readiness to assist brokers during these audits.
+                Brokers providing API access are required to conduct half-yearly system audits of their algorithmic infrastructure. As a TSP bridging to these brokers, SigmaSpire maintains architectural readiness to assist brokers during these audits.
               </p>
               <p>
                 We employ continuous integration (CI) security checks, penetration testing, and infrastructure-as-code audits to ensure our routing engines do not introduce vulnerabilities into the broker network.
@@ -203,8 +203,8 @@ export default function SebiRegulationsPage() {
                 In strict alignment with SEBI rules against misleading financial promotions and "finfluencer" abuse:
               </p>
               <ul className="list-disc pl-6 space-y-2">
-                <li>Quantra does <strong>not</strong> advertise guaranteed returns, risk-free trades, or fixed monthly profits.</li>
-                <li>Strategy creators publishing on the Quantra Marketplace are expressly prohibited from using titles or descriptions promising returns (e.g., "100% Win Rate" or "Double Capital Monthly").</li>
+                <li>SigmaSpire does <strong>not</strong> advertise guaranteed returns, risk-free trades, or fixed monthly profits.</li>
+                <li>Strategy creators publishing on the SigmaSpire Marketplace are expressly prohibited from using titles or descriptions promising returns (e.g., "100% Win Rate" or "Double Capital Monthly").</li>
                 <li>Any marketplace strategies violating these advertising guidelines are deleted instantly by our moderation algorithms, and the creator is permanently banned.</li>
               </ul>
             </div>
@@ -217,7 +217,7 @@ export default function SebiRegulationsPage() {
                 SEBI continuously monitors for market manipulation techniques such as Wash Trading (simultaneously buying and selling to create fake volume) and Spoofing/Layering (placing massive fake orders to manipulate the BBO, then cancelling them).
               </p>
               <p>
-                Algorithms coded on Quantra must not be used to execute such schemes. If our internal heuristics detect repetitive spoofing patterns, we reserve the right to forcefully terminate your execution loop and report the IP trail to the relevant exchange surveillance teams.
+                Algorithms coded on SigmaSpire must not be used to execute such schemes. If our internal heuristics detect repetitive spoofing patterns, we reserve the right to forcefully terminate your execution loop and report the IP trail to the relevant exchange surveillance teams.
               </p>
             </div>
           </section>
@@ -229,7 +229,7 @@ export default function SebiRegulationsPage() {
                 SEBI mandates that all algorithmic orders must pass through the broker's Risk Management System (RMS) before hitting the exchange. 
               </p>
               <p>
-                Quantra does not bypass the broker's RMS. If your algorithm attempts to buy 10,000 shares but you only have margin for 100 shares, Quantra will dispatch the order, but your broker's RMS will instantly reject it with a `Margin Shortfall` error. This dual-layer architecture ensures exchange-level safety protocols are never violated.
+                SigmaSpire does not bypass the broker's RMS. If your algorithm attempts to buy 10,000 shares but you only have margin for 100 shares, SigmaSpire will dispatch the order, but your broker's RMS will instantly reject it with a `Margin Shortfall` error. This dual-layer architecture ensures exchange-level safety protocols are never violated.
               </p>
             </div>
           </section>
@@ -241,7 +241,7 @@ export default function SebiRegulationsPage() {
                 The SEBI Complaints Redress System (SCORES) is a centralized grievance redressal portal. 
               </p>
               <p>
-                However, because Quantra is a SaaS technology provider and not a SEBI-registered intermediary (like a broker or mutual fund), complaints regarding software bugs, subscription refunds, or algorithmic slippage cannot be filed against Quantra on the SCORES portal. 
+                However, because SigmaSpire is a SaaS technology provider and not a SEBI-registered intermediary (like a broker or mutual fund), complaints regarding software bugs, subscription refunds, or algorithmic slippage cannot be filed against SigmaSpire on the SCORES portal. 
               </p>
               <p>
                 If you have a grievance regarding your broker's API uptime, you may file a SCORES complaint against the broker. For platform issues, you must utilize our internal Legal Grievance Officer.
@@ -265,7 +265,7 @@ export default function SebiRegulationsPage() {
                 Your broker API key is equivalent to your digital signature for financial transactions. SEBI rules dictate that users must not share their trading credentials with unauthorized third parties to trade on their behalf (colloquially known as "dabba trading" or unauthorized portfolio management).
               </p>
               <p>
-                By inputting your keys into Quantra, you are authorizing an automated software script (that you control) to execute trades. You must never allow another human being to log into your Quantra account to manage your algorithms.
+                By inputting your keys into SigmaSpire, you are authorizing an automated software script (that you control) to execute trades. You must never allow another human being to log into your SigmaSpire account to manage your algorithms.
               </p>
             </div>
           </section>
@@ -277,7 +277,7 @@ export default function SebiRegulationsPage() {
                 Exchanges demand that brokers implement rate limits to prevent rogue algorithms from crashing exchange matching engines. Consequently, brokers enforce rate limits on their retail APIs (e.g., 10 requests per second).
               </p>
               <p>
-                Quantra respects these systemic limits by implementing a global **10 Operations Per Second (OPS)** throttle on our outgoing API dispatchers. This ensures our platform remains compliant with broker infrastructure protection rules.
+                SigmaSpire respects these systemic limits by implementing a global **10 Operations Per Second (OPS)** throttle on our outgoing API dispatchers. This ensures our platform remains compliant with broker infrastructure protection rules.
               </p>
             </div>
           </section>
@@ -286,7 +286,7 @@ export default function SebiRegulationsPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">18. Circular No. CIR/MRD/DP/16/2013 Adherence</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                While older SEBI circulars (like CIR/MRD/DP/16/2013) focused heavily on institutional co-location (Colo) algorithms, the regulatory framework has expanded to cover retail APIs. Quantra's architecture is built to evolve with these directives, ensuring that our SaaS layer acts purely as a routing conduit, maintaining the broker as the ultimate gatekeeper of exchange connectivity.
+                While older SEBI circulars (like CIR/MRD/DP/16/2013) focused heavily on institutional co-location (Colo) algorithms, the regulatory framework has expanded to cover retail APIs. SigmaSpire's architecture is built to evolve with these directives, ensuring that our SaaS layer acts purely as a routing conduit, maintaining the broker as the ultimate gatekeeper of exchange connectivity.
               </p>
             </div>
           </section>
@@ -295,7 +295,7 @@ export default function SebiRegulationsPage() {
             <h2 className="text-2xl font-bold text-white border-b border-[#30363D] pb-2">19. Disclosure of Backtest Fallibilities</h2>
             <div className="text-sm text-gray-300 space-y-4 leading-relaxed">
               <p>
-                In line with SEBI's mandate for fair disclosure, Quantra places prominent disclaimers on all backtesting interfaces. Users are explicitly warned that simulated historical performance does not account for slippage, liquidity gaps, or margin shortfalls, and therefore cannot be relied upon as a guarantee of future returns.
+                In line with SEBI's mandate for fair disclosure, SigmaSpire places prominent disclaimers on all backtesting interfaces. Users are explicitly warned that simulated historical performance does not account for slippage, liquidity gaps, or margin shortfalls, and therefore cannot be relied upon as a guarantee of future returns.
               </p>
             </div>
           </section>
@@ -307,7 +307,7 @@ export default function SebiRegulationsPage() {
                 SEBI periodically releases discussion papers proposing new rules for retail algorithmic trading (e.g., mandating TSP registration frameworks or restricting certain API functionalities). 
               </p>
               <p>
-                Quantra actively monitors these regulatory developments. Should SEBI enact new laws that require architectural overhauls (such as removing certain automated features or demanding formal TSP certifications), we will comply immediately. This may result in sudden, unannounced changes to platform capabilities. By using the platform, you accept the risk of regulatory policy shifts disrupting your automated strategies.
+                SigmaSpire actively monitors these regulatory developments. Should SEBI enact new laws that require architectural overhauls (such as removing certain automated features or demanding formal TSP certifications), we will comply immediately. This may result in sudden, unannounced changes to platform capabilities. By using the platform, you accept the risk of regulatory policy shifts disrupting your automated strategies.
               </p>
             </div>
           </section>

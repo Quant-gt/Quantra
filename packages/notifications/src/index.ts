@@ -23,7 +23,7 @@ export class NotificationService {
       const email = new brevo.SendSmtpEmail();
       email.subject = subject;
       email.htmlContent = html;
-      email.sender = { name: 'Quantra', email: 'notifications@quantra.trade' }; // Update domain as needed
+      email.sender = { name: 'SigmaSpire', email: 'notifications@sigmaspire.trade' }; // Update domain as needed
       email.to = [{ email: to }];
 
       const { body } = await this.brevoClient.sendTransacEmail(email);

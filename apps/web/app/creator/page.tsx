@@ -46,7 +46,7 @@ export default function CreatorDashboard() {
             </div>
             <h2 className="text-xl font-bold text-white mb-2">Become a Strategy Creator</h2>
             <p className="text-gray-400 max-w-md text-sm leading-relaxed mb-6">
-              Publish your first algorithmic strategy to the Quantra Marketplace. Start earning monthly recurring revenue (MRR) from subscribers worldwide.
+              Publish your first algorithmic strategy to the SigmaSpire Marketplace. Start earning monthly recurring revenue (MRR) from subscribers worldwide.
             </p>
             <Link href="/creator/publish" className="px-6 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg text-sm font-bold transition-all shadow-lg flex items-center gap-2">
               <Activity size={16} /> Publish Your First Algorithm

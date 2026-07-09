@@ -1,5 +1,5 @@
 {
-  "name": "quantra",
+  "name": "sigmaspire",
   "private": true,
   "scripts": {
     "build": "turbo run build",

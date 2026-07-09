@@ -15,7 +15,7 @@ export default function PublicNavbar() {
               <polyline points="2 12 12 17 22 12" />
             </svg>
           </div>
-          <span className="text-xl font-bold text-white tracking-tight group-hover:text-emerald-400 transition-colors">Quantra</span>
+          <span className="text-xl font-bold text-white tracking-tight group-hover:text-emerald-400 transition-colors">SigmaSpire</span>
         </Link>
         
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
