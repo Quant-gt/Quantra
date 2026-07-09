@@ -198,11 +198,51 @@ export function calculateSMA(closes: number[], period: number): number {
   return parseFloat((sum / period).toFixed(2));
 }
 
+export function calculateEMA(closes: number[], period: number): number[] {
+  const ema: number[] = [];
+  const k = 2 / (period + 1);
+  if (closes.length === 0) return [];
+  
+  // Seed with first close
+  ema.push(closes[0]!);
+  for (let i = 1; i < closes.length; i++) {
+    ema.push(closes[i]! * k + ema[i - 1]! * (1 - k));
+  }
+  return ema;
+}
+
+export function checkMACDCrossover(closes: number[]): boolean {
+  if (closes.length < 35) return false;
+  const ema12 = calculateEMA(closes, 12);
+  const ema26 = calculateEMA(closes, 26);
+  
+  const macd: number[] = [];
+  for (let i = 0; i < closes.length; i++) {
+    macd.push(ema12[i]! - ema26[i]!);
+  }
+  
+  const signal = calculateEMA(macd, 9);
+  
+  const lastMacd = macd[macd.length - 1]!;
+  const lastSignal = signal[signal.length - 1]!;
+  const prevMacd = macd[macd.length - 2]!;
+  const prevSignal = signal[signal.length - 2]!;
+  
+  return prevMacd <= prevSignal && lastMacd > lastSignal;
+}
+
 export function checkGoldenCross(closes: number[]): boolean {
-  if (closes.length < 200) return false;
-  const sma50 = calculateSMA(closes, 50);
-  const sma200 = calculateSMA(closes, 200);
-  return sma50 > sma200;
+  if (closes.length < 201) return false;
+  
+  const prevCloses = closes.slice(0, closes.length - 1);
+  
+  const currentSma50 = calculateSMA(closes, 50);
+  const currentSma200 = calculateSMA(closes, 200);
+  
+  const prevSma50 = calculateSMA(prevCloses, 50);
+  const prevSma200 = calculateSMA(prevCloses, 200);
+  
+  return prevSma50 <= prevSma200 && currentSma50 > currentSma200;
 }
 
 export function checkVolumeSurge(candles: Candle[]): boolean {

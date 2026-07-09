@@ -16,48 +16,46 @@ export async function POST(request: Request) {
     // In real app, this would query Upstash Redis for cached indicators/prices
     // and evaluate the filter_graph
     
-    // Fetch live quotes from Yahoo Finance Quote API for a broader Nifty universe
+    // Use the comprehensive quotes API which calculates real TA
     const symbols = [
       'RELIANCE', 'TCS', 'INFY', 'HDFCBANK', 'ICICIBANK', 
       'SBIN', 'BHARTIARTL', 'ITC', 'HINDUNILVR', 'AXISBANK', 
       'KOTAKBANK', 'LT', 'BAJFINANCE', 'MARUTI', 'TITAN', 
       'SUNPHARMA', 'ULTRACEMCO', 'TATAMOTORS', 'NTPC', 'POWERGRID'
     ];
-    const nseSymbols = symbols.map(s => `${s}.NS`);
-    const url = `https://query2.finance.yahoo.com/v7/finance/quote?symbols=${nseSymbols.join(',')}`;
-    const response = await fetch(url, {
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
-      }
+    
+    const quotesUrl = new URL('/api/v1/market/quotes', request.url);
+    const response = await fetch(quotesUrl.toString(), {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ symbols })
     });
 
-    let liveStocks = [];
+    let liveStocks: any[] = [];
     if (response.ok) {
       const data = await response.json();
-      const quotes = data.quoteResponse?.result || [];
-      liveStocks = quotes.map((q: any) => {
-        const cleanSymbol = q.symbol.replace(/\.NS$/, '');
-        const pctChange = q.regularMarketChangePercent || 0;
-        const close = q.regularMarketPrice || 0;
-        const open = q.regularMarketOpen || close;
-        const volume = q.regularMarketVolume || 0;
-        
-        // Calculate indicators dynamically from real quotes
-        const rsi = Math.min(Math.max(Math.round(50 + pctChange * 6), 10), 90);
-        
+      const quotes = data.quotes || {};
+      
+      liveStocks = Object.keys(quotes).map(symbol => {
+        const q = quotes[symbol];
         const matched = [];
-        if (rsi < 35) {
+        
+        if (q.rsi < 35) {
           matched.push('RSI Oversold', 'Mean Reversion');
-        } else if (rsi > 65) {
+        } else if (q.rsi > 65) {
           matched.push('RSI Overbought', 'Trend Reversal');
         }
         
-        if (volume > 1500000) {
+        if (q.hasVolumeSurge) {
           matched.push('Volume Surge', 'Momentum Buy');
         }
         
-        if (close > open && pctChange > 0.5) {
-          matched.push('Bullish Breakout');
+        if (q.hasGoldenCross) {
+          matched.push('Golden Cross', 'Bullish Trend');
+        }
+        
+        if (q.hasMacd) {
+          matched.push('MACD Crossover', 'Momentum Shift');
         }
         
         if (matched.length === 0) {
@@ -65,15 +63,15 @@ export async function POST(request: Request) {
         }
 
         return {
-          ticker: cleanSymbol,
-          name: q.shortName || cleanSymbol,
-          cmp: close,
-          change: parseFloat(pctChange.toFixed(2)),
+          ticker: symbol,
+          name: symbol,
+          cmp: q.close,
+          change: q.change,
           matched
         };
       });
     } else {
-      throw new Error(`Failed to fetch live quotes. Yahoo API responded with status: ${response.status}`);
+      throw new Error(`Failed to fetch live quotes. Internal API responded with status: ${response.status}`);
     }
 
     // Save results to history
