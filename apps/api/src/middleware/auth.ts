@@ -21,6 +21,7 @@ export const dailyAuthCheck = async (req: express.Request, res: express.Response
   const token = authHeader.split(' ')[1];
 
   try {
+    // @ts-ignore - Supabase v2 typing mismatch in the current workspace configuration
     const { data: { user }, error: authError } = await supabase.auth.getUser(token);
 
     if (authError || !user) {
