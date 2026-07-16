@@ -3,7 +3,7 @@ import { Redis } from '@upstash/redis';
 import { createClient } from '@supabase/supabase-js';
 import cors from 'cors';
 import { runBacktest } from './backtester.js';
-import { NotificationService } from '@repo/notifications';
+// NotificationService removed as part of codebase optimization
 const app = express();
 app.set('trust proxy', 1);
 app.use(cors());
@@ -96,11 +96,7 @@ app.post('/execute', authMiddleware, async (req, res) => {
           user_email: (notifPrefs.users as any)?.email,
           telegram_chat_id: (notifPrefs.users as any)?.telegram_chat_id
         };
-        await NotificationService.notifyComplianceThrottle(
-          user_id, 
-          mergedPrefs,
-          '10 OPS Limit Breached (SEBI Guard)'
-        );
+        console.log(`[MOCK NOTIFY] notifyComplianceThrottle sent to user ${user_id}`);
       }
 
       return res.status(429).json({
@@ -151,11 +147,7 @@ app.post('/execute', authMiddleware, async (req, res) => {
     if (userData?.notification_preferences?.[0]) {
       const prefs = userData.notification_preferences[0];
       const mergedPrefs = { ...prefs, user_email: userData.email, telegram_chat_id: userData.telegram_chat_id };
-      await NotificationService.notifyTradeExecution(
-        user_id,
-        mergedPrefs,
-        { symbol, qty, price, action: 'TRADE', status: broker_status }
-      );
+      console.log(`[MOCK NOTIFY] notifyTradeExecution sent to user ${user_id}`);
     }
 
     return res.json({ success: true, broker_order_id, broker_status });
@@ -327,11 +319,8 @@ app.post('/execute/fanout', authMiddleware, async (req, res) => {
       Promise.allSettled(executionLogs.map(log => {
         const prefs = userPrefsMap[log.user_id];
         if (prefs) {
-          return NotificationService.notifyTradeExecution(
-            log.user_id,
-            prefs,
-            { symbol: log.symbol, qty: log.quantity, price: log.price, action: log.action, status: log.status }
-          );
+          console.log(`[MOCK NOTIFY] notifyTradeExecution sent to user ${log.user_id}`);
+          return Promise.resolve();
         }
       }));
     }

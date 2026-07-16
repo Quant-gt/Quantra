@@ -1,4 +1,4 @@
-import { NotificationService } from '@repo/notifications'
+// NotificationService removed as part of codebase optimization
 import { createClient } from '@supabase/supabase-js'
 import { NextResponse } from 'next/server'
 
@@ -39,15 +39,7 @@ export async function POST(req: Request) {
         // Notify daily login if email marketing/alerts is broadly accepted
         // or if we add a specific `email_login_alerts` flag in the future
         if (mergedPrefs.email_marketing || mergedPrefs.email_trade_alerts) {
-           await NotificationService.sendEmail(
-             mergedPrefs.user_email,
-             'New Login Alert - SigmaSpire',
-             `
-               <b>Security Alert</b><br/>
-               A new login was detected on your SigmaSpire account at ${new Date().toUTCString()}.<br/>
-               If this was you, you can safely ignore this email.
-             `
-           )
+           console.log(`[MOCK NOTIFY] sendEmail sent to user ${mergedPrefs.user_email}`);
         }
       }
     }

@@ -1,14 +1,30 @@
 import { executeZerodhaOrder, OrderPayload } from './brokers/zerodha';
 import { executeUpstoxOrder } from './brokers/upstox';
+import { createClient } from '@supabase/supabase-js';
 
-// In-memory logger for the Admin Dashboard UI
+const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || '';
+const supabaseServiceKey = process.env.SUPABASE_SERVICE_ROLE_KEY || '';
+const supabase = createClient(supabaseUrl, supabaseServiceKey);
+
+// In-memory logger for the Admin Dashboard UI (fallback)
 export const engineLogs: string[] = [];
 
-function log(msg: string) {
+async function log(msg: string) {
   const timestamp = new Date().toISOString().split('T')[1]!.slice(0, -1); // HH:MM:SS.mmm
   engineLogs.unshift(`[${timestamp}] ${msg}`);
   if (engineLogs.length > 100) engineLogs.pop(); // Keep last 100 logs
   console.log(`[FANOUT] ${msg}`);
+  
+  // Persist to DB for compliance
+  try {
+    await supabase.from('compliance_audit').insert({
+      action: 'FANOUT_LOG',
+      details: { message: msg },
+      timestamp: new Date().toISOString()
+    });
+  } catch (e) {
+    console.error("Failed to persist audit log", e);
+  }
 }
 
 interface Subscriber {
@@ -76,7 +92,15 @@ export async function processFanOut(masterSignal: { strategyId: string, action: 
       }
     });
 
-    await Promise.all(batchPromises);
+    const results = await Promise.allSettled(batchPromises);
+    
+    // Log individual failures so one crash doesn't break the batch silently
+    results.forEach((res, idx) => {
+      if (res.status === 'rejected') {
+        log(`❌ ERROR executing order for ${batch[idx]?.userId || 'Unknown'}: ${res.reason}`);
+      }
+    });
+
     log(`✅ BATCH ${Math.floor(i/BATCH_SIZE) + 1} execution complete.`);
 
     // If there are more batches, pause to respect rate limits (Leaky Bucket)

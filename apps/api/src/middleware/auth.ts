@@ -30,7 +30,7 @@ export const dailyAuthCheck = async (req: express.Request, res: express.Response
 
     const userId = user.id;
     req.headers['x-user-id'] = userId; // Set verified user ID for downstream middlewares
-    // Get current time in IST using a robust timezone-agnostic calculation
+    // Get current time in IST using robust Intl.DateTimeFormat
     const now = new Date();
     const getIstDateComponents = (date: Date) => {
       const formatter = new Intl.DateTimeFormat('en-US', {

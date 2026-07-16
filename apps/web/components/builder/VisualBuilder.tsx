@@ -187,7 +187,7 @@ function BuilderFlow() {
         .insert({
           creator_id: session.user.id,
           name: strategyName,
-          logic_graph: flow as any,
+          logic_graph: flow as Record<string, unknown>,
           status: 'draft'
         })
         .select()
@@ -197,9 +197,9 @@ function BuilderFlow() {
       
       toast.success('Strategy saved successfully!');
       
-    } catch (err: any) {
-      console.error("Save error:", JSON.stringify(err, null, 2));
-      toast.error(`Failed to save strategy: ${err.message || 'Unknown error'}`);
+    } catch (err: unknown) {
+      console.error("Save error:", err);
+      toast.error('Failed to save strategy. Please check your inputs and try again later.');
     } finally {
       setIsSaving(false);
     }
