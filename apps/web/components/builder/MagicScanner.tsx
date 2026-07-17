@@ -273,9 +273,9 @@ export default function MagicScanner() {
           const seed = getSymbolSeed(stock.symbol);
           const liveQuote = currentQuotesMap[stock.symbol];
           
-          let closeVal = liveQuote ? liveQuote.close : (seed % 1200) + 150;
-          let changeVal = liveQuote ? liveQuote.change : ((seed % 120) - 60) / 10;
-          let openVal = liveQuote ? liveQuote.open : closeVal * (1 - changeVal / 100);
+          let closeVal = liveQuote?.close !== undefined ? liveQuote.close : (seed % 1200) + 150;
+          let changeVal = liveQuote?.change !== undefined ? liveQuote.change : ((seed % 120) - 60) / 10;
+          let openVal = liveQuote?.open !== undefined ? liveQuote.open : closeVal * (1 - changeVal / 100);
           let highVal = liveQuote ? liveQuote.high : Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
           let lowVal = liveQuote ? liveQuote.low : Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
           let volumeVal = liveQuote ? liveQuote.volume : (seed % 900000) + 100000;
@@ -627,10 +627,9 @@ export default function MagicScanner() {
       const matched = universeList.map(stock => {
         const seed = getSymbolSeed(stock.symbol);
         const liveQuote = liveQuotesMap[stock.symbol];
-        
-        const closeVal = liveQuote ? liveQuote.close : (seed % 1200) + 150;
-        const changeVal = liveQuote ? liveQuote.change : ((seed % 120) - 60) / 10;
-        const openVal = liveQuote ? liveQuote.open : closeVal * (1 - changeVal / 100);
+        const closeVal = liveQuote?.close !== undefined ? liveQuote.close : (seed % 1200) + 150;
+        const changeVal = liveQuote?.change !== undefined ? liveQuote.change : ((seed % 120) - 60) / 10;
+        const openVal = liveQuote?.open !== undefined ? liveQuote.open : closeVal * (1 - changeVal / 100);
         const highVal = liveQuote ? liveQuote.high : Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
         const lowVal = liveQuote ? liveQuote.low : Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
         const volumeVal = liveQuote ? liveQuote.volume : (seed % 900000) + 100000;

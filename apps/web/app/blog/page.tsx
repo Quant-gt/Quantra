@@ -10,7 +10,6 @@ import { BLOG_POSTS, BlogPost } from '../../lib/blog-data';
 export default function BlogIndex() {
   const [searchQuery, setSearchQuery] = useState("");
   const [selectedCategory, setSelectedCategory] = useState("All");
-  const [selectedPost, setSelectedPost] = useState<BlogPost | null>(null);
 
   const categories = ["All", "Systematic Trading", "Engineering", "Compliance"];
 
@@ -110,12 +109,11 @@ export default function BlogIndex() {
               className="grid grid-cols-1 md:grid-cols-3 gap-8"
             >
               {filteredPosts.map((post) => (
-                <motion.div
-                  key={post.id}
-                  layoutId={`post-card-${post.id}`}
-                  onClick={() => setSelectedPost(post)}
-                  className="bg-[#0B0F19]/40 border border-white/5 rounded-3xl p-6 flex flex-col justify-between cursor-pointer hover:border-emerald-500/20 hover:bg-[#0B0F19]/60 transition-all group shadow-xl h-[340px]"
-                >
+                <Link href={`/blog/${post.id}`} key={post.id}>
+                  <motion.div
+                    layoutId={`post-card-${post.id}`}
+                    className="bg-[#0B0F19]/40 border border-white/5 rounded-3xl p-6 flex flex-col justify-between cursor-pointer hover:border-emerald-500/20 hover:bg-[#0B0F19]/60 transition-all group shadow-xl h-[340px]"
+                  >
                   <div>
                     {/* Metadata header */}
                     <div className="flex items-center gap-4 text-gray-500 text-xs mb-5">
@@ -137,6 +135,7 @@ export default function BlogIndex() {
                     <span className="flex items-center gap-1">Read Article <ArrowUpRight size={14} className="group-hover:translate-x-0.5 group-hover:-translate-y-0.5 transition-transform" /></span>
                   </div>
                 </motion.div>
+                </Link>
               ))}
             </motion.div>
           ) : (
@@ -151,64 +150,6 @@ export default function BlogIndex() {
         </AnimatePresence>
 
       </div>
-
-      {/* Blog Article Overlay Modal */}
-      <AnimatePresence>
-        {selectedPost && (
-          <div className="fixed inset-0 bg-black/90 backdrop-blur-md z-50 overflow-y-auto flex justify-center p-4 md:p-8">
-            <motion.div 
-              initial={{ opacity: 0, y: 30 }}
-              animate={{ opacity: 1, y: 0 }}
-              exit={{ opacity: 0, y: 30 }}
-              layoutId={`post-card-${selectedPost.id}`}
-              className="bg-[#0B0F19] border border-white/10 w-full max-w-4xl rounded-3xl shadow-2xl p-6 md:p-10 my-auto relative h-fit"
-            >
-              
-              {/* Back / Close button */}
-              <div className="flex justify-between items-center mb-8 border-b border-white/5 pb-5">
-                <button
-                  onClick={() => setSelectedPost(null)}
-                  className="flex items-center gap-2 text-gray-400 hover:text-white transition-colors text-xs font-bold"
-                >
-                  <ArrowLeft size={16} /> Back to Articles
-                </button>
-                <button
-                  onClick={() => setSelectedPost(null)}
-                  className="text-gray-500 hover:text-white p-2 hover:bg-white/5 rounded-xl transition-all"
-                >
-                  <X size={20} />
-                </button>
-              </div>
-
-              {/* Title & Category Info */}
-              <div className="mb-8">
-                <div className="flex flex-wrap gap-4 items-center text-xs text-gray-500 mb-4">
-                  <span className="bg-emerald-500/10 border border-emerald-500/20 text-emerald-400 px-3.5 py-1 rounded-full font-bold uppercase tracking-wider">{selectedPost.category}</span>
-                  <span className="flex items-center gap-1.5"><Calendar size={13} /> {selectedPost.date}</span>
-                  <span className="flex items-center gap-1.5"><Clock size={13} /> {selectedPost.readTime}</span>
-                </div>
-                <h1 className="text-2xl md:text-4xl font-black text-white leading-tight">
-                  {selectedPost.title}
-                </h1>
-              </div>
-
-              {/* Body Content */}
-              <div className="border-t border-white/5 pt-8">
-                {selectedPost.content}
-              </div>
-
-              {/* Tags Footer */}
-              <div className="border-t border-white/5 pt-6 mt-10 flex flex-wrap gap-2 items-center">
-                <span className="text-gray-500 text-xs font-bold mr-2">Tags:</span>
-                {selectedPost.tags.map(tag => (
-                  <span key={tag} className="bg-white/5 border border-white/5 text-gray-400 text-[10px] px-3 py-1 rounded-md font-medium">#{tag}</span>
-                ))}
-              </div>
-
-            </motion.div>
-          </div>
-        )}
-      </AnimatePresence>
     </div>
   );
 }

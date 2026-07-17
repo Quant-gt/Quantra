@@ -27,7 +27,7 @@
 ## 3. Architectural & Backend Improvements
 ### Centralized OPS Monitoring
 - **Observation**: Orders Per Second (OPS) logic is duplicated in `apps/api` and `apps/execution`.
-- **Suggestion**: Move the `opsMonitor` middleware to a shared package (e.g., `@quantra/middleware`) or a shared internal library to ensure consistency in SEBI compliance.
+- **Suggestion**: Move the `opsMonitor` middleware to a shared package (e.g., `@sigmaspire/middleware`) or a shared internal library to ensure consistency in SEBI compliance.
 
 ### Persistent Logging
 - **Observation**: `apps/web/lib/engine/fanout.ts` uses an in-memory `engineLogs` array.
@@ -35,7 +35,7 @@
 
 ### Type Safety
 - **Observation**: Extensive use of `any` in `VisualBuilder.tsx` (`logic_graph: flow as any`) and `index.ts` (`nodes: any[]`).
-- **Suggestion**: Leverage the `@quantra/types` package to define strict interfaces for the Strategy DAG (Nodes/Edges) and enforce them across both Web and API.
+- **Suggestion**: Leverage the `@sigmaspire/types` package to define strict interfaces for the Strategy DAG (Nodes/Edges) and enforce them across both Web and API.
 
 
 ## 4. Verification of Recent Fixes

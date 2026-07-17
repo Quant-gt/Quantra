@@ -35,11 +35,14 @@ export default function LiveTickerTape() {
       // 2. Throttle DOM updates to once every 500ms
       const now = Date.now();
       if (now - lastRenderTime.current > 500) {
+        // Capture current pending ticks before clearing
+        const ticksToApply = { ...pendingTicks.current };
+        
         setTicks(prev => {
-          // Merge pending ticks into state
+          // Merge captured ticks into state
           const nextState = { ...prev };
-          Object.keys(pendingTicks.current).forEach(sym => {
-            nextState[sym] = pendingTicks.current[sym]!;
+          Object.keys(ticksToApply).forEach(sym => {
+            nextState[sym] = ticksToApply[sym]!;
           });
           return nextState;
         });

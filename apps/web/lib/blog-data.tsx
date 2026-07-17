@@ -776,3 +776,5 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
 ];
+
+export const getPostById = (id: string) => BLOG_POSTS.find(post => post.id === id);

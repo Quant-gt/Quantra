@@ -346,6 +346,16 @@ class VectorBacktester:
 
         self.df['position'] = positions
         
+        # Guard against empty dataframe
+        if len(self.df) == 0:
+            return {
+                "market": self.strategy.market,
+                "total_return_pct": 0.0,
+                "win_rate_pct": 0.0,
+                "max_drawdown_pct": 0.0,
+                "total_trading_days": 0
+            }
+
         # Calculate Returns
         self.df['market_returns'] = self.df['close'].pct_change()
         self.df['strategy_returns'] = self.df['position'].shift(1) * self.df['market_returns']
