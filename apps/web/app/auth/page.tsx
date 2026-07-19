@@ -6,6 +6,7 @@ import { ArrowRight, Loader2, AlertCircle, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
 import Link from 'next/link';
+import { Logo } from '@/components/Logo';
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -104,12 +105,8 @@ export default function AuthPage() {
         >
           <div className="flex flex-col items-center mb-12">
             <Link href="/">
-              <div className="w-16 h-16 bg-white flex items-center justify-center rounded-2xl mb-8 shadow-[0_0_40px_rgba(255,255,255,0.15)] cursor-pointer">
-                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                  <polyline points="2 17 12 22 22 17" />
-                  <polyline points="2 12 12 17 22 12" />
-                </svg>
+              <div className="w-16 h-16 bg-[#161B22] border border-[#30363D] flex items-center justify-center rounded-2xl mb-8 shadow-[0_0_40px_rgba(16,185,129,0.15)] cursor-pointer hover:scale-105 transition-transform">
+                <Logo className="w-10 h-10" />
               </div>
             </Link>
             

@@ -1,7 +1,7 @@
 "use client";
 
 import Link from 'next/link';
-import Image from 'next/image';
+import { Logo } from './Logo';
 import { ChevronRight } from 'lucide-react';
 
 export default function PublicNavbar() {
@@ -10,7 +10,7 @@ export default function PublicNavbar() {
       <div className="bg-[#0B0F19]/60 backdrop-blur-md border border-white/5 rounded-2xl px-6 py-4 flex justify-between items-center shadow-2xl">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-8 h-8 flex items-center justify-center rounded-lg shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
-            <Image src="/sigmaspire-icon-dark-bg.png" alt="SigmaSpire" width={32} height={32} className="object-contain" />
+            <Logo />
           </div>
           <span className="text-xl font-bold text-white tracking-tight group-hover:text-emerald-400 transition-colors">SigmaSpire</span>
         </Link>

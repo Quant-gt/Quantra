@@ -23,6 +23,7 @@ import { useState, useEffect } from 'react';
 import LiveTickerTape from '@/components/dashboard/LiveTickerTape';
 import { ScreenerProvider } from '@/context/ScreenerContext';
 import { BYOBGatewayModal } from '@/components/dashboard/byob-gateway-modal';
+import { Logo } from '@/components/Logo';
 
 export default function DashboardLayout({
   children,
@@ -91,12 +92,8 @@ export default function DashboardLayout({
           ${isMobileMenuOpen ? 'translate-x-0' : '-translate-x-full'}
         `}>
           <div className="flex items-center gap-3 px-6 py-5 border-b border-[#30363D]">
-            <div className="w-8 h-8 bg-white flex items-center justify-center rounded-lg shadow-sm">
-              <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                <polyline points="2 17 12 22 22 17" />
-                <polyline points="2 12 12 17 22 12" />
-              </svg>
+            <div className="w-8 h-8 flex items-center justify-center rounded-lg shadow-sm">
+              <Logo className="w-8 h-8" />
             </div>
             <div className="flex flex-col">
               <span className="text-xl font-bold text-white tracking-tight">SigmaSpire</span>
@@ -216,12 +213,8 @@ export default function DashboardLayout({
           {/* Mobile Header */}
           <div className="md:hidden flex items-center justify-between p-4 bg-[#161B22] border-b border-[#30363D]">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 bg-white flex items-center justify-center rounded-lg shadow-sm">
-                <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
-                  <polyline points="2 17 12 22 22 17" />
-                  <polyline points="2 12 12 17 22 12" />
-                </svg>
+              <div className="w-8 h-8 flex items-center justify-center rounded-lg shadow-sm">
+                <Logo className="w-8 h-8" />
               </div>
               <span className="text-xl font-bold text-white tracking-tight">SigmaSpire</span>
             </div>
