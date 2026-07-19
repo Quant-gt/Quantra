@@ -1,0 +1,22 @@
+[
+  {
+    "file": "\\OPTIMIZATION_SUGGESTIONS.md",
+    "line": 30,
+    "content": "- **Suggestion**: Move the `opsMonitor` middleware to a shared package (e.g., `@quantra/middleware`) or a shared internal library to ensure consistency in SEBI compliance."
+  },
+  {
+    "file": "\\OPTIMIZATION_SUGGESTIONS.md",
+    "line": 38,
+    "content": "- **Suggestion**: Leverage the `@quantra/types` package to define strict interfaces for the Strategy DAG (Nodes/Edges) and enforce them across both Web and API."
+  },
+  {
+    "file": "\\scratch\\search_quantra.py",
+    "line": 4,
+    "content": "root_dir = r\"c:\\Users\\ssbis\\Downloads\\Stock market\\quantra\""
+  },
+  {
+    "file": "\\scratch\\search_quantra.py",
+    "line": 23,
+    "content": "if 'quantra' in line.lower():"
+  }
+]

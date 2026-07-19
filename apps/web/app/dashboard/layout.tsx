@@ -33,6 +33,8 @@ export default function DashboardLayout({
   const [activeBroker, setActiveBroker] = useState<string | null>(null);
   const [isSandbox, setIsSandbox] = useState<boolean>(false);
 
+  const [currentView, setCurrentView] = useState<string>('user');
+
   const fetchBrokerStatus = () => {
     const broker = localStorage.getItem("sigmaspire_broker_name");
     const sandbox = localStorage.getItem("sigmaspire_broker_sandbox") === "true";
@@ -42,6 +44,18 @@ export default function DashboardLayout({
 
   useEffect(() => {
     fetchBrokerStatus();
+    const fetchProfile = async () => {
+      try {
+        const res = await fetch('/api/v1/onboarding/load');
+        if (res.ok) {
+          const profile = await res.json();
+          setCurrentView(profile.current_view || 'user');
+        }
+      } catch (err) {
+        console.error("Failed to load profile", err);
+      }
+    };
+    fetchProfile();
   }, []);
 
   // Close mobile menu on route change
@@ -122,25 +136,35 @@ export default function DashboardLayout({
               <Search size={18} />
               Stock Scanner
             </Link>
-            <Link href="/dashboard/builder" className={getLinkClass('/dashboard/builder')}>
-              <SlidersHorizontal size={18} />
-              Strategy Builder
-            </Link>
+            {currentView === 'creator' && (
+              <>
+                <Link href="/dashboard/builder" className={getLinkClass('/dashboard/builder')}>
+                  <SlidersHorizontal size={18} />
+                  Strategy Builder
+                </Link>
+                <Link href="/dashboard/scans" className={getLinkClass('/dashboard/scans')}>
+                  <SlidersHorizontal size={18} />
+                  Custom Scans
+                </Link>
+              </>
+            )}
+            
+            {currentView === 'user' && (
+              <>
+                <Link href="/dashboard/autotrade" className={getLinkClass('/dashboard/autotrade')}>
+                  <Zap size={18} />
+                  Auto Trade
+                </Link>
+              </>
+            )}
+
             <Link href="/dashboard/charts" className={getLinkClass('/dashboard/charts')}>
               <BarChart2 size={18} />
               Live Charts
             </Link>
-            <Link href="/dashboard/autotrade" className={getLinkClass('/dashboard/autotrade')}>
-              <Zap size={18} />
-              Auto Trade
-            </Link>
             <Link href="/dashboard/backtesting" className={getLinkClass('/dashboard/backtesting')}>
               <History size={18} />
               Backtesting
-            </Link>
-            <Link href="/dashboard/scans" className={getLinkClass('/dashboard/scans')}>
-              <SlidersHorizontal size={18} />
-              Custom Scans
             </Link>
             
             <div className="mt-8 px-6 text-xs font-semibold text-gray-500 mb-2">SYSTEM</div>
@@ -154,12 +178,15 @@ export default function DashboardLayout({
               <Globe size={18} />
               Social Feed
             </Link>
-            <Link href="/creator" className="flex items-center justify-between px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors group border-l-4 border-transparent">
-              <div className="flex items-center gap-3">
-                <Activity size={18} />
-                Creator Studio
-              </div>
-            </Link>
+            
+            {currentView === 'creator' && (
+              <Link href="/creator" className="flex items-center justify-between px-6 py-3 text-gray-400 hover:bg-[#1F2937] hover:text-white transition-colors group border-l-4 border-transparent">
+                <div className="flex items-center gap-3">
+                  <Activity size={18} />
+                  Creator Studio
+                </div>
+              </Link>
+            )}
           </nav>
 
           <div className="p-4 border-t border-[#30363D]">

@@ -12,6 +12,7 @@ export default function SettingsPage() {
   const [showKey, setShowKey] = useState<number | null>(null);
   const [copiedKey, setCopiedKey] = useState<number | null>(null);
   const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
+  const [currentView, setCurrentView] = useState('user');
 
   const [apiKeys, setApiKeys] = useState([
     { id: 1, provider: "Fyers", status: "Connected", appId: "H5XXXXXX", addedAt: "12 May, 2026", validUntil: "12 May, 2027" },
@@ -196,10 +197,33 @@ export default function SettingsPage() {
                   <input type="email" defaultValue="admin@sigmaspire.io" disabled className="w-full bg-[#0D1117]/50 border border-[#30363D] rounded-lg px-4 py-2 text-gray-500 cursor-not-allowed" />
                 </div>
 
-                <div className="pt-4 border-t border-[#30363D] flex justify-end">
-                  <button className="bg-[#238636] hover:bg-[#2ea043] text-white px-6 py-2 rounded-md text-sm font-bold transition-all shadow-lg flex items-center gap-2">
-                    <Save size={16} /> Save Changes
-                  </button>
+                <div className="pt-4 border-t border-[#30363D]">
+                  <div className="flex items-center justify-between bg-[#0D1117]/50 border border-[#30363D] p-4 rounded-lg mb-6">
+                    <div>
+                      <h3 className="text-sm font-bold text-white mb-1">Active Dashboard Role</h3>
+                      <p className="text-xs text-gray-500">Switch between Investor and Developer workspaces.</p>
+                    </div>
+                    <div className="flex bg-[#1C2128] p-1 rounded-lg border border-[#30363D]">
+                      <button 
+                        onClick={() => setCurrentView('user')}
+                        className={`px-4 py-1.5 text-xs font-bold rounded-md transition-colors ${currentView === 'user' ? 'bg-[#238636] text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                      >
+                        Investor
+                      </button>
+                      <button 
+                        onClick={() => setCurrentView('creator')}
+                        className={`px-4 py-1.5 text-xs font-bold rounded-md transition-colors ${currentView === 'creator' ? 'bg-[#8B5CF6] text-white shadow' : 'text-gray-400 hover:text-white'}`}
+                      >
+                        Developer
+                      </button>
+                    </div>
+                  </div>
+                  
+                  <div className="flex justify-end">
+                    <button className="bg-[#238636] hover:bg-[#2ea043] text-white px-6 py-2 rounded-md text-sm font-bold transition-all shadow-lg flex items-center gap-2">
+                      <Save size={16} /> Save Changes
+                    </button>
+                  </div>
                 </div>
               </div>
             </div>

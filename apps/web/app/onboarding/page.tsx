@@ -1,4 +1,4 @@
-import Wizard from '@/components/onboarding/Wizard';
+import RoleWizard from '@/components/onboarding/RoleWizard';
 
 export default function OnboardingPage() {
   return (
@@ -12,12 +12,12 @@ export default function OnboardingPage() {
         }}
       />
       
-      <div className="z-10 w-full max-w-3xl">
+      <div className="z-10 w-full max-w-4xl">
         <div className="mb-8 text-center">
           <img src="/logo_transparent.png" alt="SigmaSpire Logo" className="h-10 mx-auto mb-6" />
           <h1 className="text-white text-xl font-medium tracking-wide">INITIALIZATION SEQUENCE</h1>
         </div>
-        <Wizard />
+        <RoleWizard />
       </div>
     </div>
   );

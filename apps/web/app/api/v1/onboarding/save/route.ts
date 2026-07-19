@@ -35,7 +35,11 @@ export async function POST(request: Request) {
       .from('users')
       .update({
         profile_wizard_step: currentStep,
-        preferences: processedData
+        preferences: processedData,
+        ...(data.roles ? { roles: data.roles } : {}),
+        ...(data.current_view ? { current_view: data.current_view } : {}),
+        ...(data.experience_level ? { experience_level: data.experience_level } : {}),
+        ...(data.preferred_language ? { preferred_language: data.preferred_language } : {})
       })
       .eq('id', user.id);
 

@@ -1,8 +1,9 @@
 "use client";
 
-import { CheckSquare, Square, X, Plus, Zap, Activity, Cpu, Loader2, Save, Search, ChevronDown } from 'lucide-react';
+import { CheckSquare, Square, X, Plus, Zap, Activity, Cpu, Loader2, Save, Search, ChevronDown, Rocket } from 'lucide-react';
 import { useState, useRef, useEffect } from 'react';
 import BacktestModal from './BacktestModal';
+import { DeployStrategyModal } from './DeployStrategyModal';
 import OptionsBuilder, { Instrument, Leg } from './OptionsBuilder';
 import { createClient } from '@/lib/supabase/client';
 import { toast } from 'sonner';
@@ -273,6 +274,7 @@ export default function BlockBuilder() {
   const [isBacktestModalOpen, setIsBacktestModalOpen] = useState(false);
   const [loading, setLoading] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
   const [strategyId, setStrategyId] = useState<string | null>(null);
 
   const [apiKey, setApiKey] = useState('');
@@ -947,6 +949,13 @@ export default function BlockBuilder() {
           >
             {isSaving ? <Loader2 size={16} className="animate-spin" /> : <Save size={16} />} Save Strategy
           </button>
+          
+          <button 
+            onClick={() => setIsDeployModalOpen(true)}
+            className="bg-[#238636] hover:bg-[#2ea043] text-white border border-[#30363D] px-6 py-2.5 rounded-lg text-sm font-bold transition-all flex items-center gap-2"
+          >
+            <Rocket size={16} /> Deploy Strategy
+          </button>
 
           <button 
             onClick={async () => {
@@ -973,6 +982,13 @@ export default function BlockBuilder() {
         isOpen={isBacktestModalOpen} 
         onClose={() => setIsBacktestModalOpen(false)} 
         strategyId={strategyId || ""} 
+      />
+      <DeployStrategyModal
+        isOpen={isDeployModalOpen}
+        onClose={() => setIsDeployModalOpen(false)}
+        strategyName={strategyName || "Block Strategy"}
+        sourceModule="block_builder"
+        strategyData={{ buyBlocks, sellBlocks, buyOperator, sellOperator }}
       />
     </div>
   );

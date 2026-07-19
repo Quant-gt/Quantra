@@ -17,10 +17,11 @@ import ReactFlow, {
   NodeProps,
 } from 'reactflow';
 import 'reactflow/dist/style.css';
-import { Play, Settings2, ShieldAlert, Target, Save, Zap, Clock, Activity, Cpu, GripHorizontal, Loader2, SaveAll } from 'lucide-react';
+import { Play, Settings2, ShieldAlert, Target, Save, Zap, Clock, Activity, Cpu, GripHorizontal, Loader2, SaveAll, Rocket } from 'lucide-react';
 import { createClient } from '@/lib/supabase/client';
 import { useRouter } from 'next/navigation';
 import { toast } from 'sonner';
+import { DeployStrategyModal } from './DeployStrategyModal';
 
 // --- CUSTOM NODES ---
 
@@ -122,6 +123,7 @@ function BuilderFlow() {
   const [edges, setEdges, onEdgesChange] = useEdgesState([]);
   const [rfInstance, setRfInstance] = useState<ReactFlowInstance | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
   const [strategyName, setStrategyName] = useState("My Momentum Strategy");
   
   const router = useRouter();
@@ -231,7 +233,13 @@ function BuilderFlow() {
             {isSaving ? <Loader2 size={16} className="animate-spin" /> : <SaveAll size={16} />}
             Save Draft
           </button>
-          <button className="bg-[#238636] hover:bg-[#2ea043] text-white px-5 py-2 rounded-md text-sm font-bold transition-all shadow-lg flex items-center gap-2">
+          <button 
+            onClick={() => setIsDeployModalOpen(true)}
+            className="bg-[#238636] hover:bg-[#2ea043] text-white px-5 py-2 rounded-md text-sm font-bold transition-all shadow-lg flex items-center gap-2"
+          >
+            <Rocket size={16} /> Deploy
+          </button>
+          <button className="bg-[#1C2128] hover:bg-[#30363D] border border-[#30363D] text-white px-5 py-2 rounded-md text-sm font-bold transition-all shadow-sm flex items-center gap-2">
             <Play size={16} fill="currentColor" />
             Compile & Test
           </button>
@@ -327,6 +335,14 @@ function BuilderFlow() {
         </div>
         
       </div>
+      
+      <DeployStrategyModal
+        isOpen={isDeployModalOpen}
+        onClose={() => setIsDeployModalOpen(false)}
+        strategyName={strategyName}
+        sourceModule="visual_canvas"
+        strategyData={rfInstance ? rfInstance.toObject() : null}
+      />
     </div>
   );
 }

@@ -17,9 +17,11 @@ import {
   RefreshCw,
   Plus,
   Calendar,
-  Clock
+  Clock,
+  Rocket
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { DeployStrategyModal } from '@/components/builder/DeployStrategyModal';
 import { 
   ResponsiveContainer, 
   AreaChart, 
@@ -182,6 +184,8 @@ export default function MagicScanner() {
   const [isScanning, setIsScanning] = useState(false);
   const [hasScanned, setHasScanned] = useState(false);
   const [results, setResults] = useState<any[]>([]);
+  
+  const [isDeployModalOpen, setIsDeployModalOpen] = useState(false);
   const [activeExchanges, setActiveExchanges] = useState<Record<string, 'NSE' | 'BSE'>>({});
   const [liveQuotesMap, setLiveQuotesMap] = useState<Record<string, any>>({});
   const [showDatePicker, setShowDatePicker] = useState(false);
@@ -1042,14 +1046,22 @@ export default function MagicScanner() {
                     <option value="Custom Watchlist">Custom Watchlist</option>
                   </select>
                 </div>
-
-                <button 
-                  onClick={handleScan}
-                  disabled={isScanning || !prompt.trim()}
-                  className="bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 text-gray-900 px-6 py-3 rounded-lg text-sm font-bold transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)] flex items-center gap-2 h-[46px]"
-                >
-                  {isScanning ? <span className="animate-pulse">Scanning...</span> : <><Sparkles size={16} className="fill-current" /> Generate & Scan</>}
-                </button>
+                <div className="flex items-center gap-3">
+                  <button 
+                    onClick={() => setIsDeployModalOpen(true)}
+                    disabled={results.length === 0}
+                    className="bg-[#238636] hover:bg-[#2ea043] disabled:opacity-50 text-white px-4 py-3 rounded-lg text-sm font-bold transition-colors shadow-lg flex items-center gap-2 h-[46px]"
+                  >
+                    <Rocket size={16} /> Deploy Strategy
+                  </button>
+                  <button 
+                    onClick={handleScan}
+                    disabled={isScanning || !prompt.trim()}
+                    className="bg-cyan-400 hover:bg-cyan-300 disabled:opacity-50 text-gray-900 px-6 py-3 rounded-lg text-sm font-bold transition-colors shadow-[0_0_15px_rgba(34,211,238,0.3)] flex items-center gap-2 h-[46px]"
+                  >
+                    {isScanning ? <span className="animate-pulse">Scanning...</span> : <><Sparkles size={16} className="fill-current" /> Generate & Scan</>}
+                  </button>
+                </div>
               </div>
 
               {/* Prompt Chips */}
@@ -1579,6 +1591,13 @@ export default function MagicScanner() {
           }
         />
       )}
+      <DeployStrategyModal
+        isOpen={isDeployModalOpen}
+        onClose={() => setIsDeployModalOpen(false)}
+        strategyName="Magic Scanner Config"
+        sourceModule="magic_scanner"
+        strategyData={{ prompt, filterLogic: null /* compile if needed */ }}
+      />
     </div>
   );
 }
