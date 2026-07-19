@@ -184,6 +184,206 @@ export default function Home() {
         </div>
       </section>
 
+      {/* Live Alpha Discovery Engines */}
+      <section className="py-24 px-6 lg:px-8 max-w-5xl mx-auto">
+        <div className="bg-[#0D1117] border border-[#30363D] rounded-2xl overflow-hidden shadow-2xl relative">
+          
+          {/* Header */}
+          <div className="p-8 border-b border-[#30363D]">
+            <h2 className="text-2xl font-bold tracking-tight text-white mb-2">Live Alpha Discovery Engines</h2>
+            <p className="text-[#8B949E] text-sm max-w-3xl mb-8">
+              Leverage SigmaSpire's structural momentum stock scanner and volume inflow shock scanner to identify live alpha on the NSE. Instantly filter assets by Value Core Low P/E Multiples or RSI overbought conditions.
+            </p>
+            
+            <div className="flex flex-wrap gap-2">
+              <button className="px-6 py-2 bg-[#10B981] text-[#022C22] text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+                Value Core (Low P/E Multiples)
+              </button>
+              <button className="px-6 py-2 bg-[#161B22] border border-[#30363D] hover:bg-[#21262D] text-[#8B949E] text-sm font-semibold rounded-lg transition-colors">
+                Structural Momentum (RSI Overbought)
+              </button>
+              <button className="px-6 py-2 bg-[#161B22] border border-[#30363D] hover:bg-[#21262D] text-[#8B949E] text-sm font-semibold rounded-lg transition-colors">
+                Volume Inflow Shock
+              </button>
+            </div>
+          </div>
+
+          {/* Table */}
+          <div className="overflow-x-auto">
+            <table className="w-full text-left border-collapse min-w-[800px]">
+              <thead>
+                <tr className="border-b border-[#30363D] bg-[#161B22]/50">
+                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider">ASSET TICKER</th>
+                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider text-right">LAST TRADED PRICE</th>
+                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider text-right">1D PRICE ACTION</th>
+                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider text-right">CURRENT P/E</th>
+                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider text-right">DIAGNOSTIC ACTION</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-[#30363D]/50 text-sm font-medium">
+                <tr className="hover:bg-[#161B22] transition-colors">
+                  <td className="py-5 px-8 flex items-center gap-2">
+                    <span className="text-white font-bold">RELIANCE</span>
+                    <span className="text-[#8B949E] text-xs">(Reliance Industries Ltd.)</span>
+                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
+                  </td>
+                  <td className="py-5 px-8 text-right text-white">₹1,327.20</td>
+                  <td className="py-5 px-8 text-right text-[#F43F5E]">-10.11%</td>
+                  <td className="py-5 px-8 text-right text-[#8B949E]">21.9x</td>
+                  <td className="py-5 px-8 text-right">
+                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
+                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
+                    </Link>
+                  </td>
+                </tr>
+                <tr className="hover:bg-[#161B22] transition-colors">
+                  <td className="py-5 px-8 flex items-center gap-2">
+                    <span className="text-white font-bold">TCS</span>
+                    <span className="text-[#8B949E] text-xs">(Tata Consultancy Services Ltd.)</span>
+                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
+                  </td>
+                  <td className="py-5 px-8 text-right text-white">₹2,269.00</td>
+                  <td className="py-5 px-8 text-right text-[#F43F5E]">-29.30%</td>
+                  <td className="py-5 px-8 text-right text-[#8B949E]">51.4x</td>
+                  <td className="py-5 px-8 text-right">
+                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
+                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
+                    </Link>
+                  </td>
+                </tr>
+                <tr className="hover:bg-[#161B22] transition-colors">
+                  <td className="py-5 px-8 flex items-center gap-2">
+                    <span className="text-white font-bold">HDFCBANK</span>
+                    <span className="text-[#8B949E] text-xs">(HDFC Bank Ltd.)</span>
+                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
+                  </td>
+                  <td className="py-5 px-8 text-right text-white">₹819.60</td>
+                  <td className="py-5 px-8 text-right text-[#F43F5E]">-17.50%</td>
+                  <td className="py-5 px-8 text-right text-[#8B949E]">47.5x</td>
+                  <td className="py-5 px-8 text-right">
+                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
+                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
+                    </Link>
+                  </td>
+                </tr>
+                <tr className="hover:bg-[#161B22] transition-colors">
+                  <td className="py-5 px-8 flex items-center gap-2">
+                    <span className="text-white font-bold">INFY</span>
+                    <span className="text-[#8B949E] text-xs">(Infosys Ltd.)</span>
+                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
+                  </td>
+                  <td className="py-5 px-8 text-right text-white">₹1,896.50</td>
+                  <td className="py-5 px-8 text-right text-[#F43F5E]">-30.75%</td>
+                  <td className="py-5 px-8 text-right text-[#8B949E]">37.0x</td>
+                  <td className="py-5 px-8 text-right">
+                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
+                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
+                    </Link>
+                  </td>
+                </tr>
+                <tr className="hover:bg-[#161B22] transition-colors">
+                  <td className="py-5 px-8 flex items-center gap-2">
+                    <span className="text-white font-bold">SBIN</span>
+                    <span className="text-[#8B949E] text-xs">(State Bank of India)</span>
+                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
+                  </td>
+                  <td className="py-5 px-8 text-right text-white">₹1,044.30</td>
+                  <td className="py-5 px-8 text-right text-[#10B981]">+25.97%</td>
+                  <td className="py-5 px-8 text-right text-[#8B949E]">27.0x</td>
+                  <td className="py-5 px-8 text-right">
+                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
+                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
+                    </Link>
+                  </td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+
+          {/* Bottom Bar */}
+          <div className="p-6 bg-[#161B22] border-t border-[#30363D] flex flex-col sm:flex-row items-center justify-between gap-4">
+            <p className="text-xs text-[#8B949E]">
+              Customize these filters or link live order brokers to execute signals automatically.
+            </p>
+            <Link 
+              href="/dashboard/settings"
+              className="px-4 py-2 border border-[#30363D] text-[#8B949E] hover:text-white hover:border-[#8B949E] rounded-md text-xs font-semibold transition-colors flex items-center gap-2"
+            >
+              Customize Strategy Rules <Lock size={14} />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* CTA Section */}
+      <section className="py-32 bg-[#0B0F19] border-y border-[#30363D] text-center">
+        <div className="max-w-3xl mx-auto px-6">
+          <h2 className="text-4xl md:text-5xl font-extrabold tracking-tight text-white mb-6">
+            Ready to master the markets?
+          </h2>
+          <p className="text-[#8B949E] mb-10 max-w-xl mx-auto text-sm md:text-base leading-relaxed">
+            Join thousands of quantitative traders and developers using SigmaSpire to build, backtest, and deploy high-performance automated strategies.
+          </p>
+          <Link 
+            href="/auth?mode=signup"
+            className="inline-flex px-8 py-4 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(16,185,129,0.3)] items-center justify-center"
+          >
+            Get Started for Free
+          </Link>
+        </div>
+      </section>
+
+      {/* Footer */}
+      <footer className="bg-[#0D1117] pt-20 pb-8 px-6 lg:px-8 border-t border-[#30363D]">
+        <div className="max-w-7xl mx-auto grid grid-cols-1 md:grid-cols-4 gap-12 mb-16">
+          
+          <div>
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-6">PRODUCT</h4>
+            <ul className="space-y-4">
+              <li><Link href="/dashboard/marketplace" className="text-[#8B949E] hover:text-white text-sm transition-colors">Marketplace</Link></li>
+              <li><Link href="/dashboard/backtesting" className="text-[#8B949E] hover:text-white text-sm transition-colors">Strategy Backtesting</Link></li>
+              <li><Link href="/blog" className="text-[#8B949E] hover:text-white text-sm transition-colors">Blog Articles</Link></li>
+              <li><Link href="/pricing" className="text-[#8B949E] hover:text-white text-sm transition-colors">Pricing Plans</Link></li>
+              <li><Link href="/dashboard/workspace" className="text-[#8B949E] hover:text-white text-sm transition-colors">Live Terminals</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-6">DEVELOPERS</h4>
+            <ul className="space-y-4">
+              <li><Link href="/docs" className="text-[#8B949E] hover:text-white text-sm transition-colors">API Docs</Link></li>
+              <li><Link href="/status" className="text-[#8B949E] hover:text-white text-sm transition-colors">System Status</Link></li>
+              <li><Link href="https://github.com/Quant-gt/Quantra" className="text-[#8B949E] hover:text-white text-sm transition-colors">Github Repo</Link></li>
+              <li><Link href="/docs" className="text-[#8B949E] hover:text-white text-sm transition-colors">SDK Libraries</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-6">COMPLIANCE</h4>
+            <ul className="space-y-4">
+              <li><Link href="/terms" className="text-white font-bold text-sm transition-colors hover:underline">Legal</Link></li>
+              <li><Link href="/risk-disclosure" className="text-[#8B949E] hover:text-white text-sm transition-colors">Risk Disclosure</Link></li>
+              <li><Link href="/sebi" className="text-[#8B949E] hover:text-white text-sm transition-colors">SEBI Regulations</Link></li>
+              <li><Link href="/terms" className="text-[#8B949E] hover:text-white text-sm transition-colors">Terms of Service</Link></li>
+              <li><Link href="/privacy" className="text-[#8B949E] hover:text-white text-sm transition-colors">Privacy Policy</Link></li>
+            </ul>
+          </div>
+
+          <div>
+            <h4 className="text-white font-bold text-xs uppercase tracking-wider mb-6">SIGMASPIRE</h4>
+            <p className="text-[#8B949E] text-xs leading-relaxed">
+              SigmaSpire provides institutional direct market access infrastructure and zero-latency execution APIs for the active quant trader in India. Integrate your automated strategy development Python SDK and utilize our SEBI registered RA automated trading integrations. Explore our API Docs for ultra-fast algorithmic backtesting and live deployment.
+            </p>
+          </div>
+
+        </div>
+
+        <div className="max-w-7xl mx-auto border-t border-[#30363D] pt-8 flex flex-col md:flex-row justify-between items-center gap-4 text-xs text-[#8B949E]">
+          <p>© 2026 SigmaSpire Technologies Inc. All rights reserved.</p>
+          <p>Designed for ultra-low latency execution.</p>
+        </div>
+      </footer>
+
       {/* Demo Modal */}
       <AnimatePresence>
         {isDemoOpen && (
