@@ -16,7 +16,8 @@ import {
   ArrowUpRight,
   Menu,
   X,
-  Layers
+  Layers,
+  ShoppingCart
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
 import LiveTickerTape from '@/components/dashboard/LiveTickerTape';
@@ -177,6 +178,10 @@ export default function DashboardLayout({
             <Link href="/dashboard/feed" className={getLinkClass('/dashboard/feed')}>
               <Globe size={18} />
               Social Feed
+            </Link>
+            <Link href="/dashboard/marketplace" className={getLinkClass('/dashboard/marketplace')}>
+              <ShoppingCart size={18} />
+              Strategy Marketplace
             </Link>
             
             {currentView === 'creator' && (

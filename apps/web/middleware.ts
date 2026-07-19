@@ -77,6 +77,11 @@ export async function middleware(request: NextRequest) {
     }
   }
 
+  // Deprecate old public marketplace route
+  if (request.nextUrl.pathname.startsWith('/marketplace')) {
+    return NextResponse.redirect(new URL('/dashboard/marketplace', request.url))
+  }
+
   // Redirect logged in users away from auth pages
   if (request.nextUrl.pathname.startsWith('/auth')) {
     // Exclude callback route from this check to allow OAuth flow to complete

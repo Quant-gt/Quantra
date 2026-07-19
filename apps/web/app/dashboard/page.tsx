@@ -2,7 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { AreaChart, Area, XAxis, YAxis, Tooltip, ResponsiveContainer } from 'recharts';
-import { Globe, ArrowUpRight, ArrowDownRight, Activity, TrendingUp } from 'lucide-react';
+import { Globe, ArrowUpRight, ArrowDownRight, Activity, TrendingUp, ShoppingCart, Layers } from 'lucide-react';
 import { toast } from 'sonner';
 
 export default function DashboardPage() {
@@ -74,9 +74,14 @@ export default function DashboardPage() {
           <p className="text-gray-400 max-w-md text-sm leading-relaxed mb-6">
             Your portfolio dashboard will automatically populate with real-time analytics, heatmaps, and equity curves once your deployed algorithms begin executing trades on your connected broker.
           </p>
-          <a href="/marketplace" className="px-6 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg text-sm font-bold transition-all shadow-lg flex items-center gap-2">
-            <Activity size={16} /> Deploy Your First Algorithm
-          </a>
+          <div className="flex items-center gap-4">
+            <a href="/dashboard/marketplace" className="px-6 py-2 bg-[#238636] hover:bg-[#2ea043] text-white rounded-lg text-sm font-bold transition-all shadow-lg flex items-center gap-2">
+              <ShoppingCart size={16} /> Browse Marketplace
+            </a>
+            <a href="/dashboard/builder" className="px-6 py-2 bg-transparent border border-[#30363D] hover:bg-[#21262D] text-white rounded-lg text-sm font-bold transition-all flex items-center gap-2">
+              <Layers size={16} /> Build Strategy
+            </a>
+          </div>
         </div>
       ) : (
         <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
