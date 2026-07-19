@@ -178,7 +178,7 @@ export function ClickToChartModal({
             {/* Deploy to Live Trading Terminal button */}
             <button
               onClick={() => {
-                window.location.href = '/auth/signup?source=deployment';
+                window.location.href = '/auth?mode=signup&source=deployment';
               }}
               className="bg-emerald-500 hover:bg-emerald-400 text-gray-950 font-extrabold px-3.5 py-1.5 rounded-lg text-xs transition-all shadow-[0_0_15px_rgba(16,185,129,0.3)] flex items-center gap-1.5 cursor-pointer font-bold"
             >
@@ -226,7 +226,7 @@ export function ClickToChartModal({
                 </div>
                 <button
                   onClick={() => {
-                    window.location.href = `/auth/signup?source=gate&reason=${encodeURIComponent(gateReason)}`;
+                    window.location.href = `/auth?mode=signup&source=gate&reason=${encodeURIComponent(gateReason)}`;
                   }}
                   className="w-full bg-gradient-to-r from-cyan-500 to-emerald-500 hover:opacity-90 text-white font-extrabold py-2.5 rounded-lg text-xs transition-all flex items-center justify-center gap-1.5 cursor-pointer font-bold"
                 >

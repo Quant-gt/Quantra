@@ -92,7 +92,7 @@ export default function PlaygroundPage() {
     toast.success("Strategy rules saved to sandbox cache! Redirecting to sign-up...");
     
     setTimeout(() => {
-      window.location.href = '/auth/signup?source=playground';
+      window.location.href = '/auth?mode=signup&source=playground';
     }, 1000);
   };
 

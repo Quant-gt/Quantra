@@ -48,7 +48,7 @@ export default function Home() {
           
           <div className="flex flex-col sm:flex-row items-center justify-center gap-4">
             <Link 
-              href="/auth/signup"
+              href="/auth?mode=signup"
               className="w-full sm:w-auto px-8 py-4 bg-[#2ea043] hover:bg-[#238636] text-white font-bold rounded-xl transition-all shadow-[0_0_20px_rgba(46,160,67,0.3)] flex items-center justify-center gap-2 group"
             >
               Get Started For Free
@@ -167,7 +167,7 @@ export default function Home() {
               </p>
               
               <Link 
-                href="/auth/signup"
+                href="/auth?mode=signup"
                 className="w-full py-3.5 bg-[#10B981] hover:bg-[#059669] text-white font-bold rounded-xl transition-all shadow-lg mb-4 flex justify-center items-center"
               >
                 Create Your Account Now
