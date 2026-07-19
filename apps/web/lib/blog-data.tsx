@@ -13,7 +13,7 @@ export interface BlogPost {
 
 export const BLOG_POSTS: BlogPost[] = [
   {
-    id: "buyer-customer-journey-2026",
+    id: "the-ultimate-trader-s-guide-from-sandbox-to-live-automated-execution-on-sigmaspire",
     title: "The Ultimate Trader's Guide: From Sandbox to Live Automated Execution on SigmaSpire",
     excerpt: "Discover the definitive step-by-step journey for retail traders using SigmaSpire. Learn how to backtest in a risk-free sandbox, acquire algorithmic licenses, and deploy live automated trading strategies.",
     date: "July 9, 2026",
@@ -108,7 +108,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "creator-customer-journey-2026",
+    id: "the-quant-s-journey-building-backtesting-and-monetizing-algorithmic-strategies",
     title: "The Quant's Journey: Building, Backtesting, and Monetizing Algorithmic Strategies",
     excerpt: "A deep dive for quantitative developers and SEBI RAs on how to leverage SigmaSpire's institutional infrastructure to build low-latency algorithms, protect Intellectual Property, and generate recurring revenue.",
     date: "July 9, 2026",
@@ -195,7 +195,7 @@ export const BLOG_POSTS: BlogPost[] = [
   }
 ,
   {
-    id: "instant-kill-switch",
+    id: "how-to-instantly-stop-or-pause-an-active-strategy-if-the-market-crashes",
     title: "How to Instantly Stop or Pause an Active Strategy if the Market Crashes",
     excerpt: "Why risk management requires a hard compliance kill switch and how systematic traders can use manual overrides during extreme market volatility.",
     date: "July 2, 2026",
@@ -255,7 +255,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "broker-disconnect-handling",
+    id: "what-happens-if-your-broker-connection-disconnects-during-a-live-trade",
     title: "What Happens If Your Broker Connection Disconnects During a Live Trade?",
     excerpt: "How modern execution engines handle network downtime, session drops, and position synchronization.",
     date: "June 30, 2026",
@@ -309,7 +309,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "verifying-algo-performance",
+    id: "how-to-verify-if-a-trading-algorithm-s-performance-is-real-or-fake",
     title: "How to Verify if a Trading Algorithm's Performance is Real or Fake",
     excerpt: "A practical checklist for identifying curve-fitted backtests, hidden drawdowns, and unrealistic slippage assumptions.",
     date: "June 24, 2026",
@@ -342,7 +342,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "order-throttling-ops",
+    id: "what-is-order-throttling-or-ops-limits-and-why-do-brokers-block-some-algos",
     title: "What is Order Throttling (or OPS Limits), and Why Do Brokers Block Some Algos?",
     excerpt: "Understand exchange rate limiting (Orders Per Second), why brokers restrict rapid trading loops, and how to avoid trade suspensions.",
     date: "June 14, 2026",
@@ -403,7 +403,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "do-apps-have-password-access",
+    id: "do-algo-trading-apps-have-access-to-your-login-password-or-money",
     title: "Do Algo Trading Apps Have Access to Your Login Password or Money?",
     excerpt: "Understanding how brokerage API scopes prevent third-party apps from executing funds transfers or reading login credentials.",
     date: "June 12, 2026",
@@ -459,7 +459,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "paper-trading-usefulness",
+    id: "is-paper-trading-actually-useful-or-does-it-differ-from-live-market-execution",
     title: "Is Paper Trading Actually Useful, or Does It Differ from Live Market Execution?",
     excerpt: "Compare paper trading sandboxes with real-world trading, examining slippages, latency, execution queues, and market impacts.",
     date: "June 8, 2026",
@@ -512,7 +512,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "sebi-ra-requirement",
+    id: "what-is-a-sebi-registered-research-analyst-ra-and-why-does-it-matter",
     title: "What is a SEBI Registered Research Analyst (RA), and Why Does It Matter?",
     excerpt: "Why retail traders should rely on certified advisors rather than Telegram or YouTube channel execution groups.",
     date: "June 4, 2026",
@@ -553,7 +553,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "is-broker-linking-safe",
+    id: "is-it-safe-to-connect-your-broker-account-to-an-algo-platform",
     title: "Is it Safe to Connect Your Broker Account to an Algo Platform?",
     excerpt: "A deep dive into security frameworks, credential encryption, and API tokens used by Zerodha, Fyers, and Angel One.",
     date: "May 24, 2026",
@@ -613,7 +613,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "sandbox-strategy-testing",
+    id: "can-i-test-a-systematic-strategy-in-a-sandbox-before-using-real-money",
     title: "Can I Test a Systematic Strategy in a Sandbox Before Using Real Money?",
     excerpt: "Learn how to use virtual sandbox integrations to forward-test systematic strategies risk-free on simulated feeds.",
     date: "May 20, 2026",
@@ -665,7 +665,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "retail-algo-legality",
+    id: "is-algorithmic-trading-legal-for-retail-investors-in-india",
     title: "Is Algorithmic Trading Legal for Retail Investors in India?",
     excerpt: "Demystifying the regulations around retail API access and institutional prop-desk systems under the SEBI framework.",
     date: "May 14, 2026",
@@ -702,7 +702,7 @@ export const BLOG_POSTS: BlogPost[] = [
     )
   },
   {
-    id: "min-capital-requirements",
+    id: "how-much-minimum-capital-do-i-need-to-start-algorithmic-trading",
     title: "How Much Minimum Capital Do I Need to Start Algorithmic Trading?",
     excerpt: "Demystify systematic trading budgets, analyzing broker limits, strategy margins, and retail capital allocations.",
     date: "May 4, 2026",
