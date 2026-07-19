@@ -195,17 +195,19 @@ export default function DashboardLayout({
           </nav>
 
           <div className="p-4 border-t border-[#30363D]">
-            <Link 
-              href="/auth/login" 
-              onClick={() => {
-                // clear token/session
-                fetch('/api/auth/signout', { method: 'POST' });
+            <button 
+              onClick={async () => {
+                // Supabase client-side sign out
+                const { createClient } = await import('@/lib/supabase/client');
+                const supabase = createClient();
+                await supabase.auth.signOut();
+                window.location.href = '/auth';
               }}
-              className="flex items-center gap-3 px-6 py-3 text-red-400 hover:bg-red-950/20 hover:text-red-300 rounded-lg transition-colors"
+              className="w-full flex items-center gap-3 px-6 py-3 text-red-400 hover:bg-red-950/20 hover:text-red-300 rounded-lg transition-colors"
             >
               <LogOut size={18} />
               Logout
-            </Link>
+            </button>
           </div>
         </div>
 

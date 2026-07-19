@@ -2,10 +2,10 @@
 
 import React, { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
-import { ArrowRight, Loader2, AlertCircle } from 'lucide-react';
+import { ArrowRight, Loader2, AlertCircle, Lock } from 'lucide-react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/lib/supabase/client';
-import Image from 'next/image';
+import Link from 'next/link';
 
 export default function AuthPage() {
   const [mode, setMode] = useState<'signin' | 'signup'>('signin');
@@ -89,172 +89,222 @@ export default function AuthPage() {
   };
 
   return (
-    <div className="min-h-screen bg-[#000000] flex flex-col items-center justify-center p-4 font-sans selection:bg-[#fff]/20 relative overflow-x-hidden">
+    <div className="min-h-screen bg-[#000000] flex font-sans selection:bg-[#fff]/20 relative overflow-hidden">
       
       {/* Super Subtle Background Gradient */}
-      <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/[0.02] blur-[120px] rounded-full pointer-events-none" />
+      <div className="absolute top-1/2 left-1/4 -translate-x-1/2 -translate-y-1/2 w-[800px] h-[800px] bg-white/[0.02] blur-[120px] rounded-full pointer-events-none" />
 
-      <motion.div 
-        initial={{ opacity: 0, y: 10 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
-        className="w-full max-w-[420px] relative z-10"
-      >
-        <div className="flex flex-col items-center mb-12">
-          {/* Replaced Image with a crisp SVG Icon to ensure it always renders */}
-          <div className="w-16 h-16 bg-white flex items-center justify-center rounded-2xl mb-8 shadow-[0_0_40px_rgba(255,255,255,0.15)]">
-            <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
-              <polygon points="12 2 2 7 12 12 22 7 12 2" />
-              <polyline points="2 17 12 22 22 17" />
-              <polyline points="2 12 12 17 22 12" />
-            </svg>
+      {/* Left Column: Auth Form */}
+      <div className="w-full lg:w-1/2 flex flex-col items-center justify-center p-8 relative z-10">
+        <motion.div 
+          initial={{ opacity: 0, y: 10 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ duration: 0.6, ease: [0.16, 1, 0.3, 1] }}
+          className="w-full max-w-[420px]"
+        >
+          <div className="flex flex-col items-center mb-12">
+            <Link href="/">
+              <div className="w-16 h-16 bg-white flex items-center justify-center rounded-2xl mb-8 shadow-[0_0_40px_rgba(255,255,255,0.15)] cursor-pointer">
+                <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="black" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+                  <polygon points="12 2 2 7 12 12 22 7 12 2" />
+                  <polyline points="2 17 12 22 22 17" />
+                  <polyline points="2 12 12 17 22 12" />
+                </svg>
+              </div>
+            </Link>
+            
+            <h1 className="text-4xl text-center font-extrabold text-white tracking-tight mb-3">
+              {mode === 'signin' ? 'Welcome back' : 'Create an account'}
+            </h1>
+            <p className="text-center text-[#A1A1AA] text-base font-medium">
+              {mode === 'signin' 
+                ? 'Enter your details to access the terminal.' 
+                : 'Sign up to automate your trading strategies.'}
+            </p>
           </div>
-          
-          <h1 className="text-4xl text-center font-extrabold text-white tracking-tight mb-3">
-            {mode === 'signin' ? 'Welcome back' : 'Create an account'}
-          </h1>
-          <p className="text-center text-[#A1A1AA] text-base font-medium">
-            {mode === 'signin' 
-              ? 'Enter your details to access the terminal.' 
-              : 'Sign up to automate your trading strategies.'}
-          </p>
-        </div>
 
-        <form onSubmit={handleSubmit} className="flex flex-col gap-6">
-          
-          <AnimatePresence mode="popLayout">
-            {mode === 'signup' && (
-              <motion.div
-                initial={{ opacity: 0, height: 0 }}
-                animate={{ opacity: 1, height: 'auto' }}
-                exit={{ opacity: 0, height: 0 }}
-                transition={{ duration: 0.2 }}
-              >
-                <input
-                  type="text"
-                  required={mode === 'signup'}
-                  value={fullName}
-                  onChange={(e) => setFullName(e.target.value)}
-                  className="w-full bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] focus:border-white focus:ring-1 focus:ring-white rounded-xl px-5 py-4 text-white placeholder-[#52525B] outline-none transition-all font-medium text-base text-center"
-                  placeholder="Full Name"
-                />
-              </motion.div>
-            )}
-          </AnimatePresence>
+          <form onSubmit={handleSubmit} className="flex flex-col gap-6">
+            
+            <AnimatePresence mode="popLayout">
+              {mode === 'signup' && (
+                <motion.div
+                  initial={{ opacity: 0, height: 0 }}
+                  animate={{ opacity: 1, height: 'auto' }}
+                  exit={{ opacity: 0, height: 0 }}
+                  transition={{ duration: 0.2 }}
+                >
+                  <input
+                    type="text"
+                    required={mode === 'signup'}
+                    value={fullName}
+                    onChange={(e) => setFullName(e.target.value)}
+                    className="w-full bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] focus:border-white focus:ring-1 focus:ring-white rounded-xl px-5 py-4 text-white placeholder-[#52525B] outline-none transition-all font-medium text-base text-center"
+                    placeholder="Full Name"
+                  />
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-          <input
-            type="email"
-            required
-            value={email}
-            onChange={(e) => setEmail(e.target.value)}
-            className="w-full bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] focus:border-white focus:ring-1 focus:ring-white rounded-xl px-5 py-4 text-white placeholder-[#52525B] outline-none transition-all font-medium text-base text-center"
-            placeholder="Email Address"
-            style={{ color: 'white' }}
-          />
-
-          <div className="relative w-full">
             <input
-              type="password"
+              type="email"
               required
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
-              className="w-full bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] focus:border-white focus:ring-1 focus:ring-white rounded-xl px-5 py-4 text-white placeholder-[#52525B] outline-none transition-all font-medium text-base text-center tracking-[0.2em]"
-              placeholder="••••••••"
+              value={email}
+              onChange={(e) => setEmail(e.target.value)}
+              className="w-full bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] focus:border-white focus:ring-1 focus:ring-white rounded-xl px-5 py-4 text-white placeholder-[#52525B] outline-none transition-all font-medium text-base text-center"
+              placeholder="Email Address"
               style={{ color: 'white' }}
             />
-            {mode === 'signin' && (
-              <div className="flex justify-end mt-2">
-                <a 
-                  href="/auth/forgot-password" 
-                  className="text-xs font-semibold text-[#A1A1AA] hover:text-white transition-colors"
-                >
-                  Forgot Password?
-                </a>
-              </div>
-            )}
-          </div>
 
-          <AnimatePresence>
-            {error && (
-              <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="px-5 py-4 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-xl flex items-center justify-center gap-3 text-[#EF4444]">
-                <AlertCircle size={18} />
-                <p className="text-sm font-semibold text-center leading-relaxed">{error}</p>
-              </motion.div>
-            )}
-            {success && (
-              <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="px-5 py-4 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-xl flex items-center justify-center text-[#22C55E]">
-                <p className="text-sm font-semibold text-center leading-relaxed">{success}</p>
-              </motion.div>
-            )}
-          </AnimatePresence>
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full mt-4 bg-white hover:bg-[#E4E4E7] text-black font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all flex items-center justify-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
-          >
-            {loading ? <Loader2 size={20} className="animate-spin" /> : (mode === 'signin' ? 'Sign In' : 'Continue')}
-            {!loading && <ArrowRight size={20} />}
-          </button>
-
-          {/* Divider */}
-          <div className="relative flex items-center justify-center my-2">
-            <div className="absolute inset-0 flex items-center">
-              <div className="w-full border-t border-[#27272A]" />
+            <div className="relative w-full">
+              <input
+                type="password"
+                required
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="w-full bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] focus:border-white focus:ring-1 focus:ring-white rounded-xl px-5 py-4 text-white placeholder-[#52525B] outline-none transition-all font-medium text-base text-center tracking-[0.2em]"
+                placeholder="••••••••"
+                style={{ color: 'white' }}
+              />
+              {mode === 'signin' && (
+                <div className="flex justify-end mt-2">
+                  <a 
+                    href="/auth/forgot-password" 
+                    className="text-xs font-semibold text-[#A1A1AA] hover:text-white transition-colors"
+                  >
+                    Forgot Password?
+                  </a>
+                </div>
+              )}
             </div>
-            <span className="relative px-3 bg-black text-xs text-[#52525B] font-bold uppercase tracking-widest">
-              Or continue with
-            </span>
-          </div>
 
-          {/* Social OAuth Buttons */}
-          <div className="grid grid-cols-2 gap-4">
-            <button
-              type="button"
-              onClick={() => handleSocialLogin('google')}
-              disabled={loading}
-              className="flex items-center justify-center gap-3 bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] py-3.5 px-4 rounded-xl text-white font-semibold text-sm transition-all hover:bg-white/[0.02] cursor-pointer"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
-                <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
-                <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
-                <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
-              </svg>
-              Google
-            </button>
-            <button
-              type="button"
-              onClick={() => handleSocialLogin('github')}
-              disabled={loading}
-              className="flex items-center justify-center gap-3 bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] py-3.5 px-4 rounded-xl text-white font-semibold text-sm transition-all hover:bg-white/[0.02] cursor-pointer"
-            >
-              <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
-                <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.193 22 16.437 22 12.017 22 6.484 17.522 2 12 2z"/>
-              </svg>
-              GitHub
-            </button>
-          </div>
-        </form>
+            <AnimatePresence>
+              {error && (
+                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="px-5 py-4 bg-[#EF4444]/10 border border-[#EF4444]/20 rounded-xl flex items-center justify-center gap-3 text-[#EF4444]">
+                  <AlertCircle size={18} />
+                  <p className="text-sm font-semibold text-center leading-relaxed">{error}</p>
+                </motion.div>
+              )}
+              {success && (
+                <motion.div initial={{ opacity: 0, y: -5 }} animate={{ opacity: 1, y: 0 }} exit={{ opacity: 0, y: -5 }} className="px-5 py-4 bg-[#22C55E]/10 border border-[#22C55E]/20 rounded-xl flex items-center justify-center text-[#22C55E]">
+                  <p className="text-sm font-semibold text-center leading-relaxed">{success}</p>
+                </motion.div>
+              )}
+            </AnimatePresence>
 
-        <div className="mt-10 text-center">
-          <p className="text-[#A1A1AA] text-sm font-medium">
-            {mode === 'signin' ? "Don't have an account? " : "Already have an account? "}
-            <button 
-              onClick={() => {
-                setMode(mode === 'signin' ? 'signup' : 'signin');
-                setError(null);
-                setSuccess(null);
-              }}
-              className="text-white hover:text-[#D4D4D8] hover:underline decoration-[#52525B] underline-offset-4 transition-all ml-1"
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full mt-4 bg-white hover:bg-[#E4E4E7] text-black font-bold py-4 rounded-xl shadow-[0_0_20px_rgba(255,255,255,0.1)] transition-all flex items-center justify-center gap-2 text-base disabled:opacity-50 disabled:cursor-not-allowed"
             >
-              {mode === 'signin' ? 'Sign up' : 'Log in'}
+              {loading ? <Loader2 size={20} className="animate-spin" /> : (mode === 'signin' ? 'Sign In' : 'Continue')}
+              {!loading && <ArrowRight size={20} />}
             </button>
-          </p>
-        </div>
+
+            {/* Divider */}
+            <div className="relative flex items-center justify-center my-2">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-[#27272A]" />
+              </div>
+              <span className="relative px-3 bg-black text-xs text-[#52525B] font-bold uppercase tracking-widest">
+                Or continue with
+              </span>
+            </div>
+
+            {/* Social OAuth Buttons */}
+            <div className="grid grid-cols-2 gap-4">
+              <button
+                type="button"
+                onClick={() => handleSocialLogin('google')}
+                disabled={loading}
+                className="flex items-center justify-center gap-3 bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] py-3.5 px-4 rounded-xl text-white font-semibold text-sm transition-all hover:bg-white/[0.02] cursor-pointer"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path d="M22.56 12.25c0-.78-.07-1.53-.2-2.25H12v4.26h5.92c-.26 1.37-1.04 2.53-2.21 3.31v2.77h3.57c2.08-1.92 3.28-4.74 3.28-8.09z" fill="#4285F4"/>
+                  <path d="M12 23c2.97 0 5.46-.98 7.28-2.66l-3.57-2.77c-.98.66-2.23 1.06-3.71 1.06-2.86 0-5.29-1.93-6.16-4.53H2.18v2.84C3.99 20.53 7.7 23 12 23z" fill="#34A853"/>
+                  <path d="M5.84 14.09c-.22-.66-.35-1.36-.35-2.09s.13-1.43.35-2.09V7.06H2.18C1.43 8.55 1 10.22 1 12s.43 3.45 1.18 4.94l2.85-2.22.81-.63z" fill="#FBBC05"/>
+                  <path d="M12 5.38c1.62 0 3.06.56 4.21 1.64l3.15-3.15C17.45 2.09 14.97 1 12 1 7.7 1 3.99 3.47 2.18 7.06l3.66 2.84c.87-2.6 3.3-4.52 6.16-4.52z" fill="#EA4335"/>
+                </svg>
+                Google
+              </button>
+              <button
+                type="button"
+                onClick={() => handleSocialLogin('github')}
+                disabled={loading}
+                className="flex items-center justify-center gap-3 bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] py-3.5 px-4 rounded-xl text-white font-semibold text-sm transition-all hover:bg-white/[0.02] cursor-pointer"
+              >
+                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="currentColor">
+                  <path fillRule="evenodd" clipRule="evenodd" d="M12 2C6.477 2 2 6.484 2 12.017c0 4.425 2.865 8.18 6.839 9.504.5.092.682-.217.682-.483 0-.237-.008-.868-.013-1.703-2.782.605-3.369-1.343-3.369-1.343-.454-1.158-1.11-1.466-1.11-1.466-.908-.62.069-.608.069-.608 1.003.07 1.53 1.032 1.53 1.032.892 1.53 2.341 1.088 2.91.832.092-.647.35-1.088.636-1.338-2.22-.253-4.555-1.113-4.555-4.951 0-1.093.39-1.988 1.029-2.688-.103-.253-.446-1.272.098-2.65 0 0 .84-.27 2.75 1.026A9.564 9.564 0 0112 6.844c.85.004 1.705.115 2.504.337 1.909-1.296 2.747-1.027 2.747-1.027.546 1.379.202 2.398.1 2.651.64.7 1.028 1.595 1.028 2.688 0 3.848-2.339 4.695-4.566 4.943.359.309.678.92.678 1.855 0 1.338-.012 2.419-.012 2.747 0 .268.18.58.688.482C19.138 20.193 22 16.437 22 12.017 22 6.484 17.522 2 12 2z"/>
+                </svg>
+                GitHub
+              </button>
+            </div>
+          </form>
+
+          <div className="mt-10 text-center">
+            <p className="text-[#A1A1AA] text-sm font-medium">
+              {mode === 'signin' ? "Don't have an account? " : "Already have an account? "}
+              <button 
+                onClick={() => {
+                  setMode(mode === 'signin' ? 'signup' : 'signin');
+                  setError(null);
+                  setSuccess(null);
+                }}
+                className="text-white hover:text-[#D4D4D8] hover:underline decoration-[#52525B] underline-offset-4 transition-all ml-1"
+              >
+                {mode === 'signin' ? 'Sign up' : 'Log in'}
+              </button>
+            </p>
+          </div>
+          
+        </motion.div>
+      </div>
+
+      {/* Right Column: Gated Marketplace Teaser */}
+      <div className="hidden lg:flex w-1/2 bg-[#0A0A0A] border-l border-[#27272A] relative flex-col justify-center overflow-hidden">
         
-      </motion.div>
+        {/* Glow */}
+        <div className="absolute top-0 right-0 w-96 h-96 bg-[#10B981]/10 blur-[100px] rounded-full pointer-events-none" />
+
+        <div className="relative w-full h-full flex flex-col justify-center px-12 xl:px-24">
+          <div className="mb-12 z-20">
+            <h2 className="text-3xl font-bold tracking-tight text-white mb-3">The SigmaSpire Marketplace</h2>
+            <p className="text-[#A1A1AA] max-w-md">Discover high-yield, institutional-grade algorithms engineered by top quants. Sign in to unlock full access.</p>
+          </div>
+
+          <div className="relative w-full rounded-2xl border border-[#27272A] bg-[#0D1117] h-[400px] overflow-hidden">
+            {/* Blurred Background Grid */}
+            <div className="absolute inset-0 p-6 grid grid-cols-2 gap-4 opacity-40 pointer-events-none select-none" style={{ filter: 'blur(5px) grayscale(50%)' }}>
+              {[...Array(4)].map((_, i) => (
+                <div key={i} className="bg-[#161B22] border border-[#30363D] rounded-xl p-5 flex flex-col justify-between">
+                  <div>
+                    <div className="h-4 w-24 bg-gray-700 rounded mb-3" />
+                    <div className="h-3 w-32 bg-gray-800 rounded mb-5" />
+                    <div className="flex justify-between">
+                      <div className="h-6 w-12 bg-emerald-900/50 rounded" />
+                      <div className="h-6 w-12 bg-gray-800 rounded" />
+                    </div>
+                  </div>
+                  <div className="h-8 w-full bg-gray-800 rounded mt-4" />
+                </div>
+              ))}
+            </div>
+
+            {/* Lock Overlay */}
+            <div className="absolute inset-0 flex flex-col items-center justify-center z-10 p-6 text-center">
+              <div className="w-16 h-16 bg-emerald-500/10 rounded-full flex items-center justify-center mb-6 border border-emerald-500/20 shadow-[0_0_30px_rgba(16,185,129,0.15)]">
+                <Lock className="w-8 h-8 text-emerald-400" />
+              </div>
+              <h3 className="text-xl font-bold text-white mb-2 tracking-tight">Protected Area</h3>
+              <p className="text-gray-400 text-sm max-w-[260px]">
+                {mode === 'signin' 
+                  ? 'Sign in to access premium algorithmic strategies.' 
+                  : 'Create your account to unlock the marketplace.'}
+              </p>
+            </div>
+          </div>
+        </div>
+      </div>
+
     </div>
   );
 }
-
