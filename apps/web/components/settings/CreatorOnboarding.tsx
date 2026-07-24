@@ -1,5 +1,6 @@
 import React, { useState } from 'react';
 import { Briefcase, CheckCircle2, ShieldAlert, ChevronRight, Loader2 } from 'lucide-react';
+import Link from 'next/link';
 
 export default function CreatorOnboarding() {
   const [panNumber, setPanNumber] = useState('');
@@ -63,9 +64,9 @@ export default function CreatorOnboarding() {
         <p className="text-gray-400 max-w-md mx-auto mb-8">
           Your Creator KYC application is currently pending verification. You will be notified once your PAN and SEBI details have been cleared by our compliance team.
         </p>
-        <button className="bg-[#21262D] hover:bg-[#30363D] text-white border border-[#30363D] px-6 py-2 rounded-md text-sm font-medium transition-colors">
+        <Link href="/creator" className="bg-[#21262D] hover:bg-[#30363D] text-white border border-[#30363D] px-6 py-2 rounded-md text-sm font-medium transition-colors inline-flex items-center justify-center">
           View Creator Dashboard
-        </button>
+        </Link>
       </div>
     );
   }
