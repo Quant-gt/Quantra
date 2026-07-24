@@ -1,5 +1,5 @@
 import { describe, it, expect } from 'vitest';
-import { checkMACDCrossover, calculateATR, calculateEMA, Candle } from '../indicators';
+import { checkMACDCrossover, calculateATR, calculateEMA, calculateSMA, Candle } from '../indicators';
 
 describe('checkMACDCrossover', () => {
   it('should return false if there are less than 35 data points', () => {
@@ -99,5 +99,22 @@ describe('calculateEMA', () => {
     // ema[3] = 13 * 0.5 + 11 * 0.5 = 12
     // ema[4] = 14 * 0.5 + 12 * 0.5 = 13
     expect(calculateEMA(closes, 3)).toEqual([11, 11, 11, 12, 13]);
+  });
+});
+
+describe('calculateSMA', () => {
+  it('should return 0 for an empty array if closes length is less than period', () => {
+    expect(calculateSMA([], 3)).toBe(0);
+  });
+
+  it('should return the last element if closes length is less than period but not empty', () => {
+    expect(calculateSMA([10, 20], 3)).toBe(20);
+  });
+
+  it('should calculate SMA correctly when closes length is greater than or equal to period', () => {
+    expect(calculateSMA([10, 20, 30], 3)).toBe(20);
+    expect(calculateSMA([10, 20, 33], 3)).toBe(21);
+    expect(calculateSMA([10.5, 20.5, 30.5], 2)).toBe(25.5);
+    expect(calculateSMA([1, 2, 4], 3)).toBe(2.33);
   });
 });
