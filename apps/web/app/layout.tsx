@@ -8,6 +8,9 @@ const inter = Inter({ subsets: ["latin"] });
 export const metadata: Metadata = {
   title: "SigmaSpire | Zero-Latency Systematic Trading Terminal India",
   description: "SigmaSpire is the institutional-grade systematic trading platform for Indian retail traders. Build, backtest & deploy zero-latency quant strategies on the NSE.",
+  verification: {
+    google: "6Zqx3liPNQvjN1kCU-oacdy0ux2GLXtK8ocw2bmUbNU",
+  },
 };
 
 export default function RootLayout({
