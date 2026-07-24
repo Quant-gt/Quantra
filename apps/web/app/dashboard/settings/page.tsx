@@ -216,7 +216,7 @@ export default function SettingsPage() {
               <div className="space-y-6 max-w-2xl">
                 <div className="flex gap-6 items-center">
                   <div className="w-20 h-20 rounded-full bg-[#21262D] border-2 border-[#30363D] flex items-center justify-center text-gray-400 text-2xl font-bold shrink-0">
-                    QA
+                    {(profileData.firstName?.charAt(0) || '') + (profileData.lastName?.charAt(0) || '') || 'U'}
                   </div>
                 </div>
 
