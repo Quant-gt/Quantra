@@ -13,6 +13,8 @@ export default function AuthPage() {
   const [email, setEmail] = useState('');
   const [password, setPassword] = useState('');
   const [fullName, setFullName] = useState('');
+  const [role, setRole] = useState<'investor' | 'creator'>('investor');
+  const [panNumber, setPanNumber] = useState('');
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [success, setSuccess] = useState<string | null>(null);
@@ -32,6 +34,12 @@ export default function AuthPage() {
     e.preventDefault();
     setError(null);
     setSuccess(null);
+    
+    if (mode === 'signup' && panNumber.length !== 10) {
+      setError('PAN number must be exactly 10 characters.');
+      return;
+    }
+
     setLoading(true);
 
     try {
@@ -51,7 +59,12 @@ export default function AuthPage() {
           email,
           password,
           options: {
-            data: { full_name: fullName },
+            data: { 
+              full_name: fullName,
+              role: role,
+              pan_number: panNumber.toUpperCase(),
+              kyc_status: 'pending'
+            },
           },
         });
         
@@ -129,6 +142,7 @@ export default function AuthPage() {
                   animate={{ opacity: 1, height: 'auto' }}
                   exit={{ opacity: 0, height: 0 }}
                   transition={{ duration: 0.2 }}
+                  className="flex flex-col gap-6"
                 >
                   <input
                     type="text"
@@ -137,6 +151,41 @@ export default function AuthPage() {
                     onChange={(e) => setFullName(e.target.value)}
                     className="w-full bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] focus:border-white focus:ring-1 focus:ring-white rounded-xl px-5 py-4 text-white placeholder-[#52525B] outline-none transition-all font-medium text-base text-center"
                     placeholder="Full Name"
+                  />
+                  
+                  <div className="flex gap-4">
+                    <button
+                      type="button"
+                      onClick={() => setRole('investor')}
+                      className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-colors ${
+                        role === 'investor' 
+                          ? 'bg-white text-black border-white' 
+                          : 'bg-[#0A0A0A] text-[#A1A1AA] border-[#27272A] hover:border-[#3F3F46]'
+                      }`}
+                    >
+                      Investor
+                    </button>
+                    <button
+                      type="button"
+                      onClick={() => setRole('creator')}
+                      className={`flex-1 py-3 rounded-xl border text-sm font-bold transition-colors ${
+                        role === 'creator' 
+                          ? 'bg-white text-black border-white' 
+                          : 'bg-[#0A0A0A] text-[#A1A1AA] border-[#27272A] hover:border-[#3F3F46]'
+                      }`}
+                    >
+                      Creator
+                    </button>
+                  </div>
+
+                  <input
+                    type="text"
+                    required={mode === 'signup'}
+                    value={panNumber}
+                    onChange={(e) => setPanNumber(e.target.value.toUpperCase())}
+                    maxLength={10}
+                    className="w-full bg-[#0A0A0A] border border-[#27272A] hover:border-[#3F3F46] focus:border-white focus:ring-1 focus:ring-white rounded-xl px-5 py-4 text-white placeholder-[#52525B] outline-none transition-all font-medium text-base text-center tracking-[0.1em]"
+                    placeholder="PAN Number"
                   />
                 </motion.div>
               )}
