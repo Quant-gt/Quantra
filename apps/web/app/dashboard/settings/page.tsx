@@ -174,15 +174,6 @@ export default function SettingsPage() {
                   <div className="w-20 h-20 rounded-full bg-[#21262D] border-2 border-[#30363D] flex items-center justify-center text-gray-400 text-2xl font-bold shrink-0">
                     QA
                   </div>
-                  <div>
-                    <button 
-                      onClick={() => toast.success("Avatar updated successfully!")}
-                      className="bg-[#21262D] hover:bg-[#30363D] text-white border border-[#30363D] px-4 py-2 rounded-md text-sm font-medium transition-colors"
-                    >
-                      Change Avatar
-                    </button>
-                    <p className="text-xs text-gray-500 mt-2">JPG, GIF or PNG. Max size of 800K</p>
-                  </div>
                 </div>
 
                 <div className="grid grid-cols-2 gap-4">
