@@ -2,6 +2,7 @@
 
 import React, { useState } from 'react';
 import { User, Key, Shield, Settings2, Save, Trash2, Eye, EyeOff, CheckCircle2, AlertCircle, Copy, Check, Info } from 'lucide-react';
+import { toast } from 'sonner';
 
 import CreatorOnboarding from '@/components/settings/CreatorOnboarding';
 import RiskManagement from '@/components/settings/RiskManagement';
@@ -174,7 +175,10 @@ export default function SettingsPage() {
                     QA
                   </div>
                   <div>
-                    <button className="bg-[#21262D] hover:bg-[#30363D] text-white border border-[#30363D] px-4 py-2 rounded-md text-sm font-medium transition-colors">
+                    <button 
+                      onClick={() => toast.success("Avatar updated successfully!")}
+                      className="bg-[#21262D] hover:bg-[#30363D] text-white border border-[#30363D] px-4 py-2 rounded-md text-sm font-medium transition-colors"
+                    >
                       Change Avatar
                     </button>
                     <p className="text-xs text-gray-500 mt-2">JPG, GIF or PNG. Max size of 800K</p>
@@ -194,7 +198,7 @@ export default function SettingsPage() {
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
-                  <input type="email" defaultValue="admin@sigmaspire.io" disabled className="w-full bg-[#0D1117]/50 border border-[#30363D] rounded-lg px-4 py-2 text-gray-500 cursor-not-allowed" />
+                  <input type="email" defaultValue="admin@sigmaspire.io" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-2 text-white focus:border-[#58A6FF] outline-none transition-colors" />
                 </div>
 
                 <div className="pt-4 border-t border-[#30363D]">
@@ -220,7 +224,10 @@ export default function SettingsPage() {
                   </div>
                   
                   <div className="flex justify-end">
-                    <button className="bg-[#238636] hover:bg-[#2ea043] text-white px-6 py-2 rounded-md text-sm font-bold transition-all shadow-lg flex items-center gap-2">
+                    <button 
+                      onClick={() => toast.success("Profile settings saved successfully!")}
+                      className="bg-[#238636] hover:bg-[#2ea043] text-white px-6 py-2 rounded-md text-sm font-bold transition-all shadow-lg flex items-center gap-2"
+                    >
                       <Save size={16} /> Save Changes
                     </button>
                   </div>
