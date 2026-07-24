@@ -4,6 +4,7 @@ import os
 import json
 import urllib.request
 import asyncio
+import hmac
 from datetime import datetime
 from dotenv import load_dotenv
 
@@ -28,7 +29,7 @@ def verify_token(authorization: str = Header(None)):
     
     # 1. Check if token is a shared secret for internal microservice calls
     internal_key = os.environ.get("SUPABASE_SERVICE_ROLE_KEY") or os.environ.get("INTERNAL_API_KEY")
-    if internal_key and token == internal_key:
+    if internal_key and hmac.compare_digest(token, internal_key):
         return
         
     # 2. Otherwise, verify via Supabase Auth API
