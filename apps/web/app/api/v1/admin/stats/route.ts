@@ -9,7 +9,15 @@ export async function GET() {
     const { count: totalUsers } = await supabase.from('users').select('*', { count: 'exact', head: true });
     const { count: activeSubscriptions } = await supabase.from('marketplace_subscriptions').select('*', { count: 'exact', head: true }).eq('status', 'active');
     const { count: publishedAlgos } = await supabase.from('strategies').select('*', { count: 'exact', head: true }).eq('status', 'published');
-    const { count: pendingKyc } = await supabase.from('user_kyc').select('*', { count: 'exact', head: true }).eq('kyc_status', 'pending');
+    
+    // Fetch pending KYC from user_metadata
+    const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+    const adminAuthClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
+    const { data: authData } = await adminAuthClient.auth.admin.listUsers();
+    const pendingKyc = authData?.users.filter((u: any) => u.user_metadata?.kyc_status === 'pending').length || 0;
 
     // Calculate MRR from subscriptions by joining and aggregating monthly strategy fees
     

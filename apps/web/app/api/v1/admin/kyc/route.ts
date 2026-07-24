@@ -3,31 +3,28 @@ import { createClient } from '@/lib/supabase/server';
 
 export async function GET() {
   try {
-    const supabase = await createClient();
+    const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+    const adminAuthClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
-    const { data: kycData, error } = await supabase
-      .from('user_kyc')
-      .select(`
-        user_id,
-        is_ria,
-        sebi_registration_number,
-        kyc_status,
-        users:user_id (full_name, email, pan_number)
-      `)
-      .eq('kyc_status', 'pending');
+    const { data: authData, error: authError } = await adminAuthClient.auth.admin.listUsers();
+    
+    if (authError) throw authError;
 
-    if (error) throw error;
+    // Filter users whose kyc_status in raw_user_meta_data is 'pending'
+    const pendingUsers = authData.users.filter(u => u.user_metadata?.kyc_status === 'pending');
 
-    // Transform data to match UI expectations
-    const requests = kycData.map((row: any) => ({
-      id: row.user_id,
-      user_name: row.users?.full_name || 'Unknown User',
-      email: row.users?.email || 'No email provided',
-      pan_number: row.users?.pan_number || 'N/A',
-      is_ria: row.is_ria,
-      sebi_registration_number: row.sebi_registration_number,
-      status: row.kyc_status,
-      submitted_at: new Date().toISOString() // Or fetch from a created_at column if added
+    const requests = pendingUsers.map(user => ({
+      id: user.id,
+      user_name: user.user_metadata?.full_name || 'Unknown User',
+      email: user.email || 'No email provided',
+      pan_number: user.user_metadata?.pan_number || 'N/A',
+      is_ria: user.user_metadata?.is_ria || false,
+      sebi_registration_number: user.user_metadata?.sebi_registration_number || null,
+      status: user.user_metadata?.kyc_status,
+      submitted_at: user.updated_at || user.created_at
     }));
 
     return NextResponse.json({ requests });

@@ -1,4 +1,4 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { Briefcase, CheckCircle2, ShieldAlert, ChevronRight, Loader2 } from 'lucide-react';
 import Link from 'next/link';
 
@@ -7,8 +7,32 @@ export default function CreatorOnboarding() {
   const [isRia, setIsRia] = useState(false);
   const [sebiReg, setSebiReg] = useState('');
   
-  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error'>('idle');
+  const [status, setStatus] = useState<'idle' | 'loading' | 'success' | 'error' | 'already_pending' | 'already_approved'>('idle');
+  const [initialLoad, setInitialLoad] = useState(true);
   const [errorMessage, setErrorMessage] = useState('');
+
+  useEffect(() => {
+    async function checkStatus() {
+      try {
+        const { createClient } = await import('@/lib/supabase/client');
+        const supabase = createClient();
+        const { data: { session } } = await supabase.auth.getSession();
+        
+        if (session?.user?.user_metadata?.kyc_status === 'pending') {
+          setStatus('already_pending');
+        } else if (session?.user?.user_metadata?.kyc_status === 'approved') {
+          setStatus('already_approved');
+        } else {
+          setStatus('idle');
+        }
+      } catch (err) {
+        setStatus('idle');
+      } finally {
+        setInitialLoad(false);
+      }
+    }
+    checkStatus();
+  }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -54,18 +78,44 @@ export default function CreatorOnboarding() {
     }
   };
 
-  if (status === 'success') {
+  if (initialLoad) {
+    return (
+      <div className="p-8 text-center h-full flex flex-col items-center justify-center text-gray-400">
+        <Loader2 className="animate-spin mx-auto mb-4" size={32} />
+        <p>Loading Creator profile...</p>
+      </div>
+    );
+  }
+
+  if (status === 'success' || status === 'already_pending') {
     return (
       <div className="p-8 text-center h-full flex flex-col items-center justify-center">
         <div className="w-16 h-16 bg-[#39D353]/10 border border-[#39D353]/30 rounded-full flex items-center justify-center text-[#39D353] mb-6">
           <CheckCircle2 size={32} />
         </div>
-        <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Application Submitted</h2>
+        <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Application Pending</h2>
         <p className="text-gray-400 max-w-md mx-auto mb-8">
           Your Creator KYC application is currently pending verification. You will be notified once your PAN and SEBI details have been cleared by our compliance team.
         </p>
         <Link href="/creator" className="bg-[#21262D] hover:bg-[#30363D] text-white border border-[#30363D] px-6 py-2 rounded-md text-sm font-medium transition-colors inline-flex items-center justify-center">
           View Creator Dashboard
+        </Link>
+      </div>
+    );
+  }
+
+  if (status === 'already_approved') {
+    return (
+      <div className="p-8 text-center h-full flex flex-col items-center justify-center">
+        <div className="w-16 h-16 bg-[#39D353]/10 border border-[#39D353]/30 rounded-full flex items-center justify-center text-[#39D353] mb-6">
+          <CheckCircle2 size={32} />
+        </div>
+        <h2 className="text-2xl font-bold text-white mb-2 tracking-tight">Verified Creator</h2>
+        <p className="text-gray-400 max-w-md mx-auto mb-8">
+          Your KYC is approved and you are an active Creator on the platform.
+        </p>
+        <Link href="/creator" className="bg-[#238636] hover:bg-[#2ea043] text-white px-6 py-2 rounded-md text-sm font-bold transition-colors inline-flex items-center justify-center shadow-lg">
+          Go to Creator Dashboard
         </Link>
       </div>
     );

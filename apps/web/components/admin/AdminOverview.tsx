@@ -2,6 +2,7 @@
 
 import React, { useEffect, useState } from 'react';
 import { Users, Activity, DollarSign, Database, TrendingUp, AlertTriangle } from 'lucide-react';
+import Link from 'next/link';
 
 export default function AdminOverview() {
   const [stats, setStats] = useState<any>(null);
@@ -101,9 +102,9 @@ export default function AdminOverview() {
               <div className="text-sm font-bold text-yellow-500">Pending KYC Verifications</div>
               <div className="text-xs text-gray-400 mt-1">There are {stats.pendingKyc} users waiting for PAN approval to become creators.</div>
             </div>
-            <button className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500 px-4 py-2 rounded-md text-xs font-bold transition-colors">
+            <Link href="/admin/compliance" className="bg-yellow-500/20 hover:bg-yellow-500/30 text-yellow-500 px-4 py-2 rounded-md text-xs font-bold transition-colors inline-block text-center">
               Review Now
-            </button>
+            </Link>
           </div>
         </div>
       </div>

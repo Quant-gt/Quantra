@@ -26,7 +26,6 @@ export async function POST(request: Request) {
       };
       
       if (sebi_registration_number) {
-        // Default to a 5-year registration validity from now
         updateData.ra_expiry_date = new Date(Date.now() + 5 * 365 * 24 * 60 * 60 * 1000).toISOString();
       }
 
@@ -39,6 +38,24 @@ export async function POST(request: Request) {
         console.error('Error updating SEBI compliance on user:', error);
         return NextResponse.json({ error: 'Failed to update compliance details.' }, { status: 500 });
       }
+
+      // We must save PAN and KYC status in user_metadata because the user_kyc table doesn't exist
+      // We will use the admin client to securely update user_metadata
+      const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+      const adminAuthClient = createAdminClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
+
+      await adminAuthClient.auth.admin.updateUserById(user.id, {
+        user_metadata: {
+          ...user.user_metadata,
+          kyc_status: 'pending',
+          pan_number: pan_number,
+          is_ria: is_ria,
+          sebi_registration_number: sebi_registration_number
+        }
+      });
     }
 
     // Simulate backend processing delay

@@ -14,19 +14,29 @@ export async function POST(
       return NextResponse.json({ error: 'Invalid action' }, { status: 400 });
     }
 
-    const supabase = await createClient();
+    const { createClient: createAdminClient } = await import('@supabase/supabase-js');
+    const adminAuthClient = createAdminClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     const status = action === 'approve' ? 'approved' : 'rejected';
 
-    const { error } = await supabase
-      .from('user_kyc')
-      .update({ kyc_status: status })
-      .eq('user_id', id);
+    const { data: userData, error: fetchError } = await adminAuthClient.auth.admin.getUserById(id);
+    if (fetchError) throw fetchError;
 
-    if (error) throw error;
+    const { error: updateError } = await adminAuthClient.auth.admin.updateUserById(id, {
+      user_metadata: {
+        ...userData.user.user_metadata,
+        kyc_status: status
+      }
+    });
+
+    if (updateError) throw updateError;
 
     // If approved, optionally set users.is_creator to true
     if (action === 'approve') {
+      const supabase = await createClient();
       await supabase
         .from('users')
         .update({ is_creator: true })
