@@ -4,6 +4,7 @@ import React, { useState, useEffect } from 'react';
 import { User, Key, Shield, Settings2, Save, Trash2, Eye, EyeOff, CheckCircle2, AlertCircle, Copy, Check, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
+import { createClient } from '@/lib/supabase/client';
 import CreatorOnboarding from '@/components/settings/CreatorOnboarding';
 import RiskManagement from '@/components/settings/RiskManagement';
 import BrokerConnectionModal from '@/components/settings/BrokerConnectionModal';
@@ -14,6 +15,8 @@ export default function SettingsPage() {
   const [copiedKey, setCopiedKey] = useState<number | null>(null);
   const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState('user');
+  const [isLoading, setIsLoading] = useState(false);
+  const supabase = createClient();
 
   const [profileData, setProfileData] = useState({
     firstName: 'Quant',
@@ -22,20 +25,38 @@ export default function SettingsPage() {
   });
 
   useEffect(() => {
-    const storedProfile = localStorage.getItem('sigmaspire_profile');
-    if (storedProfile) {
-      setProfileData(JSON.parse(storedProfile));
+    async function loadUser() {
+      const { data: { user } } = await supabase.auth.getUser();
+      if (user) {
+        setProfileData({
+          firstName: user.user_metadata?.first_name || '',
+          lastName: user.user_metadata?.last_name || '',
+          email: user.email || ''
+        });
+        if (user.user_metadata?.current_view) {
+          setCurrentView(user.user_metadata.current_view);
+        }
+      }
     }
-    const storedRole = localStorage.getItem('sigmaspire_role');
-    if (storedRole) {
-      setCurrentView(storedRole);
-    }
+    loadUser();
   }, []);
 
-  const handleSaveProfile = () => {
-    localStorage.setItem('sigmaspire_profile', JSON.stringify(profileData));
-    localStorage.setItem('sigmaspire_role', currentView);
-    toast.success("Profile settings saved successfully!");
+  const handleSaveProfile = async () => {
+    setIsLoading(true);
+    const { error } = await supabase.auth.updateUser({
+      data: {
+        first_name: profileData.firstName,
+        last_name: profileData.lastName,
+        current_view: currentView
+      }
+    });
+    
+    setIsLoading(false);
+    if (error) {
+      toast.error(error.message);
+    } else {
+      toast.success("Profile settings saved to Supabase!");
+    }
   };
 
   const [apiKeys, setApiKeys] = useState([
@@ -225,9 +246,10 @@ export default function SettingsPage() {
                   <input 
                     type="email" 
                     value={profileData.email} 
-                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
-                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-2 text-white focus:border-[#58A6FF] outline-none transition-colors" 
+                    disabled
+                    className="w-full bg-[#0D1117]/50 border border-[#30363D] rounded-lg px-4 py-2 text-gray-500 cursor-not-allowed focus:border-[#58A6FF] outline-none transition-colors" 
                   />
+                  <p className="text-[10px] text-gray-500 mt-1">Email is managed by your authentication provider.</p>
                 </div>
 
                 <div className="pt-4 border-t border-[#30363D]">
@@ -255,9 +277,10 @@ export default function SettingsPage() {
                   <div className="flex justify-end">
                     <button 
                       onClick={handleSaveProfile}
-                      className="bg-[#238636] hover:bg-[#2ea043] text-white px-6 py-2 rounded-md text-sm font-bold transition-all shadow-lg flex items-center gap-2"
+                      disabled={isLoading}
+                      className="bg-[#238636] hover:bg-[#2ea043] disabled:opacity-50 text-white px-6 py-2 rounded-md text-sm font-bold transition-all shadow-lg flex items-center gap-2"
                     >
-                      <Save size={16} /> Save Changes
+                      <Save size={16} /> {isLoading ? 'Saving...' : 'Save Changes'}
                     </button>
                   </div>
                 </div>
