@@ -98,8 +98,8 @@ export function BYOBGatewayModal({ onSuccess }: BYOBGatewayModalProps) {
       // Notify host and close modal
       setIsOpen(false);
       onSuccess();
-    } catch (err: any) {
-      setError(err.message || "Failed to configure broker keys.");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Failed to configure broker keys.");
     } finally {
       setSaving(false);
     }

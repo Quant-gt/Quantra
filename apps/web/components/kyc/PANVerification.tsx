@@ -39,8 +39,8 @@ export default function PANVerification() {
       }).eq("id", user.id);
 
       setStatus("verified");
-    } catch (err: any) {
-      setError(err.message || "Verification failed");
+    } catch (err: unknown) {
+      setError(err instanceof Error ? err.message : "Verification failed");
       setStatus("failed");
     } finally {
       setLoading(false);

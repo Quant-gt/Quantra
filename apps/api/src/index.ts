@@ -73,7 +73,7 @@ app.post('/webhook/auth', express.json(), async (req, res) => {
   
   if (event === 'SIGNED_IN') {
     // Ideally log to users_sessions table in Supabase
-    console.log(`User ${user_id} signed in from ${ip_address} using ${user_agent}`);
+    console.info(`User ${user_id} signed in from ${ip_address} using ${user_agent}`);
   }
   
   res.json({ success: true });

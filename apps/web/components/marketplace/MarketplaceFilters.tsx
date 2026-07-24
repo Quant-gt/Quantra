@@ -56,7 +56,9 @@ export default function MarketplaceFilters() {
         try {
           const parsed = JSON.parse(saved);
           setFilters(parsed);
-        } catch (e) {}
+        } catch (e) {
+          console.error("Failed to parse marketplace filters from localStorage:", e);
+        }
       }
     }
   }, []);
