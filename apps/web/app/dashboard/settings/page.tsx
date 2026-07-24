@@ -1,6 +1,6 @@
 "use client";
 
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
 import { User, Key, Shield, Settings2, Save, Trash2, Eye, EyeOff, CheckCircle2, AlertCircle, Copy, Check, Info } from 'lucide-react';
 import { toast } from 'sonner';
 
@@ -14,6 +14,29 @@ export default function SettingsPage() {
   const [copiedKey, setCopiedKey] = useState<number | null>(null);
   const [isBrokerModalOpen, setIsBrokerModalOpen] = useState(false);
   const [currentView, setCurrentView] = useState('user');
+
+  const [profileData, setProfileData] = useState({
+    firstName: 'Quant',
+    lastName: 'Admin',
+    email: 'admin@sigmaspire.io'
+  });
+
+  useEffect(() => {
+    const storedProfile = localStorage.getItem('sigmaspire_profile');
+    if (storedProfile) {
+      setProfileData(JSON.parse(storedProfile));
+    }
+    const storedRole = localStorage.getItem('sigmaspire_role');
+    if (storedRole) {
+      setCurrentView(storedRole);
+    }
+  }, []);
+
+  const handleSaveProfile = () => {
+    localStorage.setItem('sigmaspire_profile', JSON.stringify(profileData));
+    localStorage.setItem('sigmaspire_role', currentView);
+    toast.success("Profile settings saved successfully!");
+  };
 
   const [apiKeys, setApiKeys] = useState([
     { id: 1, provider: "Fyers", status: "Connected", appId: "H5XXXXXX", addedAt: "12 May, 2026", validUntil: "12 May, 2027" },
@@ -179,17 +202,32 @@ export default function SettingsPage() {
                 <div className="grid grid-cols-2 gap-4">
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">First Name</label>
-                    <input type="text" defaultValue="Quant" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-2 text-white focus:border-[#58A6FF] outline-none transition-colors" />
+                    <input 
+                      type="text" 
+                      value={profileData.firstName} 
+                      onChange={(e) => setProfileData({...profileData, firstName: e.target.value})}
+                      className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-2 text-white focus:border-[#58A6FF] outline-none transition-colors" 
+                    />
                   </div>
                   <div className="space-y-2">
                     <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Last Name</label>
-                    <input type="text" defaultValue="Admin" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-2 text-white focus:border-[#58A6FF] outline-none transition-colors" />
+                    <input 
+                      type="text" 
+                      value={profileData.lastName} 
+                      onChange={(e) => setProfileData({...profileData, lastName: e.target.value})}
+                      className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-2 text-white focus:border-[#58A6FF] outline-none transition-colors" 
+                    />
                   </div>
                 </div>
 
                 <div className="space-y-2">
                   <label className="text-xs font-bold text-gray-400 uppercase tracking-wider">Email Address</label>
-                  <input type="email" defaultValue="admin@sigmaspire.io" className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-2 text-white focus:border-[#58A6FF] outline-none transition-colors" />
+                  <input 
+                    type="email" 
+                    value={profileData.email} 
+                    onChange={(e) => setProfileData({...profileData, email: e.target.value})}
+                    className="w-full bg-[#0D1117] border border-[#30363D] rounded-lg px-4 py-2 text-white focus:border-[#58A6FF] outline-none transition-colors" 
+                  />
                 </div>
 
                 <div className="pt-4 border-t border-[#30363D]">
@@ -216,7 +254,7 @@ export default function SettingsPage() {
                   
                   <div className="flex justify-end">
                     <button 
-                      onClick={() => toast.success("Profile settings saved successfully!")}
+                      onClick={handleSaveProfile}
                       className="bg-[#238636] hover:bg-[#2ea043] text-white px-6 py-2 rounded-md text-sm font-bold transition-all shadow-lg flex items-center gap-2"
                     >
                       <Save size={16} /> Save Changes
