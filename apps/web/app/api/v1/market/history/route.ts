@@ -1,5 +1,15 @@
 import { NextResponse } from "next/server";
 
+function normalizeAndValidateSymbol(raw: string): string | null {
+  const normalized = raw.trim().toUpperCase();
+  // Allow common Yahoo-style symbols only (e.g., TCS, RELIANCE.NS, BRK-B, ^NSEI)
+  // Disallow any path/query/fragment/control characters by strict allowlist.
+  if (!/^[A-Z0-9.^-]{1,20}$/.test(normalized)) {
+    return null;
+  }
+  return normalized;
+}
+
 // Deterministic random number generator for synthetic data
 function seededRandom(seed: number) {
   const x = Math.sin(seed++) * 10000;
@@ -54,10 +64,15 @@ export async function GET(req: Request) {
       return NextResponse.json({ error: "Missing required parameters (symbol or ticker)" }, { status: 400 });
     }
 
+    const validatedSymbol = normalizeAndValidateSymbol(symbol);
+    if (!validatedSymbol) {
+      return NextResponse.json({ error: "Invalid symbol format" }, { status: 400 });
+    }
+
     // Map to Yahoo Finance symbol
-    let yahoo_sym = symbol;
-    if (!symbol.includes(".")) {
-      yahoo_sym = `${symbol}.NS`;
+    let yahoo_sym = validatedSymbol;
+    if (!validatedSymbol.includes(".")) {
+      yahoo_sym = `${validatedSymbol}.NS`;
     }
 
     // Map resolution to Yahoo interval
@@ -79,8 +94,13 @@ export async function GET(req: Request) {
     let source = "yahoo";
 
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahoo_sym}?period1=${p1}&period2=${p2}&interval=${interval}`;
-      const response = await fetch(url, {
+      const yahooUrl = new URL("https://query1.finance.yahoo.com/v8/finance/chart/");
+      yahooUrl.pathname += encodeURIComponent(yahoo_sym);
+      yahooUrl.searchParams.set("period1", String(p1));
+      yahooUrl.searchParams.set("period2", String(p2));
+      yahooUrl.searchParams.set("interval", interval);
+
+      const response = await fetch(yahooUrl.toString(), {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
       });
 
