@@ -50,8 +50,13 @@ export async function GET(req: Request) {
     
     const symbol = symbolParam || tickerParam;
     
-    if (!symbol) {
+    if (!symbol || typeof symbol !== 'string') {
       return NextResponse.json({ error: "Missing required parameters (symbol or ticker)" }, { status: 400 });
+    }
+
+    // Strict validation to prevent SSRF/Injection
+    if (!/^[a-zA-Z0-9.\-^=]+$/.test(symbol)) {
+      return NextResponse.json({ error: "Invalid symbol format" }, { status: 400 });
     }
 
     // Map to Yahoo Finance symbol
@@ -79,7 +84,7 @@ export async function GET(req: Request) {
     let source = "yahoo";
 
     try {
-      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${yahoo_sym}?period1=${p1}&period2=${p2}&interval=${interval}`;
+      const url = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahoo_sym)}?period1=${p1}&period2=${p2}&interval=${interval}`;
       const response = await fetch(url, {
         headers: { "User-Agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36" }
       });
