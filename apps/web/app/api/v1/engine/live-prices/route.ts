@@ -20,6 +20,13 @@ export async function GET(request: Request) {
     ? symbolsParam.split(',').map(s => s.trim().toUpperCase())
     : ['NIFTY 50', 'BANKNIFTY', 'RELIANCE', 'HDFC BANK', 'TCS', 'INFY', 'ICICI BANK', 'SBI'];
 
+  // Strict validation to prevent SSRF/Injection
+  for (const sym of symbolList) {
+    if (!/^[a-zA-Z0-9.\-^=\s]+$/.test(sym)) {
+      return NextResponse.json({ error: 'Invalid symbol format' }, { status: 400 });
+    }
+  }
+
   const results: Record<string, { price: number; change: number; changePct: number }> = {};
 
   try {
@@ -39,7 +46,7 @@ export async function GET(request: Request) {
           }
 
           const res = await fetch(
-            `https://query1.finance.yahoo.com/v8/finance/chart/${yahooSymbol}?range=2d&interval=1d`,
+            `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(yahooSymbol)}?range=2d&interval=1d`,
             {
               headers: {
                 'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -67,7 +74,7 @@ export async function GET(request: Request) {
   };
           }
         } catch (err) {
-          console.error(`Failed to fetch live price for ${symbol}:`, err);
+          console.error("Failed to fetch live price for symbol:", symbol, err);
         }
       })
     );

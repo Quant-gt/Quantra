@@ -99,6 +99,13 @@ export async function POST(request: Request) {
       return NextResponse.json({ error: 'Invalid symbols parameter' }, { status: 400 });
     }
     
+    // Strict validation to prevent SSRF/Injection
+    for (const sym of symbols) {
+      if (typeof sym !== 'string' || !/^[a-zA-Z0-9.\-^=\s]+$/.test(sym)) {
+        return NextResponse.json({ error: 'Invalid symbol format' }, { status: 400 });
+      }
+    }
+    
     // Normalize and fetch live quotes
     const normalized = symbols.map(s => normalizeSymbol(s));
     const quotesMap: { [key: string]: any } = {};
@@ -107,7 +114,7 @@ export async function POST(request: Request) {
     const indicatorPromises = symbols.map(async (s) => {
       try {
         const norm = normalizeSymbol(s);
-        const historyUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${norm.yahooSymbol}?range=1y&interval=1d`;
+        const historyUrl = `https://query1.finance.yahoo.com/v8/finance/chart/${encodeURIComponent(norm.yahooSymbol)}?range=1y&interval=1d`;
         const historyResponse = await fetch(historyUrl, {
           headers: {
             'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/91.0.4472.124 Safari/537.36'
@@ -179,7 +186,7 @@ export async function POST(request: Request) {
           latestCandle: candles[candles.length - 1]
         };
       } catch (err) {
-        console.error(`Error computing indicators for ${s}:`, err);
+        console.error("Error computing indicators for symbol:", s, err);
         return null;
       }
     });

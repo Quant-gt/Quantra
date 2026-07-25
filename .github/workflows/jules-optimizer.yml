@@ -6,6 +6,10 @@ on:
     paths:
       - 'apps/web/**'
 
+permissions:
+  contents: read
+  pull-requests: write
+
 jobs:
   jules_review:
     name: Run Jules Optimizer
