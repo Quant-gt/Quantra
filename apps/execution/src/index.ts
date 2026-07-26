@@ -62,11 +62,8 @@ app.post('/execute', authMiddleware, async (req, res) => {
       await redis.expire(opsKey, 2); // 2 second TTL
     }
 
-    // Write current OPS to DB for dashboard monitoring
-    await supabase
-      .from('marketplace_subscriptions')
-      .update({ current_ops: currentOps })
-      .eq('id', subscription_id);
+    // Rate limiting state is now entirely tracked in Redis for performance.
+    // Dashboard monitoring can read from Redis opsKey directly.
 
     // SEBI Hard-Throttle: Pause strategy at 10 OPS
     if (currentOps >= 10) {

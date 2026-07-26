@@ -21,6 +21,7 @@ import {
   Rocket
 } from 'lucide-react';
 import { useState, useEffect } from 'react';
+import { Parser } from 'expr-eval';
 import { DeployStrategyModal } from '@/components/builder/DeployStrategyModal';
 import { 
   ResponsiveContainer, 
@@ -335,8 +336,11 @@ export default function MagicScanner() {
 
           return {
             symbol: stock.symbol,
+            symbolLower: stock.symbol.toLowerCase(),
             company: stock.name,
+            companyLower: stock.name.toLowerCase(),
             sector: stock.sector,
+            sectorLower: stock.sector.toLowerCase(),
             price: `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
             change: `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`,
             closeVal,
@@ -408,9 +412,9 @@ export default function MagicScanner() {
             return stock.closeVal > stock.openVal;
           }
 
-          return stock.symbol.toLowerCase().includes(query) || 
-                 stock.company.toLowerCase().includes(query) || 
-                 stock.sector.toLowerCase().includes(query);
+          return stock.symbolLower.includes(query) || 
+                 stock.companyLower.includes(query) || 
+                 stock.sectorLower.includes(query);
         });
 
         return prev.map(w => w.id === id ? { 
@@ -568,27 +572,13 @@ export default function MagicScanner() {
       costofcarry: stock.costofcarry
     };
     
-    // Replace variables in expression
-    Object.keys(vars).forEach(v => {
-      const regex = new RegExp(`\\b${v}\\b`, 'g');
-      const val = vars[v];
-      cleanExpr = cleanExpr.replace(regex, (val ?? 0).toString());
-    });
-    
-    // Remove spaces
-    cleanExpr = cleanExpr.replace(/\s+/g, '');
-    
-    // Replace logical operators with JS equivalents
-    cleanExpr = cleanExpr.replace(/\band\b/g, '&&').replace(/\bor\b/g, '||').replace(/\bnot\b/g, '!');
-    
-    // Sanitization check: ONLY allow numbers, operators, logic signs, comparison signs, parentheses
-    if (!/^[0-9.+\-*/()&|!><=]+$/.test(cleanExpr)) {
-      return false;
-    }
+    // Replace JS logical operators with text equivalents for expr-eval
+    cleanExpr = cleanExpr.replace(/&&/g, ' and ').replace(/\|\|/g, ' or ').replace(/!/g, ' not ');
     
     try {
-      const evalFn = new Function(`return !!(${cleanExpr});`);
-      return evalFn();
+      // Use safe expression evaluation
+      const parser = new Parser();
+      return !!parser.evaluate(cleanExpr, vars);
     } catch (err) {
       return false;
     }
@@ -1576,15 +1566,17 @@ export default function MagicScanner() {
                     name: 'EMA Trend',
                     type: 'MA' as const,
                     color: '#EAB308',
-                    calculate: (data) =>
-                      data.map((d, i) => {
-                        let sum = 0;
-                        const count = Math.min(i + 1, 9);
-                        for (let j = 0; j < count; j++) {
-                          sum += data[i - j]!.close;
+                    calculate: (data) => {
+                      let sum = 0;
+                      return data.map((d, i) => {
+                        sum += d.close;
+                        if (i >= 9) {
+                          sum -= data[i - 9]!.close;
                         }
+                        const count = Math.min(i + 1, 9);
                         return { time: d.time, value: sum / count };
-                      }),
+                      });
+                    },
                   },
                 ]
               : []

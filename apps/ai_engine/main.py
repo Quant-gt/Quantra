@@ -11,7 +11,6 @@ from fyers_auth import get_fyers_login_url, generate_token_from_auth_code, get_f
 from engine.async_executor import run_execution_loop
 from core.symbol_resolver import SymbolResolver
 from fyers_apiv3 import fyersModel
-import yfinance as yf
 
 from apscheduler.schedulers.asyncio import AsyncIOScheduler
 from auto_auth_agent import run_automated_login
@@ -36,10 +35,22 @@ async def startup_event():
     print("Started APScheduler for 8:45 AM Auto-Auth Agent")
 
 # Allow requests from the Next.js frontend
-allowed_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+raw_origins = os.getenv("ALLOWED_ORIGINS", "http://localhost:3000").split(",")
+allowed_origins = []
+for origin in raw_origins:
+    origin = origin.strip()
+    if origin == "*":
+        print("WARNING: Ignoring wildcard CORS origin as allow_credentials is True")
+        continue # Wildcards are insecure with credentials=True
+    if origin:
+        allowed_origins.append(origin)
+
+if not allowed_origins:
+    allowed_origins = ["http://localhost:3000"] # Safe default fallback
+
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=allowed_origins, # No wildcard when credentials are true
+    allow_origins=allowed_origins,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
@@ -149,7 +160,7 @@ async def get_market_history(symbol: str, resolution: str, range_from: str, rang
 
     # 2. Yahoo Finance Fallback
     try:
-        import requests
+        import aiohttp
         from datetime import datetime
         import time
 
@@ -176,10 +187,12 @@ async def get_market_history(symbol: str, resolution: str, range_from: str, rang
         p2 = int(time.time()) # Use current time to get the latest intraday candles
 
         url = f"https://query1.finance.yahoo.com/v8/finance/chart/{yahoo_sym}?period1={p1}&period2={p2}&interval={interval}"
-        res = requests.get(url, headers={"User-Agent": "Mozilla/5.0"})
-        if res.status_code == 200:
-            chart_data = res.json()
-            result = chart_data.get("chart", {}).get("result", [None])[0]
+        
+        async with aiohttp.ClientSession() as session:
+            async with session.get(url, headers={"User-Agent": "Mozilla/5.0"}) as res:
+                if res.status == 200:
+                    chart_data = await res.json()
+                    result = chart_data.get("chart", {}).get("result", [None])[0]
             if result:
                 timestamps = result.get("timestamp", [])
                 quote = result.get("indicators", {}).get("quote", [{}])[0]

@@ -11,6 +11,7 @@
     "test": "turbo run test"
   },
   "devDependencies": {
+    "@react-native/jest-preset": "^0.86.1",
     "prettier": "^3.7.4",
     "turbo": "^2.9.12",
     "typescript": "5.9.2"

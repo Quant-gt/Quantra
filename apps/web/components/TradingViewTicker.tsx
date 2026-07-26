@@ -6,8 +6,8 @@ export default function TradingViewTicker() {
   const containerRef = useRef<HTMLDivElement>(null);
 
   useEffect(() => {
-    // Only load the script if the container is empty to prevent duplicates (e.g. React StrictMode)
-    if (!containerRef.current || containerRef.current.children.length > 0) return;
+    // Only load the script if it hasn't been loaded yet to prevent duplicates (e.g. React StrictMode)
+    if (!containerRef.current || containerRef.current.querySelector('script')) return;
 
     const script = document.createElement("script");
     script.src = "https://s3.tradingview.com/external-embedding/embed-widget-ticker-tape.js";

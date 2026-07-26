@@ -1,7 +1,6 @@
 import pandas as pd
 import numpy as np
 import yfinance as yf
-import numexpr as ne
 import re
 from agents.intent_parser import StrategySchema
 from core.symbol_resolver import SymbolResolver
@@ -237,10 +236,56 @@ class VectorBacktester:
 
         # Only allow safe mathematical and comparison symbols.
         # Explicitly ban dots, quotes, brackets, braces, semicolons, and double underscores.
-        if not re.match(r'^[a-zA-Z0-9_\s<>=!&|~()\-+*/]+$', expr):
+        if not re.match(r'^[a-zA-Z0-9_\s<>=!&|~()\-+*/.]+$', expr):
             return False
 
         return True
+
+    def _safe_eval_series(self, expr: str) -> pd.Series:
+        """AST-based safe evaluation of conditions returning a boolean pd.Series"""
+        import ast
+        import operator
+        
+        allowed_ops = {
+            ast.Add: operator.add, ast.Sub: operator.sub, ast.Mult: operator.mul,
+            ast.Div: operator.truediv, ast.BitAnd: operator.and_, ast.BitOr: operator.or_,
+            ast.Invert: operator.invert, ast.USub: operator.neg, ast.Not: operator.invert,
+            ast.And: operator.and_, ast.Or: operator.or_, ast.Gt: operator.gt,
+            ast.Lt: operator.lt, ast.GtE: operator.ge, ast.LtE: operator.le,
+            ast.Eq: operator.eq, ast.NotEq: operator.ne
+        }
+        
+        def _eval(node):
+            if isinstance(node, ast.Constant):
+                return node.value
+            elif isinstance(node, ast.Name):
+                if node.id in self.df.columns:
+                    return self.df[node.id]
+                elif node.id == "True":
+                    return True
+                elif node.id == "False":
+                    return False
+                raise ValueError(f"Unsafe or missing identifier: {node.id}")
+            elif isinstance(node, ast.BinOp):
+                return allowed_ops[type(node.op)](_eval(node.left), _eval(node.right))
+            elif isinstance(node, ast.UnaryOp):
+                return allowed_ops[type(node.op)](_eval(node.operand))
+            elif isinstance(node, ast.Compare):
+                left = _eval(node.left)
+                for op, comparator in zip(node.ops, node.comparators):
+                    left = allowed_ops[type(op)](left, _eval(comparator))
+                return left
+            elif isinstance(node, ast.BoolOp):
+                op = node.op
+                values = [_eval(v) for v in node.values]
+                result = values[0]
+                for val in values[1:]:
+                    result = allowed_ops[type(op)](result, val)
+                return result
+            raise ValueError(f"Unsafe operation: {type(node)}")
+
+        tree = ast.parse(expr, mode='eval')
+        return _eval(tree.body)
 
     def generate_signals(self):
         """Evaluates entry and exit logic using vectorized operations."""
@@ -285,11 +330,11 @@ class VectorBacktester:
             if not self._is_safe_expression(exit_condition_str):
                 raise ValueError(f"Security Alert: Unsafe characters or unrecognized identifiers detected in exit logic: {exit_condition_str}")
 
-            # Use safe numexpr evaluation
+            # Use safe AST evaluation
             if entry_condition_str:
-                self.df['entry_signal'] = ne.evaluate(entry_condition_str, local_dict=self.df.to_dict('series'))
+                self.df['entry_signal'] = self._safe_eval_series(entry_condition_str)
             if exit_condition_str:
-                self.df['exit_signal'] = ne.evaluate(exit_condition_str, local_dict=self.df.to_dict('series'))
+                self.df['exit_signal'] = self._safe_eval_series(exit_condition_str)
                 
         except Exception as e:
             # Raise descriptive error to be caught by optimizer/API instead of silent failure

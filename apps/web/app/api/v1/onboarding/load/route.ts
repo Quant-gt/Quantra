@@ -26,15 +26,15 @@ export async function GET() {
       preferences: { ...profile.preferences }
     };
 
-    // Mask sensitive encrypted broker keys on retrieval for browser safety
+    // Allowlist approach: return only safe, non-secret fields
     if (responseData.preferences.broker_config) {
-      const config = { ...responseData.preferences.broker_config };
-      if (config.app_secret) config.app_secret = '••••••••••••';
-      if (config.api_secret) config.api_secret = '••••••••••••';
-      if (config.totp_secret) config.totp_secret = '••••••••••••';
-      if (config.mpin) config.mpin = '••••••';
-      
-      responseData.preferences.broker_config = config;
+      const config = responseData.preferences.broker_config;
+      responseData.preferences.broker_config = {
+        app_id: config.app_id,
+        api_key: config.api_key,
+        client_id: config.client_id,
+        redirect_uri: config.redirect_uri
+      };
     }
 
     return NextResponse.json(responseData);

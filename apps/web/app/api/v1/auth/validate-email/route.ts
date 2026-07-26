@@ -55,8 +55,12 @@ export async function POST(request: Request) {
             return NextResponse.json({ success: true, valid: false });
           }
         }
-      } catch (dbError) {
-        console.warn("DB blocklist lookup failed, proceeding to Tier 2:", dbError);
+      } catch (dbError: any) {
+        console.error(JSON.stringify({
+          event: "EMAIL_VALIDATION_DB_ERROR",
+          message: "DB blocklist lookup failed, proceeding to Tier 2",
+          error: dbError?.message || String(dbError)
+        }));
       }
     }
 

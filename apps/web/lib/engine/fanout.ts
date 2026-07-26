@@ -9,22 +9,31 @@ const supabase = createClient(supabaseUrl, supabaseServiceKey);
 // In-memory logger for the Admin Dashboard UI (fallback)
 export const engineLogs: string[] = [];
 
-async function log(msg: string) {
-  const timestamp = new Date().toISOString().split('T')[1]!.slice(0, -1); // HH:MM:SS.mmm
-  engineLogs.unshift(`[${timestamp}] ${msg}`);
-  if (engineLogs.length > 100) engineLogs.pop(); // Keep last 100 logs
-  console.log(`[FANOUT] ${msg}`);
-  
-  // Persist to DB for compliance
-  try {
-    await supabase.from('compliance_audit').insert({
+async function logBatch(msgs: string[]) {
+  if (msgs.length === 0) return;
+  const timestamp = new Date().toISOString();
+  const timeStr = timestamp.split('T')[1]!.slice(0, -1);
+  const auditLogs = msgs.map(msg => {
+    engineLogs.unshift(`[${timeStr}] ${msg}`);
+    console.log(`[FANOUT] ${msg}`);
+    return {
       action: 'FANOUT_LOG',
       details: { message: msg },
-      timestamp: new Date().toISOString()
-    });
+      timestamp
+    };
+  });
+  
+  if (engineLogs.length > 100) engineLogs.length = 100;
+  
+  try {
+    await supabase.from('compliance_audit').insert(auditLogs);
   } catch (e) {
-    console.error("Failed to persist audit log", e);
+    console.error("Failed to persist audit log batch", e);
   }
+}
+
+async function log(msg: string) {
+  await logBatch([msg]);
 }
 
 interface Subscriber {
@@ -94,12 +103,16 @@ export async function processFanOut(masterSignal: { strategyId: string, action: 
 
     const results = await Promise.allSettled(batchPromises);
     
-    // Log individual failures so one crash doesn't break the batch silently
+    const errorMsgs: string[] = [];
     results.forEach((res, idx) => {
       if (res.status === 'rejected') {
-        log(`❌ ERROR executing order for ${batch[idx]?.userId || 'Unknown'}: ${res.reason}`);
+        errorMsgs.push(`❌ ERROR executing order for ${batch[idx]?.userId || 'Unknown'}: ${res.reason}`);
       }
     });
+    
+    if (errorMsgs.length > 0) {
+      await logBatch(errorMsgs);
+    }
 
     log(`✅ BATCH ${Math.floor(i/BATCH_SIZE) + 1} execution complete.`);
 

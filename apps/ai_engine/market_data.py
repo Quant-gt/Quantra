@@ -1,5 +1,4 @@
 import threading
-import time
 from fyers_apiv3.FyersWebsocket import data_ws
 from fyers_auth import get_fyers_access_token
 import os

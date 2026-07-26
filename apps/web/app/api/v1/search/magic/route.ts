@@ -40,7 +40,7 @@ export async function POST(request: Request) {
         method: 'POST',
         headers: { 
           'Content-Type': 'application/json',
-          'Authorization': `Bearer ${process.env.SUPABASE_SERVICE_ROLE_KEY}`
+          'Authorization': `Bearer ${process.env.INTERNAL_SERVICE_KEY}`
         },
         body: JSON.stringify({ text: query }),
       });
