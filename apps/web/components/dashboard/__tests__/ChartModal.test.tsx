@@ -61,7 +61,7 @@ describe('ChartModal Component', () => {
     expect(svgs.length).toBeGreaterThan(0)
     
     // Click the first X icon
-    fireEvent.click(svgs[0])
+    fireEvent.click(svgs[0] as unknown as SVGSVGElement)
     
     expect(mockSetActiveIndicators).toHaveBeenCalledTimes(1)
     // It should have filtered out 'EMA 20', leaving ['RSI']

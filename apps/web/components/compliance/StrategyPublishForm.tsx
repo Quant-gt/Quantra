@@ -26,8 +26,9 @@ export default function StrategyPublishForm() {
       return { valid: false, message: "Invalid Algo-ID format. Must contain a valid suffix." };
     }
     
-    if (suffix.includes("XXX")) {
-      return { valid: false, message: "Algo-ID cannot contain 'XXX' placeholders. Please enter your actual approved Exchange Algo-ID." };
+    const placeholderRegex = /X{3,}|TEST|DUMMY|DEMO|SAMPLE/i;
+    if (placeholderRegex.test(suffix)) {
+      return { valid: false, message: "Algo-ID cannot contain placeholders like 'XXX', 'TEST', or 'DUMMY'. Please enter your actual approved Exchange Algo-ID." };
     }
     
     const isSequential = (str: string): boolean => {

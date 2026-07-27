@@ -34,9 +34,9 @@ describe('MarketplaceFilters Component', () => {
     
     // Check range sliders
     const ranges = screen.getAllByRole('slider') as HTMLInputElement[];
-    expect(ranges[0].value).toBe('0'); // minCagr
-    expect(ranges[1].value).toBe('100'); // maxDd
-    expect(ranges[2].value).toBe('0'); // minCapital
+    expect(ranges[0]!.value).toBe('0'); // minCagr
+    expect(ranges[1]!.value).toBe('100'); // maxDd
+    expect(ranges[2]!.value).toBe('0'); // minCapital
   });
 
   it('updates filters and URL on change', () => {

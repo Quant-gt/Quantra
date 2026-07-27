@@ -250,7 +250,6 @@ app.post('/execute/fanout', authMiddleware, async (req, res) => {
         // If rejected by risk guards, skip the actual API call
         if (tradeStatus === 'success') {
           // In production, we would fetch broker API keys here and fire the actual HTTP request to Fyers/Zerodha
-          // const keys = await getBrokerKeys(sub.user_id);
         }
 
         // Build execution log record

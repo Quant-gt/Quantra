@@ -41,7 +41,6 @@ const ALL_MIGRATED_TABLES = [
 ];
 
 async function inspect() {
-  console.log("Inspecting existing tables in remote database:");
   for (const table of ALL_MIGRATED_TABLES) {
     const { error } = await supabase.from(table).select('*').limit(0);
     if (error) {

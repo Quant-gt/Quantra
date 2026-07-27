@@ -2,7 +2,7 @@
 
 import React, { useState, useEffect } from "react";
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Lock, ShieldCheck, Key, CheckCircle2, AlertCircle, Info, Zap, Terminal } from "lucide-react";
+import { ShieldCheck, CheckCircle2, AlertCircle, Info, Zap } from "lucide-react";
 
 interface BYOBGatewayModalProps {
   onSuccess: () => void;

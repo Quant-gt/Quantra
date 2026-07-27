@@ -63,7 +63,7 @@ describe('SentenceBuilder Component', () => {
     
     // Change a select value
     const offsetSelects = screen.getAllByDisplayValue('Latest')
-    fireEvent.change(offsetSelects[0], { target: { value: '2 days ago' } })
+    fireEvent.change(offsetSelects[0] as HTMLElement, { target: { value: '2 days ago' } })
     
     expect(mockOnChange).toHaveBeenCalledTimes(1)
     
@@ -87,7 +87,7 @@ describe('SentenceBuilder Component', () => {
     // We can rely on button role
     const buttons = screen.getAllByRole('button')
     // Click the first block's remove button
-    fireEvent.click(buttons[0])
+    fireEvent.click(buttons[0] as HTMLElement)
     
     expect(mockOnRemoveBlock).toHaveBeenCalledWith('block-1')
   })

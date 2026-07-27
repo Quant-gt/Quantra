@@ -11,7 +11,6 @@ if (!supabaseUrl || !anonKey) {
 const supabase = createClient(supabaseUrl, anonKey);
 
 async function testInsert() {
-  console.log("Testing mock INSERT anonymously to check RLS:");
   
   // 1. Test creator_earnings
   const mockEarnings = {

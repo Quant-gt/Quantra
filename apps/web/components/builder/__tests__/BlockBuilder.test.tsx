@@ -90,7 +90,7 @@ describe('BlockBuilder Component', () => {
     const addButtons = screen.getAllByText('Block')
     
     // Click the first one (Buy Pipeline)
-    fireEvent.click(addButtons[0])
+    fireEvent.click(addButtons[0] as HTMLElement)
     
     expect(toast.success).toHaveBeenCalledWith("Added new Buy indicator condition block")
   })

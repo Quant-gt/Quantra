@@ -57,7 +57,7 @@ describe('ScannerBuilder Component', () => {
     expect(mockSetNodes).toHaveBeenCalledTimes(1)
     
     // Simulate what the updater function does
-    const updaterFn = mockSetNodes.mock.calls[0][0]
+    const updaterFn = mockSetNodes.mock.calls[0]![0]
     const currentNodes: any[] = []
     const updatedNodes = updaterFn(currentNodes)
     

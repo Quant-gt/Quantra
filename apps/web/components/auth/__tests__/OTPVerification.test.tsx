@@ -34,7 +34,7 @@ describe('OTPVerification Component', () => {
     render(<OTPVerification email="test@example.com" />);
     const inputs = screen.getAllByRole('textbox');
     
-    fireEvent.change(inputs[0], { target: { value: '1' } });
+    fireEvent.change(inputs[0] as HTMLElement, { target: { value: '1' } });
     // JSDOM doesn't automatically fire focus, but we can check the value updated
     expect(inputs[0]).toHaveValue('1');
   });

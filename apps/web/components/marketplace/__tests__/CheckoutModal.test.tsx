@@ -31,14 +31,14 @@ describe('CheckoutModal Component', () => {
   
   it('does not render when isOpen is false', () => {
     const { container } = render(
-      <CheckoutModal strategy={mockStrategy} isOpen={false} onClose={mockOnClose} />
+      <CheckoutModal strategy={mockStrategy as any} isOpen={false} onClose={mockOnClose} />
     )
     expect(container).toBeEmptyDOMElement()
   })
 
   it('renders correctly when open', () => {
     render(
-      <CheckoutModal strategy={mockStrategy} isOpen={true} onClose={mockOnClose} />
+      <CheckoutModal strategy={mockStrategy as any} isOpen={true} onClose={mockOnClose} />
     )
     
     expect(screen.getByText('Secure Checkout')).toBeInTheDocument()
@@ -54,7 +54,7 @@ describe('CheckoutModal Component', () => {
     })
 
     render(
-      <CheckoutModal strategy={mockStrategy} isOpen={true} onClose={mockOnClose} />
+      <CheckoutModal strategy={mockStrategy as any} isOpen={true} onClose={mockOnClose} />
     )
     
     const subscribeBtn = screen.getByRole('button', { name: /Subscribe Now/i })
@@ -85,7 +85,7 @@ describe('CheckoutModal Component', () => {
     })
 
     render(
-      <CheckoutModal strategy={mockStrategy} isOpen={true} onClose={mockOnClose} />
+      <CheckoutModal strategy={mockStrategy as any} isOpen={true} onClose={mockOnClose} />
     )
     
     const subscribeBtn = screen.getByRole('button', { name: /Subscribe Now/i })
@@ -104,7 +104,7 @@ describe('CheckoutModal Component', () => {
     ;(global.fetch as any).mockRejectedValueOnce(new Error('Network error'))
 
     render(
-      <CheckoutModal strategy={mockStrategy} isOpen={true} onClose={mockOnClose} />
+      <CheckoutModal strategy={mockStrategy as any} isOpen={true} onClose={mockOnClose} />
     )
     
     const subscribeBtn = screen.getByRole('button', { name: /Subscribe Now/i })
