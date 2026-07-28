@@ -16,34 +16,34 @@ export default function TradingViewTicker() {
     script.innerHTML = JSON.stringify({
       symbols: [
         {
-          proName: "NSE:NIFTY",
-          title: "NIFTY 50"
-        },
-        {
-          proName: "NSE:BANKNIFTY",
-          title: "BANK NIFTY"
-        },
-        {
           proName: "BSE:SENSEX",
           title: "SENSEX"
         },
         {
-          proName: "NSE:RELIANCE",
+          proName: "BSE:RELIANCE",
           title: "RELIANCE"
         },
         {
-          proName: "NSE:TCS",
+          proName: "BSE:TCS",
           title: "TCS"
         },
         {
-          proName: "NSE:HDFCBANK",
+          proName: "BSE:HDFCBANK",
           title: "HDFCBANK"
+        },
+        {
+          proName: "BSE:INFY",
+          title: "INFY"
+        },
+        {
+          proName: "BSE:SBIN",
+          title: "SBI"
         }
       ],
       showSymbolLogo: true,
       colorTheme: "dark",
       isTransparent: true,
-      displayMode: "adaptive",
+      displayMode: "regular",
       locale: "en"
     });
 
