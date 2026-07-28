@@ -6,8 +6,8 @@ import { ChevronRight } from 'lucide-react';
 
 export default function PublicNavbar() {
   return (
-    <nav className="fixed top-6 left-1/2 -translate-x-1/2 z-50 w-[90%] max-w-7xl">
-      <div className="bg-[#0B0F19]/60 backdrop-blur-md border border-white/5 rounded-2xl px-6 py-4 flex justify-between items-center shadow-2xl">
+    <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#0B0F19]/80 backdrop-blur-md shadow-2xl">
+      <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
         <Link href="/" className="flex items-center gap-3 group">
           <div className="w-8 h-8 flex items-center justify-center rounded-lg shadow-sm group-hover:scale-105 transition-transform overflow-hidden">
             <Logo />
