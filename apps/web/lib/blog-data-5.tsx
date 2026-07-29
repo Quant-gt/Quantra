@@ -4,16 +4,16 @@ import { BlogPost } from './blog-data-types';
 
 export const BLOG_POSTS_5: BlogPost[] = [
   {
-    id: 'algo-trading-no-coding',
+    id: 'can-i-start-algo-trading-with-no-coding-experience',
     title: 'Can I Start Algo Trading With No Coding Experience?',
     slug: 'can-i-start-algo-trading-with-no-coding-experience',
     excerpt: 'Yes! Discover how visual strategy builders and no-code platforms like SigmaSpire are democratizing algorithmic trading for non-programmers.',
-    date: '2026-07-29',
+    date: 'January 3, 2026',
     readTime: '8 min read',
     category: 'Algorithmic Trading',
     tags: ['Algo Trading', 'Automation', 'Investing'],
     content: (
-      <div className="space-y-6 text-gray-800 dark:text-gray-200 leading-relaxed">
+      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
         <p><strong>Immediate Answer: Yes.</strong> You can absolutely start algorithmic trading with zero coding experience. Modern no-code platforms allow you to automate your strategies using visual drag-and-drop interfaces, pre-built rule blocks, and seamless broker integrations without ever writing a single line of code. If you have a solid understanding of market mechanics and risk management, the technical barriers that once existed are entirely gone.</p>
         
         <h2 className="text-2xl font-bold mt-8 mb-4">The Democratization of Algorithmic Trading</h2>
@@ -94,16 +94,16 @@ export const BLOG_POSTS_5: BlogPost[] = [
     )
   },
   {
-    id: 'capital-needed-algo-trading',
+    id: 'how-much-capital-do-you-need-to-start-algo-trading',
     title: 'How Much Capital Do You Need to Start Algo Trading?',
     slug: 'how-much-capital-do-you-need-to-start-algo-trading',
     excerpt: 'Understand the specific financial tiers, broker minimums, and risk management strategies to determine your optimal starting capital for algorithmic trading.',
-    date: '2026-07-29',
+    date: 'June 6, 2026',
     readTime: '10 min read',
     category: 'Algorithmic Trading',
     tags: ['Algo Trading', 'Automation', 'Investing'],
     content: (
-      <div className="space-y-6 text-gray-800 dark:text-gray-200 leading-relaxed">
+      <div className="space-y-6 text-gray-300 leading-relaxed text-sm md:text-base">
         <p>One of the most persistent and damaging myths in the financial world is that you need hundreds of thousands of dollars to even begin algorithmic trading. While it is true that institutional quant funds manage billions of dollars and employ massive leverage, the retail trading landscape is completely different today. Thanks to the advent of fractional shares, micro-lots in forex, zero-commission brokers, and highly accessible trading infrastructure, the barrier to entry has plummeted to levels that are accessible to nearly anyone.</p>
         
         <h2 className="text-2xl font-bold mt-8 mb-4">The Short Answer: It Depends on the Asset Class</h2>
