@@ -3,8 +3,11 @@
 import Link from 'next/link';
 import { Logo } from './Logo';
 import { ChevronRight } from 'lucide-react';
+import { usePathname } from 'next/navigation';
 
 export default function PublicNavbar() {
+  const pathname = usePathname();
+  const isActive = (path: string) => pathname?.startsWith(path);
   return (
     <nav className="sticky top-0 z-50 w-full border-b border-white/5 bg-[#0B0F19]/80 backdrop-blur-md shadow-2xl">
       <div className="max-w-7xl mx-auto px-6 py-4 flex justify-between items-center">
@@ -16,10 +19,11 @@ export default function PublicNavbar() {
         </Link>
         
         <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-400">
-          <Link href="/marketplace" className="hover:text-white hover:text-glow transition-all">Marketplace</Link>
-          <Link href="/backtest" className="hover:text-white hover:text-glow transition-all">Backtest</Link>
-          <Link href="/blog" className="hover:text-white hover:text-glow transition-all">Blog</Link>
-          <Link href="/pricing" className="hover:text-white hover:text-glow transition-all">Pricing</Link>
+          <Link href="/marketplace" className={`hover:text-white hover:text-glow transition-all ${isActive('/marketplace') ? 'text-[#10B981]' : ''}`}>Marketplace</Link>
+          <Link href="/backtest" className={`hover:text-white hover:text-glow transition-all ${isActive('/backtest') ? 'text-[#10B981]' : ''}`}>Backtest</Link>
+          <Link href="/blog" className={`hover:text-white hover:text-glow transition-all ${isActive('/blog') ? 'text-[#10B981]' : ''}`}>Blog</Link>
+          <Link href="/daily-news" className={`hover:text-white hover:text-glow transition-all ${isActive('/daily-news') ? 'text-[#10B981]' : ''}`}>Daily News</Link>
+          <Link href="/pricing" className={`hover:text-white hover:text-glow transition-all ${isActive('/pricing') ? 'text-[#10B981]' : ''}`}>Pricing</Link>
         </div>
 
         <div className="flex items-center gap-5">

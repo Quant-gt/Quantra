@@ -9,6 +9,7 @@ import {
 import Link from 'next/link';
 import PublicNavbar from '@/components/PublicNavbar';
 import TradingViewTicker from '@/components/TradingViewTicker';
+import LiveMarketTable from '@/components/LiveMarketTable';
 
 export default function Home() {
   const [isDemoOpen, setIsDemoOpen] = useState(false);
@@ -209,96 +210,7 @@ export default function Home() {
           </div>
 
           {/* Table */}
-          <div className="overflow-x-auto">
-            <table className="w-full text-left border-collapse min-w-[800px]">
-              <thead>
-                <tr className="border-b border-[#30363D] bg-[#161B22]/50">
-                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider">ASSET TICKER</th>
-                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider text-right">LAST TRADED PRICE</th>
-                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider text-right">1D PRICE ACTION</th>
-                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider text-right">CURRENT P/E</th>
-                  <th className="py-4 px-8 text-xs font-semibold text-[#8B949E] uppercase tracking-wider text-right">DIAGNOSTIC ACTION</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-[#30363D]/50 text-sm font-medium">
-                <tr className="hover:bg-[#161B22] transition-colors">
-                  <td className="py-5 px-8 flex items-center gap-2">
-                    <span className="text-white font-bold">RELIANCE</span>
-                    <span className="text-[#8B949E] text-xs">(Reliance Industries Ltd.)</span>
-                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
-                  </td>
-                  <td className="py-5 px-8 text-right text-white">₹1,327.20</td>
-                  <td className="py-5 px-8 text-right text-[#F43F5E]">-10.11%</td>
-                  <td className="py-5 px-8 text-right text-[#8B949E]">21.9x</td>
-                  <td className="py-5 px-8 text-right">
-                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
-                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
-                    </Link>
-                  </td>
-                </tr>
-                <tr className="hover:bg-[#161B22] transition-colors">
-                  <td className="py-5 px-8 flex items-center gap-2">
-                    <span className="text-white font-bold">TCS</span>
-                    <span className="text-[#8B949E] text-xs">(Tata Consultancy Services Ltd.)</span>
-                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
-                  </td>
-                  <td className="py-5 px-8 text-right text-white">₹2,269.00</td>
-                  <td className="py-5 px-8 text-right text-[#F43F5E]">-29.30%</td>
-                  <td className="py-5 px-8 text-right text-[#8B949E]">51.4x</td>
-                  <td className="py-5 px-8 text-right">
-                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
-                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
-                    </Link>
-                  </td>
-                </tr>
-                <tr className="hover:bg-[#161B22] transition-colors">
-                  <td className="py-5 px-8 flex items-center gap-2">
-                    <span className="text-white font-bold">HDFCBANK</span>
-                    <span className="text-[#8B949E] text-xs">(HDFC Bank Ltd.)</span>
-                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
-                  </td>
-                  <td className="py-5 px-8 text-right text-white">₹819.60</td>
-                  <td className="py-5 px-8 text-right text-[#F43F5E]">-17.50%</td>
-                  <td className="py-5 px-8 text-right text-[#8B949E]">47.5x</td>
-                  <td className="py-5 px-8 text-right">
-                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
-                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
-                    </Link>
-                  </td>
-                </tr>
-                <tr className="hover:bg-[#161B22] transition-colors">
-                  <td className="py-5 px-8 flex items-center gap-2">
-                    <span className="text-white font-bold">INFY</span>
-                    <span className="text-[#8B949E] text-xs">(Infosys Ltd.)</span>
-                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
-                  </td>
-                  <td className="py-5 px-8 text-right text-white">₹1,896.50</td>
-                  <td className="py-5 px-8 text-right text-[#F43F5E]">-30.75%</td>
-                  <td className="py-5 px-8 text-right text-[#8B949E]">37.0x</td>
-                  <td className="py-5 px-8 text-right">
-                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
-                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
-                    </Link>
-                  </td>
-                </tr>
-                <tr className="hover:bg-[#161B22] transition-colors">
-                  <td className="py-5 px-8 flex items-center gap-2">
-                    <span className="text-white font-bold">SBIN</span>
-                    <span className="text-[#8B949E] text-xs">(State Bank of India)</span>
-                    <BarChart3 className="w-3 h-3 text-[#10B981]" />
-                  </td>
-                  <td className="py-5 px-8 text-right text-white">₹1,044.30</td>
-                  <td className="py-5 px-8 text-right text-[#10B981]">+25.97%</td>
-                  <td className="py-5 px-8 text-right text-[#8B949E]">27.0x</td>
-                  <td className="py-5 px-8 text-right">
-                    <Link href="/dashboard/builder" className="text-[#10B981] hover:text-[#34D399] transition-colors inline-flex items-center gap-1 font-bold text-xs">
-                      Examine Canvas <ArrowUpRight className="w-3 h-3" />
-                    </Link>
-                  </td>
-                </tr>
-              </tbody>
-            </table>
-          </div>
+          <LiveMarketTable />
 
           {/* Bottom Bar */}
           <div className="p-6 bg-[#161B22] border-t border-[#30363D] flex flex-col sm:flex-row items-center justify-between gap-4">
