@@ -63,9 +63,16 @@ export default function DailyNewsPage() {
     fetchNews();
   }, []);
 
-  const filteredNews = news.filter(item => 
-    activeCategory === "All Updates" || item.category === activeCategory
-  );
+  const matchesCategory = (itemCategory: string, selectedTab: string) => {
+    if (selectedTab === "All Updates") return true;
+    
+    const normItem = itemCategory.toLowerCase().replace(/[^a-z0-9]/g, "");
+    const normTab = selectedTab.toLowerCase().replace(/[^a-z0-9]/g, "");
+    
+    return normItem.includes(normTab) || normTab.includes(normItem);
+  };
+
+  const filteredNews = news.filter(item => matchesCategory(item.category, activeCategory));
 
   return (
     <div className="min-h-screen bg-[#0B0E14] text-white font-sans selection:bg-emerald-500/30 selection:text-white pb-24">

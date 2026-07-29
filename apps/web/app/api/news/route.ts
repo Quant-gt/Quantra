@@ -56,11 +56,20 @@ function extractTicker(title: string): string {
 export async function GET() {
   try {
     // Google News RSS feed for Indian Stock Market / Corporate News
-    const feedUrl = 'https://news.google.com/rss/search?q=Indian+Stock+Market+Earnings+BSE+NSE&hl=en-IN&gl=IN&ceid=IN:en';
+    const companyFeedUrl = 'https://news.google.com/rss/search?q=stock+market+india+company+news&hl=en-IN&gl=IN&ceid=IN:en';
+    const fiiFeedUrl = 'https://news.google.com/rss/search?q=NSE+BSE+FII+DII+trading+activity+india&hl=en-IN&gl=IN&ceid=IN:en';
     
-    const feed = await parser.parseURL(feedUrl);
+    const [companyFeed, fiiFeed] = await Promise.all([
+      parser.parseURL(companyFeedUrl).catch(() => ({ items: [] })),
+      parser.parseURL(fiiFeedUrl).catch(() => ({ items: [] }))
+    ]);
     
-    const newsItems = feed.items.slice(0, 20).map((item, index) => {
+    // Combine items and shuffle/interleave slightly to make it look natural
+    const combinedItems = [...companyFeed.items.slice(0, 15), ...fiiFeed.items.slice(0, 5)];
+    // Sort by pubDate descending
+    combinedItems.sort((a, b) => new Date(b.pubDate || 0).getTime() - new Date(a.pubDate || 0).getTime());
+
+    const newsItems = combinedItems.map((item, index) => {
       const title = item.title?.split(' - ')[0] || item.title || 'Market Update';
       const summary = item.contentSnippet || title;
       const category = determineCategory(title, summary);
@@ -71,7 +80,7 @@ export async function GET() {
       const mockChange = (Math.random() * 5 * (Math.random() > 0.5 ? 1 : -1)).toFixed(2);
       
       return {
-        id: `news-${index}`,
+        id: `news-${index}-${Date.now()}`,
         title: title,
         summary: summary.length > 120 ? summary.substring(0, 120) + '...' : summary,
         ticker: ticker,
