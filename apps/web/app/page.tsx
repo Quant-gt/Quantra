@@ -13,6 +13,7 @@ import LiveMarketTable from '@/components/LiveMarketTable';
 
 export default function Home() {
   const [isDemoOpen, setIsDemoOpen] = useState(false);
+  const [activeMarketTab, setActiveMarketTab] = useState<'value' | 'momentum' | 'volume'>('value');
 
   return (
     <div className="min-h-screen bg-[#0D1117] text-white font-sans selection:bg-[#388BFD]/30 selection:text-white">
@@ -197,20 +198,41 @@ export default function Home() {
             </p>
             
             <div className="flex flex-wrap gap-2">
-              <button className="px-6 py-2 bg-[#10B981] text-[#022C22] text-sm font-bold rounded-lg transition-colors shadow-[0_0_15px_rgba(16,185,129,0.3)]">
+              <button 
+                onClick={() => setActiveMarketTab('value')}
+                className={`px-6 py-2 text-sm font-bold rounded-lg transition-colors shadow-sm ${
+                  activeMarketTab === 'value' 
+                    ? 'bg-[#10B981] text-[#022C22] shadow-[0_0_15px_rgba(16,185,129,0.3)]' 
+                    : 'bg-[#161B22] border border-[#30363D] hover:bg-[#21262D] text-[#8B949E]'
+                }`}
+              >
                 Value Core (Low P/E Multiples)
               </button>
-              <button className="px-6 py-2 bg-[#161B22] border border-[#30363D] hover:bg-[#21262D] text-[#8B949E] text-sm font-semibold rounded-lg transition-colors">
+              <button 
+                onClick={() => setActiveMarketTab('momentum')}
+                className={`px-6 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                  activeMarketTab === 'momentum' 
+                    ? 'bg-[#10B981] text-[#022C22] shadow-[0_0_15px_rgba(16,185,129,0.3)] font-bold' 
+                    : 'bg-[#161B22] border border-[#30363D] hover:bg-[#21262D] text-[#8B949E]'
+                }`}
+              >
                 Structural Momentum (RSI Overbought)
               </button>
-              <button className="px-6 py-2 bg-[#161B22] border border-[#30363D] hover:bg-[#21262D] text-[#8B949E] text-sm font-semibold rounded-lg transition-colors">
+              <button 
+                onClick={() => setActiveMarketTab('volume')}
+                className={`px-6 py-2 text-sm font-semibold rounded-lg transition-colors ${
+                  activeMarketTab === 'volume' 
+                    ? 'bg-[#10B981] text-[#022C22] shadow-[0_0_15px_rgba(16,185,129,0.3)] font-bold' 
+                    : 'bg-[#161B22] border border-[#30363D] hover:bg-[#21262D] text-[#8B949E]'
+                }`}
+              >
                 Volume Inflow Shock
               </button>
             </div>
           </div>
 
           {/* Table */}
-          <LiveMarketTable />
+          <LiveMarketTable activeTab={activeMarketTab} />
 
           {/* Bottom Bar */}
           <div className="p-6 bg-[#161B22] border-t border-[#30363D] flex flex-col sm:flex-row items-center justify-between gap-4">

@@ -14,21 +14,52 @@ type StockData = {
   isUpdating?: boolean; // Used for CSS pulse effect
 };
 
-const INITIAL_STOCKS: StockData[] = [
+const VALUE_STOCKS: StockData[] = [
+  { ticker: "ONGC", name: "Oil & Natural Gas Corp.", price: "₹268.40", change: "+1.25%", pe: "8.5x", up: true },
+  { ticker: "COALINDIA", name: "Coal India Ltd.", price: "₹425.10", change: "-0.45%", pe: "7.2x", up: false },
+  { ticker: "SBIN", name: "State Bank of India", price: "₹812.30", change: "+2.15%", pe: "12.4x", up: true },
   { ticker: "RELIANCE", name: "Reliance Industries Ltd.", price: "₹1,327.20", change: "-10.11%", pe: "21.9x", up: false },
-  { ticker: "TCS", name: "Tata Consultancy Services Ltd.", price: "₹2,269.00", change: "-29.30%", pe: "51.4x", up: false },
-  { ticker: "HDFCBANK", name: "HDFC Bank Ltd.", price: "₹819.60", change: "-17.50%", pe: "47.5x", up: false },
-  { ticker: "INFY", name: "Infosys Ltd.", price: "₹1,896.50", change: "-30.75%", pe: "37.0x", up: false },
-  { ticker: "SBIN", name: "State Bank of India", price: "₹1,044.30", change: "+25.97%", pe: "27.0x", up: true },
+  { ticker: "ITC", name: "ITC Ltd.", price: "₹435.50", change: "+0.85%", pe: "18.2x", up: true },
 ];
 
-export default function LiveMarketTable() {
-  const [stocks, setStocks] = useState<StockData[]>(INITIAL_STOCKS);
+const MOMENTUM_STOCKS: StockData[] = [
+  { ticker: "TATASTEEL", name: "Tata Steel Ltd.", price: "₹164.20", change: "+3.85%", pe: "45.2x", up: true },
+  { ticker: "BHARTIALRT", name: "Bharti Airtel Ltd.", price: "₹1,420.50", change: "+4.12%", pe: "65.3x", up: true },
+  { ticker: "TATAMOTORS", name: "Tata Motors Ltd.", price: "₹945.10", change: "+2.95%", pe: "18.9x", up: true },
+  { ticker: "HAL", name: "Hindustan Aeronautics Ltd.", price: "₹4,120.30", change: "+5.60%", pe: "38.2x", up: true },
+  { ticker: "ADANIPORTS", name: "Adani Ports & SEZ Ltd.", price: "₹1,340.20", change: "+3.20%", pe: "32.1x", up: true },
+];
+
+const VOLUME_STOCKS: StockData[] = [
+  { ticker: "SUZLON", name: "Suzlon Energy Ltd.", price: "₹56.96", change: "+9.85%", pe: "112.5x", up: true },
+  { ticker: "IRFC", name: "Indian Railway Finance Corp.", price: "₹178.40", change: "+7.45%", pe: "34.2x", up: true },
+  { ticker: "ZOMATO", name: "Zomato Ltd.", price: "₹198.20", change: "+5.12%", pe: "140.3x", up: true },
+  { ticker: "HUDCO", name: "Housing & Urban Dev. Corp.", price: "₹245.50", change: "+8.90%", pe: "24.5x", up: true },
+  { ticker: "YESBANK", name: "Yes Bank Ltd.", price: "₹24.80", change: "-1.20%", pe: "65.0x", up: false },
+];
+
+interface LiveMarketTableProps {
+  activeTab: 'value' | 'momentum' | 'volume';
+}
+
+export default function LiveMarketTable({ activeTab }: LiveMarketTableProps) {
+  const [stocks, setStocks] = useState<StockData[]>(VALUE_STOCKS);
   const [isConnected, setIsConnected] = useState(false);
+
+  // Sync state when activeTab changes
+  useEffect(() => {
+    if (activeTab === 'value') {
+      setStocks(VALUE_STOCKS);
+    } else if (activeTab === 'momentum') {
+      setStocks(MOMENTUM_STOCKS);
+    } else {
+      setStocks(VOLUME_STOCKS);
+    }
+  }, [activeTab]);
 
   useEffect(() => {
     const backendUrl = process.env.NEXT_PUBLIC_AI_ENGINE_URL || "http://127.0.0.1:8000";
-    const eventSource = new EventSource(`${backendUrl}/api/v1/market/stream`);
+    const eventSource = new EventSource(`${backendUrl}/api/v1/market/stream?filter=${activeTab}`);
 
     eventSource.onopen = () => {
       setIsConnected(true);
@@ -75,13 +106,13 @@ export default function LiveMarketTable() {
     eventSource.onerror = (err) => {
       console.warn("Live market stream disconnected, falling back to static data.");
       setIsConnected(false);
-      eventSource.close(); // Stop retrying to avoid spamming the backend if it's down
+      eventSource.close();
     };
 
     return () => {
       eventSource.close();
     };
-  }, []);
+  }, [activeTab]);
 
   // Remove the isUpdating flag after animation plays (500ms)
   useEffect(() => {
