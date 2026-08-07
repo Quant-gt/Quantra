@@ -288,8 +288,8 @@ export default function BlockBuilder() {
           const data = await res.json();
           const config = data.preferences?.broker_config;
           if (config) {
-            setApiKey(config.app_key || config.app_secret || '••••••••••••');
-            setApiSecret(config.api_secret || '••••••••••••');
+            setApiKey(config.app_key || config.app_secret || '');
+            setApiSecret(config.api_secret || '');
           }
         }
       } catch (err) {
@@ -311,8 +311,8 @@ export default function BlockBuilder() {
       const newBrokerConfig = {
         ...(currentPrefs.broker_config || {}),
         broker: 'kite',
-        ...(key && key !== '••••••••••••' ? { app_key: key } : {}),
-        ...(secret && secret !== '••••••••••••' ? { api_secret: secret } : {})
+        ...(key ? { app_key: key } : {}),
+        ...(secret ? { api_secret: secret } : {})
       };
       
       const saveRes = await fetch('/api/v1/onboarding/save', {
@@ -550,7 +550,11 @@ export default function BlockBuilder() {
       const supabase = createClient();
       const { data: { session } } = await supabase.auth.getSession();
       const token = session?.access_token;
-      const userId = session?.user?.id || 'ef748ee3-b611-45da-8ca5-968bc9f3337d';
+      const userId = session?.user?.id;
+
+      if (!userId) {
+        throw new Error("You must be logged in to execute trades.");
+      }
 
       const res = await fetch('/api/v1/execute/fanout', {
         method: 'POST',

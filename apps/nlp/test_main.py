@@ -3,6 +3,7 @@ import json
 import pytest
 from fastapi.testclient import TestClient
 from unittest.mock import patch, MagicMock
+import pandas as pd
 
 # Set env vars before importing main so that internal_key is set during load if needed
 os.environ["INTERNAL_API_KEY"] = "test-internal-key"
@@ -81,3 +82,60 @@ def test_verify_token_supabase_exception(mock_urlopen):
     response = client.post("/api/embed", json={"text": "hello"}, headers={"Authorization": "Bearer invalid-token"})
     assert response.status_code == 401
     assert response.json()["detail"] == "Invalid or expired token"
+
+# --- NEW TESTS ---
+
+@patch("main.embedder")
+def test_get_embedding(mock_embedder):
+    mock_embedder.encode.return_value.tolist.return_value = [0.1, 0.2, 0.3]
+    response = client.post("/api/embed", json={"text": "hello"}, headers={"Authorization": "Bearer test-internal-key"})
+    assert response.status_code == 200
+    assert response.json()["embedding"] == [0.1, 0.2, 0.3]
+
+@patch("main.embedder", None)
+def test_get_embedding_model_not_loaded():
+    response = client.post("/api/embed", json={"text": "hello"}, headers={"Authorization": "Bearer test-internal-key"})
+    assert response.status_code == 503
+    assert response.json()["detail"] == "Embedder model not loaded"
+
+@patch("main.nlp")
+@patch("main.embedder")
+def test_parse_query_success(mock_embedder, mock_nlp):
+    mock_embedder.encode.return_value.tolist.return_value = [0.1]
+    
+    # Test multiple conditions from the parse_query logic
+    payload = {"text": "Safe Nifty options trading under 50k for intraday"}
+    response = client.post("/api/parse_query", json=payload, headers={"Authorization": "Bearer test-internal-key"})
+    
+    assert response.status_code == 200
+    data = response.json()
+    assert data["query"] == payload["text"]
+    assert data["embedding"] == [0.1]
+    
+    entities = data["entities"]
+    types = [e["type"] for e in entities]
+    assert "INSTRUMENT" in types
+    assert "RISK_LEVEL" in types
+    assert "CAPITAL" in types
+    assert "TIME_HORIZON" in types
+
+@patch("main.nlp", None)
+def test_parse_query_no_nlp():
+    response = client.post("/api/parse_query", json={"text": "hello"}, headers={"Authorization": "Bearer test-internal-key"})
+    assert response.status_code == 503
+    assert response.json()["detail"] == "NLP model not loaded"
+
+@patch("yfinance.download")
+def test_run_backtest_empty_dataframe(mock_yf_download):
+    # Mock yfinance returning an empty dataframe
+    mock_yf_download.return_value = pd.DataFrame()
+    
+    payload = {
+        "symbol": "FAKE_STOCK",
+        "start_date": "2023-01-01",
+        "end_date": "2023-01-31"
+    }
+    
+    response = client.post("/api/backtest", json=payload, headers={"Authorization": "Bearer test-internal-key"})
+    assert response.status_code == 400
+    assert "No data found" in response.json()["detail"]

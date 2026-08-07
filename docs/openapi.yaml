@@ -1,0 +1,189 @@
+openapi: 3.0.0
+info:
+  title: SigmaSpire API
+  description: API for the SigmaSpire trading platform, designed with Anti-Cloning Defense architecture.
+  version: 1.0.0
+
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+
+security:
+  - bearerAuth: []
+
+paths:
+  /api/v1/scanner/universe:
+    get:
+      summary: Get available scanner universes
+      responses:
+        '200':
+          description: A list of universes
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  universes:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        id:
+                          type: string
+                        name:
+                          type: string
+                        description:
+                          type: string
+                        asset_count:
+                          type: integer
+
+  /api/v1/scanner/scan:
+    post:
+      summary: Run scanner on universe
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                universe_id:
+                  type: string
+                filters:
+                  type: object
+      responses:
+        '200':
+          description: Scan results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  scan_id:
+                    type: string
+                  results:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        ticker:
+                          type: string
+                        name:
+                          type: string
+                        last_price:
+                          type: number
+                        change_1d:
+                          type: number
+                        pe_ratio:
+                          type: number
+                        signal_type:
+                          type: string
+                          enum: [MOMENTUM, MEAN_REVERSION, VOLUME_SPIKE]
+                        confidence_score:
+                          type: number
+                          minimum: 0
+                          maximum: 1
+                        diagnostic_url:
+                          type: string
+                          format: uri
+
+  /api/v1/strategies/{id}/metrics:
+    get:
+      summary: Get metrics for a strategy
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Strategy metrics
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  cagr:
+                    type: string
+                  sharpe:
+                    type: string
+                  max_drawdown:
+                    type: string
+                  sigma_score:
+                    type: number
+
+  /api/v1/execute/backtest:
+    post:
+      summary: Run a backtest
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                symbol:
+                  type: string
+                start_date:
+                  type: string
+                end_date:
+                  type: string
+                strategy_logic:
+                  type: object
+      responses:
+        '200':
+          description: Backtest results
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  status:
+                    type: string
+                  metrics:
+                    type: object
+                    properties:
+                      cagr:
+                        type: number
+                      total_return:
+                        type: number
+                      max_drawdown:
+                        type: number
+                      sharpe_ratio:
+                        type: number
+                      sortino_ratio:
+                        type: number
+                      win_rate:
+                        type: number
+                      profit_factor:
+                        type: number
+                  equity_curve:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        date:
+                          type: string
+                        value:
+                          type: number
+                  trade_log:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        entry_time:
+                          type: string
+                        exit_time:
+                          type: string
+                        entry_price:
+                          type: number
+                        exit_price:
+                          type: number
+                        pnl:
+                          type: number
+                        pnl_pct:
+                          type: number

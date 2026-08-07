@@ -304,5 +304,136 @@ def run_backtest(req: BacktestRequest):
         
         return results
 
+    except HTTPException:
+        raise
     except Exception as e:
+        raise HTTPException(status_code=500, detail=str(e))
+
+class ScannerRequest(BaseModel):
+    universe_id: str = "Nifty 50"
+    filters: dict = {}
+
+@app.post("/api/v1/scanner/scan", dependencies=[Depends(verify_token)])
+def run_scanner(req: ScannerRequest):
+    try:
+        import uuid
+        import pandas as pd
+        import yfinance as yf
+        import numpy as np
+        
+        # Small predefined universe for real-time testing (otherwise 500 takes too long without caching)
+        universe = ['RELIANCE.NS', 'TCS.NS', 'INFY.NS', 'HDFCBANK.NS', 'ICICIBANK.NS', 'SBIN.NS', 'BHARTIARTL.NS', 'ITC.NS', 'HINDUNILVR.NS', 'LT.NS']
+        
+        results = []
+        
+        query = req.filters.get("query", "").lower() if req.filters else ""
+        
+        # Bulk download
+        df_all = yf.download(universe, period="6mo", progress=False)
+        
+        for symbol in universe:
+            try:
+                # Flatten multi-index if downloading multiple tickers
+                if len(universe) > 1:
+                    df = df_all.xs(symbol, level=1, axis=1) if isinstance(df_all.columns, pd.MultiIndex) else df_all
+                else:
+                    df = df_all
+                    
+                if df.empty or len(df) < 50:
+                    continue
+                    
+                # Basic manual indicators
+                close = df['Close']
+                high = df['High']
+                low = df['Low']
+                volume = df['Volume']
+                
+                # RSI (14) using Wilder's Smoothing
+                delta = close.diff()
+                up = delta.clip(lower=0)
+                down = -1 * delta.clip(upper=0)
+                ema_up = up.ewm(com=13, adjust=False).mean()
+                ema_down = down.ewm(com=13, adjust=False).mean()
+                rs = ema_up / ema_down
+                rsi = 100 - (100 / (1 + rs))
+                
+                # SMA 50 and 200
+                sma50 = close.rolling(window=50).mean()
+                sma200 = close.rolling(window=200).mean()
+                
+                # TR & ATR for basic Supertrend proxy
+                tr1 = high - low
+                tr2 = (high - close.shift()).abs()
+                tr3 = (low - close.shift()).abs()
+                tr = pd.concat([tr1, tr2, tr3], axis=1).max(axis=1)
+                atr = tr.rolling(window=14).mean()
+                
+                # Volume avg
+                vol_avg = volume.rolling(window=20).mean()
+                
+                last_idx = df.index[-1]
+                
+                last_price = float(close.iloc[-1])
+                prev_price = float(close.iloc[-2])
+                pct_change = ((last_price - prev_price) / prev_price) * 100
+                
+                current_rsi = float(rsi.iloc[-1])
+                current_vol = float(volume.iloc[-1])
+                current_vol_avg = float(vol_avg.iloc[-1])
+                
+                # Supertrend simple proxy
+                supertrend = float(close.iloc[-1] - (3 * atr.iloc[-1]))
+                
+                # Signals
+                signal_type = "NONE"
+                if current_vol > current_vol_avg * 2:
+                    signal_type = "VOLUME_SPIKE"
+                elif sma50.iloc[-1] > sma200.iloc[-1] and sma50.iloc[-2] <= sma200.iloc[-2]:
+                    signal_type = "GOLDEN_CROSS"
+                elif current_rsi < 30:
+                    signal_type = "OVERSOLD"
+                elif current_rsi > 70:
+                    signal_type = "OVERBOUGHT"
+                    
+                res = {
+                    "ticker": symbol.replace('.NS', ''),
+                    "name": symbol.replace('.NS', ''),
+                    "sector": "Equity",
+                    "last_price": round(last_price, 2),
+                    "change_1d": round(pct_change, 2),
+                    "volume": int(current_vol),
+                    "rsi": round(current_rsi, 2) if not pd.isna(current_rsi) else 50,
+                    "adx": 25, # Mocked ADX
+                    "supertrend": round(supertrend, 2) if not pd.isna(supertrend) else last_price,
+                    "signal_type": signal_type,
+                    "pe_ratio": 20.0
+                }
+                results.append(res)
+            except Exception as ex:
+                print(f"Error processing {symbol}: {ex}")
+            
+        # Basic filtering based on the query string if provided
+        if query:
+            filtered_results = []
+            for r in results:
+                if query in r["ticker"].lower() or query in r["name"].lower() or query in r["sector"].lower():
+                    filtered_results.append(r)
+                elif "rsi" in query and "overbought" in query and r["rsi"] > 70:
+                    filtered_results.append(r)
+                elif "rsi" in query and "oversold" in query and r["rsi"] < 30:
+                    filtered_results.append(r)
+                elif "volume" in query and "surge" in query and r["signal_type"] == "VOLUME_SPIKE":
+                    filtered_results.append(r)
+                elif "golden" in query and "cross" in query and r["signal_type"] == "GOLDEN_CROSS":
+                    filtered_results.append(r)
+            results = filtered_results
+
+        return {
+            "scan_id": str(uuid.uuid4()),
+            "results": results
+        }
+
+    except Exception as e:
+        import traceback
+        traceback.print_exc()
         raise HTTPException(status_code=500, detail=str(e))

@@ -173,6 +173,18 @@ describe('dailyAuthCheck middleware', () => {
 
     expect(nextFunction).toHaveBeenCalled();
   });
+
+  it('should return 500 if an internal server error occurs', async () => {
+    mockRequest.headers!.authorization = 'Bearer valid-token';
+    mockGetUser.mockRejectedValue(new Error('Internal Supabase Error'));
+
+    await dailyAuthCheck(mockRequest as express.Request, mockResponse as express.Response, nextFunction);
+
+    expect(mockResponse.status).toHaveBeenCalledWith(500);
+    const responseJson = (mockResponse.status as any)().json;
+    expect(responseJson).toHaveBeenCalledWith({ error: 'Internal server error during compliance check' });
+    expect(nextFunction).not.toHaveBeenCalled();
+  });
 });
 
 describe('adminOnly middleware', () => {

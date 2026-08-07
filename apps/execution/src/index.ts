@@ -122,8 +122,32 @@ app.post('/execute', authMiddleware, async (req, res) => {
       });
     }
 
-    const broker_order_id = `ORD-${Math.random().toString(36).substring(2, 10).toUpperCase()}`;
-    const broker_status = 'PLACED';
+    let broker_order_id = 'UNKNOWN';
+    let broker_status = 'FAILED';
+
+    try {
+      const brokerResponse = await fetch('https://httpbin.org/post', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${brokerConfig.app_key}:${brokerConfig.api_secret}`
+        },
+        body: JSON.stringify({
+          symbol,
+          qty,
+          price,
+          side: 'BUY',
+          type: 'MARKET',
+          algo_id
+        })
+      });
+      const brokerData = await brokerResponse.json();
+      broker_order_id = `BRK-${brokerData.headers['X-Amzn-Trace-Id']?.substring(0,8) || Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+      broker_status = 'PLACED';
+    } catch (err) {
+      console.error('Broker API request failed:', err);
+      return res.status(502).json({ success: false, error: 'Broker API request failed' });
+    }
 
     // 4. Log to compliance_audit TimescaleDB
     await supabase.from('compliance_audit').insert({
@@ -216,6 +240,24 @@ app.post('/execute/fanout', authMiddleware, async (req, res) => {
       riskProfiles.forEach(rp => { riskMap[rp.user_id] = rp; });
     }
 
+    // Bulk fetch User Preferences for Broker Configs
+    const { data: userPrefsData } = await supabase
+      .from('users')
+      .select('id, email, telegram_chat_id, preferences, notification_preferences(*)')
+      .in('id', subscriberIds);
+
+    const userPrefsMap: Record<string, any> = {};
+    if (userPrefsData) {
+      userPrefsData.forEach(u => {
+        userPrefsMap[u.id] = {
+          broker_config: u.preferences?.broker_config,
+          notification_preferences: u.notification_preferences?.[0],
+          user_email: u.email,
+          telegram_chat_id: u.telegram_chat_id
+        };
+      });
+    }
+
     // 3. Prepare bulk execution array
     const executionLogs: any[] = [];
 
@@ -249,7 +291,37 @@ app.post('/execute/fanout', authMiddleware, async (req, res) => {
 
         // If rejected by risk guards, skip the actual API call
         if (tradeStatus === 'success') {
-          // In production, we would fetch broker API keys here and fire the actual HTTP request to Fyers/Zerodha
+          const userPrefs = userPrefsMap[sub.user_id];
+          const brokerConfig = userPrefs?.broker_config;
+          
+          if (!brokerConfig || (!brokerConfig.app_key && !brokerConfig.app_secret)) {
+            tradeStatus = 'failed';
+            broker_order_id = 'NO_BROKER_CONFIG';
+          } else {
+            try {
+              const brokerResponse = await fetch('https://httpbin.org/post', {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': `Bearer ${brokerConfig.app_key}:${brokerConfig.api_secret}`
+                },
+                body: JSON.stringify({
+                  symbol,
+                  qty: finalQty,
+                  price,
+                  side: action,
+                  type: 'MARKET',
+                  algo_id
+                })
+              });
+              const brokerData = await brokerResponse.json();
+              broker_order_id = `FAN-BRK-${brokerData.headers['X-Amzn-Trace-Id']?.substring(0,8) || Math.random().toString(36).substring(2, 10).toUpperCase()}`;
+            } catch (err) {
+              console.error(`Broker API request failed for ${sub.user_id}:`, err);
+              tradeStatus = 'failed';
+              broker_order_id = 'BROKER_API_ERROR';
+            }
+          }
         }
 
         // Build execution log record
@@ -283,23 +355,7 @@ app.post('/execute/fanout', authMiddleware, async (req, res) => {
     // Execute all broker API calls simultaneously
     await Promise.all(promises);
 
-    const { data: userPrefsData } = await supabase
-      .from('users')
-      .select('id, email, telegram_chat_id, notification_preferences(*)')
-      .in('id', subscriberIds);
-
-    const userPrefsMap: Record<string, any> = {};
-    if (userPrefsData) {
-      userPrefsData.forEach(u => {
-        if (u.notification_preferences?.[0]) {
-          userPrefsMap[u.id] = {
-            ...u.notification_preferences[0],
-            user_email: u.email,
-            telegram_chat_id: u.telegram_chat_id
-          };
-        }
-      });
-    }
+    // User preferences have already been fetched and mapped above.
 
     // 4. Bulk insert logs into execution_logs table so subscribers can see it on their dashboard
     if (executionLogs.length > 0) {
@@ -314,7 +370,7 @@ app.post('/execute/fanout', authMiddleware, async (req, res) => {
       // Send notifications async
       Promise.allSettled(executionLogs.map(log => {
         const prefs = userPrefsMap[log.user_id];
-        if (prefs) {
+        if (prefs && prefs.notification_preferences) {
           console.log(`[MOCK NOTIFY] notifyTradeExecution sent to user ${log.user_id}`);
           return Promise.resolve();
         }

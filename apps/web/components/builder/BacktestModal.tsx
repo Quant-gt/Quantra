@@ -129,9 +129,9 @@ const BacktestModal = ({ isOpen, onClose, strategyId }: Props) => {
                 {/* Metrics Grid */}
                 <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-6 gap-3 md:gap-4">
                   {[
-                    { label: 'Return', val: `${result.metrics.total_return_pct > 0 ? '+' : ''}${result.metrics.total_return_pct}%`, color: result.metrics.total_return_pct >= 0 ? 'text-green-400' : 'text-red-400' },
+                    { label: 'Return', val: `${result.metrics.total_return > 0 ? '+' : ''}${result.metrics.total_return}%`, color: result.metrics.total_return >= 0 ? 'text-green-400' : 'text-red-400' },
                     { label: 'Win Rate', val: `${result.metrics.win_rate}%`, color: 'text-white' },
-                    { label: 'Max DD', val: `-${result.metrics.max_drawdown_pct}%`, color: 'text-red-400' },
+                    { label: 'Max DD', val: `-${result.metrics.max_drawdown}%`, color: 'text-red-400' },
                     { label: 'Sharpe', val: result.metrics.sharpe_ratio, color: 'text-white' },
                     { label: 'Sortino', val: result.metrics.sortino_ratio || '-', color: 'text-purple-400' },
                     { label: 'PF', val: result.metrics.profit_factor || '-', color: 'text-green-400' }
@@ -176,22 +176,20 @@ const BacktestModal = ({ isOpen, onClose, strategyId }: Props) => {
                     <table className="w-full text-left text-xs md:text-sm">
                       <thead className="bg-[#0D1117] text-gray-500 uppercase tracking-widest font-bold">
                         <tr>
-                          <th className="px-4 py-4 font-bold border-b border-[#30363D]">Date</th>
-                          <th className="px-4 py-4 font-bold border-b border-[#30363D]">Action</th>
-                          <th className="px-4 py-4 font-bold border-b border-[#30363D]">Price</th>
+                          <th className="px-4 py-4 font-bold border-b border-[#30363D]">Entry Time</th>
+                          <th className="px-4 py-4 font-bold border-b border-[#30363D]">Exit Time</th>
+                          <th className="px-4 py-4 font-bold border-b border-[#30363D]">Entry Price</th>
+                          <th className="px-4 py-4 font-bold border-b border-[#30363D]">Exit Price</th>
                           <th className="px-4 py-4 font-bold border-b border-[#30363D] text-right">PnL</th>
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-[#30363D]">
-                        {result.trades.slice().reverse().map((trade: any, idx: number) => (
+                        {(result.trade_log || []).slice().reverse().map((trade: any, idx: number) => (
                           <tr key={idx} className="hover:bg-[#1F2937]/50 transition-colors">
-                            <td className="px-4 py-4 text-gray-300 font-mono">{trade.date}</td>
-                            <td className="px-4 py-4">
-                              <span className={`px-2 py-1 rounded text-[10px] font-black uppercase ${trade.action === 'BUY' ? 'bg-emerald-500/10 text-emerald-400' : 'bg-red-500/10 text-red-400'}`}>
-                                {trade.action}
-                              </span>
-                            </td>
-                            <td className="px-4 py-4 text-white font-bold">₹{trade.price.toLocaleString()}</td>
+                            <td className="px-4 py-4 text-gray-300 font-mono">{trade.entry_time}</td>
+                            <td className="px-4 py-4 text-gray-300 font-mono">{trade.exit_time}</td>
+                            <td className="px-4 py-4 text-white font-bold">₹{trade.entry_price.toLocaleString()}</td>
+                            <td className="px-4 py-4 text-white font-bold">₹{trade.exit_price.toLocaleString()}</td>
                             <td className={`px-4 py-4 text-right font-black ${trade.pnl > 0 ? 'text-emerald-400' : trade.pnl < 0 ? 'text-red-400' : 'text-gray-500'}`}>
                               {trade.pnl ? (trade.pnl > 0 ? `+₹${trade.pnl.toLocaleString()}` : `-₹${Math.abs(trade.pnl).toLocaleString()}`) : '-'}
                             </td>

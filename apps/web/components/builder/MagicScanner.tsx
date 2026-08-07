@@ -164,13 +164,7 @@ const MultiExchangeTickerMap: Record<string, { bseSymbol: string; bseCode: strin
   HINDUNILVR: { bseSymbol: 'HINDUNILVR', bseCode: '500696' }
 };
 
-function getSymbolSeed(symbol: string) {
-  let hash = 0;
-  for (let i = 0; i < symbol.length; i++) {
-    hash = symbol.charCodeAt(i) + ((hash << 5) - hash);
-  }
-  return Math.abs(hash);
-}
+
 
 export default function MagicScanner() {
   const { 
@@ -243,186 +237,74 @@ export default function MagicScanner() {
     setWidgets(prev => prev.map(w => w.id === id ? { ...w, isScanning: true } : w));
     
     try {
-      const activeMap = UNIVERSE_MAPS[activeUniverseScope];
-      const universeList = activeMap 
-        ? STOCK_UNIVERSE.filter(s => activeMap.includes(s.symbol))
-        : activeUniverseScope === 'Custom Watchlist'
-          ? STOCK_UNIVERSE.filter(s => globalWatchlist.includes(s.symbol))
-          : STOCK_UNIVERSE;
-
-      const symbolsList = universeList.map(s => s.symbol);
-      const quotesRes = await fetch('/api/v1/market/quotes', {
+      const widget = widgets.find(w => w.id === id);
+      const query = widget?.query || '';
+      
+      const response = await fetch('/api/v1/scanner/run', {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({ 
-          symbols: symbolsList,
-          asOfTimestamp: historicalSnapshotTarget
+          universe_id: activeUniverseScope,
+          filters: { query }
         })
       });
       
-      let currentQuotesMap = liveQuotesMap;
-      if (quotesRes.ok) {
-        const quotesData = await quotesRes.json();
-        const fetchedQuotes = quotesData.quotes || {};
-        currentQuotesMap = { ...liveQuotesMap, ...fetchedQuotes };
-        setLiveQuotesMap(currentQuotesMap);
+      if (!response.ok) {
+        throw new Error('Scanner API failed');
       }
+      
+      const data = await response.json();
+      const backendResults = data.results || [];
+      
+      const formatted = backendResults.map((r: any) => ({
+        symbol: r.ticker || '',
+        symbolLower: (r.ticker || '').toLowerCase(),
+        company: r.name || '',
+        companyLower: (r.name || '').toLowerCase(),
+        sector: r.sector || 'Unknown',
+        sectorLower: (r.sector || 'unknown').toLowerCase(),
+        price: `₹${(r.last_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+        change: `${(r.change_1d || 0) >= 0 ? '+' : ''}${(r.change_1d || 0).toFixed(2)}%`,
+        closeVal: r.last_price || 0,
+        openVal: r.last_price || 0,
+        highVal: r.last_price || 0,
+        lowVal: r.last_price || 0,
+        volumeVal: r.volume || 0,
+        rsi: r.rsi || 0,
+        adx: r.adx || 0,
+        supertrendVal: r.supertrend || 0,
+        fvgBullVal: 0,
+        hasMacd: r.signal_type === 'MACD',
+        hasGoldenCross: r.signal_type === 'GOLDEN_CROSS',
+        hasVolumeSurge: r.signal_type === 'VOLUME_SPIKE',
+        rawChange: r.change_1d || 0,
+        pe: r.pe_ratio || 0,
+        pb: 0,
+        evebitda: 0,
+        debtequity: 0,
+        currentratio: 0,
+        netprofitmargin: 0,
+        roce: 0,
+        roe: 0,
+        profitgrowth: 0,
+        salesgrowth: 0,
+        promoterholding: 0,
+        institutionholding: 0,
+        pledgedshares: 0,
+        oi: 0,
+        oichange: 0,
+        oivector: 0,
+        vwap: 0,
+        pcr: 0,
+        costofcarry: 0,
+        exchange: 'NSE'
+      }));
 
-      setWidgets(prev => {
-        const widget = prev.find(w => w.id === id);
-        if (!widget) return prev;
-
-        const query = (widget.query || '').toLowerCase().trim();
-        
-        const filtered = universeList.map(stock => {
-          const seed = getSymbolSeed(stock.symbol);
-          const liveQuote = currentQuotesMap[stock.symbol];
-          
-          let closeVal = liveQuote?.close !== undefined ? liveQuote.close : (seed % 1200) + 150;
-          let changeVal = liveQuote?.change !== undefined ? liveQuote.change : ((seed % 120) - 60) / 10;
-          let openVal = liveQuote?.open !== undefined ? liveQuote.open : closeVal * (1 - changeVal / 100);
-          let highVal = liveQuote ? liveQuote.high : Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
-          let lowVal = liveQuote ? liveQuote.low : Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
-          let volumeVal = liveQuote ? liveQuote.volume : (seed % 900000) + 100000;
-          
-          let rsiVal = liveQuote?.rsi !== undefined ? liveQuote.rsi : Math.min(Math.max(Math.round(50 + changeVal * 6), 10), 90);
-          let adxVal = liveQuote?.adx !== undefined ? liveQuote.adx : Math.min(Math.max(Math.round(20 + Math.abs(changeVal) * 8), 10), 60);
-          let supertrendVal = liveQuote?.supertrend !== undefined ? liveQuote.supertrend : (changeVal >= 0 
-            ? (lowVal - (highVal - lowVal) * 1.5) 
-            : (highVal + (highVal - lowVal) * 1.5));
-          let fvgBullVal = liveQuote?.fvgBull !== undefined ? liveQuote.fvgBull : ((closeVal > openVal && (highVal - lowVal) > (closeVal * 0.02)) 
-            ? (closeVal - openVal) * 0.3 
-            : 0.0);
-          
-          let hasMacd = liveQuote?.hasMacd !== undefined ? liveQuote.hasMacd : changeVal > 0.5;
-          let hasGoldenCross = liveQuote?.hasGoldenCross !== undefined ? liveQuote.hasGoldenCross : (closeVal > openVal && changeVal > 0.0);
-          let hasVolumeSurge = liveQuote?.hasVolumeSurge !== undefined ? liveQuote.hasVolumeSurge : volumeVal > 1500000;
-
-          // Fundamental Metrics
-          let pe = liveQuote?.pe !== undefined ? liveQuote.pe : parseFloat((10 + (seed % 65)).toFixed(1)); 
-          let pb = liveQuote?.pb !== undefined ? liveQuote.pb : parseFloat((1 + (seed % 15) * 0.8).toFixed(1)); 
-          let evebitda = liveQuote?.evEbitda !== undefined ? liveQuote.evEbitda : parseFloat((8 + (seed % 42)).toFixed(1)); 
-          let debtequity = liveQuote?.debtEquity !== undefined ? liveQuote.debtEquity : parseFloat(((seed % 180) / 100).toFixed(2)); 
-          let currentratio = liveQuote?.currentRatio !== undefined ? liveQuote.currentRatio : parseFloat((0.8 + (seed % 25) * 0.1).toFixed(2)); 
-          let netprofitmargin = liveQuote?.netMargin !== undefined ? liveQuote.netMargin : parseFloat((5 + (seed % 35)).toFixed(1)); 
-          let roce = liveQuote?.roce !== undefined ? liveQuote.roce : parseFloat((8 + (seed % 42)).toFixed(1)); 
-          let roe = liveQuote?.roe !== undefined ? liveQuote.roe : parseFloat((6 + (seed % 34)).toFixed(1)); 
-          let profitgrowth = liveQuote?.yoyProfitGrowth !== undefined ? liveQuote.yoyProfitGrowth : parseFloat((((seed % 60) - 15)).toFixed(1)); 
-          let salesgrowth = liveQuote?.yoySalesGrowth !== undefined ? liveQuote.yoySalesGrowth : parseFloat((((seed % 40) - 5)).toFixed(1)); 
-          let promoterholding = liveQuote?.promoterHolding !== undefined ? liveQuote.promoterHolding : parseFloat((30 + (seed % 45)).toFixed(1)); 
-          let institutionholding = liveQuote?.instHolding !== undefined ? liveQuote.instHolding : parseFloat((10 + (seed % 50)).toFixed(1)); 
-          let pledgedshares = liveQuote?.pledgedRatio !== undefined ? liveQuote.pledgedRatio : parseFloat(((seed % 120) < 15 ? (seed % 10) : 0).toFixed(1)); 
-
-          // Derivative (F&O) Metrics
-          let oi = liveQuote?.oi !== undefined ? liveQuote.oi : (seed % 5000000) + 100000; 
-          let oichange = liveQuote?.oiChange !== undefined ? liveQuote.oiChange : parseFloat((((seed % 60) - 30)).toFixed(1)); 
-          let oivector = liveQuote?.oiChange !== undefined ? liveQuote.oiChange : parseFloat((((seed % 120) - 40)).toFixed(1)); 
-          let vwap = liveQuote?.vwap !== undefined ? liveQuote.vwap : parseFloat((closeVal * (0.997 + (seed % 6) * 0.001)).toFixed(2)); 
-          let pcr = liveQuote?.pcr !== undefined ? liveQuote.pcr : parseFloat((0.4 + (seed % 12) * 0.1).toFixed(2)); 
-          let costofcarry = liveQuote?.costOfCarry !== undefined ? liveQuote.costOfCarry : parseFloat((4 + (seed % 12)).toFixed(1)); 
-
-          if (historicalSnapshotTarget) {
-            const targetTime = new Date(historicalSnapshotTarget).getTime();
-            const multiplier = 0.8 + (Math.sin(targetTime + seed) * 0.25);
-            closeVal = parseFloat((closeVal * multiplier).toFixed(2));
-            changeVal = parseFloat(((multiplier - 1) * 100).toFixed(2));
-            openVal = openVal * multiplier;
-            highVal = highVal * multiplier;
-            lowVal = lowVal * multiplier;
-            rsiVal = Math.round(rsiVal * multiplier);
-            pe = pe * multiplier;
-            oichange = oichange * multiplier;
-          }
-
-          return {
-            symbol: stock.symbol,
-            symbolLower: stock.symbol.toLowerCase(),
-            company: stock.name,
-            companyLower: stock.name.toLowerCase(),
-            sector: stock.sector,
-            sectorLower: stock.sector.toLowerCase(),
-            price: `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
-            change: `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`,
-            closeVal,
-            openVal,
-            highVal,
-            lowVal,
-            volumeVal,
-            rsi: rsiVal,
-            adx: adxVal,
-            supertrendVal,
-            fvgBullVal,
-            hasMacd,
-            hasGoldenCross,
-            hasVolumeSurge,
-            rawChange: changeVal,
-            pe,
-            pb,
-            evebitda,
-            debtequity,
-            currentratio,
-            netprofitmargin,
-            roce,
-            roe,
-            profitgrowth,
-            salesgrowth,
-            promoterholding,
-            institutionholding,
-            pledgedshares,
-            oi,
-            oichange,
-            oivector,
-            vwap,
-            pcr,
-            costofcarry,
-            exchange: liveQuote?.exchange || 'NSE'
-          };
-        }).filter(stock => {
-          const isMathExpression = /[><=+\-*/()]/.test(query);
-          if (isMathExpression) {
-            return evaluateCustomExpression(query, stock);
-          }
-
-          // Conversational NLP matchers
-          if (query.includes('rsi') && (query.includes('oversold') || query.includes('under') || query.includes('below') || query.includes('30'))) {
-            return stock.rsi < 30;
-          }
-          if (query.includes('rsi') && (query.includes('overbought') || query.includes('above') || query.includes('70'))) {
-            return stock.rsi > 70;
-          }
-          if (query.includes('macd') || query.includes('crossover')) {
-            return stock.hasMacd;
-          }
-          if (query.includes('golden') || query.includes('cross') || query.includes('sma') || query.includes('ema')) {
-            return stock.hasGoldenCross;
-          }
-          if (query.includes('volume') || query.includes('surge') || query.includes('spike')) {
-            return stock.hasVolumeSurge;
-          }
-          if (query.includes('supertrend') && (query.includes('bullish') || query.includes('buy') || query.includes('above'))) {
-            return stock.closeVal > stock.supertrendVal;
-          }
-          if (query.includes('adx') && (query.includes('strong') || query.includes('trend') || query.includes('25'))) {
-            return stock.adx > 25;
-          }
-          if (query.includes('fvg') || query.includes('fair value gap') || query.includes('imbalance')) {
-            return stock.fvgBullVal > 0;
-          }
-          if (query.includes('orb') || query.includes('opening range')) {
-            return stock.closeVal > stock.openVal;
-          }
-
-          return stock.symbolLower.includes(query) || 
-                 stock.companyLower.includes(query) || 
-                 stock.sectorLower.includes(query);
-        });
-
-        return prev.map(w => w.id === id ? { 
-          ...w, 
-          isScanning: false, 
-          results: filtered 
-        } : w);
-      });
+      setWidgets(prev => prev.map(w => w.id === id ? { 
+        ...w, 
+        isScanning: false, 
+        results: formatted 
+      } : w));
     } catch (error) {
       console.error(error);
       setWidgets(prev => prev.map(w => w.id === id ? { ...w, isScanning: false } : w));
@@ -578,179 +460,87 @@ export default function MagicScanner() {
     try {
       // Use safe expression evaluation
       const parser = new Parser();
-      return !!parser.evaluate(cleanExpr, vars);
-    } catch (err) {
-      return false;
-    }
-  };
-
-  const handleScan = async () => {
-    if (!prompt.trim()) return;
-    setIsScanning(true);
-    setHasScanned(true);
-    setResults([]);
+          return !!parser.evaluate(cleanExpr, vars);
+        } catch (err) {
+          return false;
+        }
+      };
     
-    try {
-      const activeMap = UNIVERSE_MAPS[activeUniverseScope];
-      const universeList = activeMap 
-        ? STOCK_UNIVERSE.filter(s => activeMap.includes(s.symbol))
-        : activeUniverseScope === 'Custom Watchlist'
-          ? STOCK_UNIVERSE.filter(s => globalWatchlist.includes(s.symbol))
-          : STOCK_UNIVERSE;
-
-      const symbolsList = universeList.map(s => s.symbol);
-      const quotesRes = await fetch('/api/v1/market/quotes', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ 
-          symbols: symbolsList,
-          asOfTimestamp: historicalSnapshotTarget
-        })
-      });
-      
-      let liveQuotesMap: Record<string, any> = {};
-      if (quotesRes.ok) {
-        const quotesData = await quotesRes.json();
-        liveQuotesMap = quotesData.quotes || {};
-        setLiveQuotesMap(liveQuotesMap);
-      }
-      
-      const query = prompt.toLowerCase().trim();
-      const isMathExpression = /[><=+\-*/()]/.test(query);
-      
-      const matched = universeList.map(stock => {
-        const seed = getSymbolSeed(stock.symbol);
-        const liveQuote = liveQuotesMap[stock.symbol];
-        const closeVal = liveQuote?.close !== undefined ? liveQuote.close : (seed % 1200) + 150;
-        const changeVal = liveQuote?.change !== undefined ? liveQuote.change : ((seed % 120) - 60) / 10;
-        const openVal = liveQuote?.open !== undefined ? liveQuote.open : closeVal * (1 - changeVal / 100);
-        const highVal = liveQuote ? liveQuote.high : Math.max(closeVal, openVal) * (1 + (seed % 15) / 1000);
-        const lowVal = liveQuote ? liveQuote.low : Math.min(closeVal, openVal) * (1 - (seed % 15) / 1000);
-        const volumeVal = liveQuote ? liveQuote.volume : (seed % 900000) + 100000;
+      const handleScan = async () => {
+        if (!prompt.trim()) return;
+        setIsScanning(true);
+        setHasScanned(true);
+        setResults([]);
         
-        const rsi = liveQuote?.rsi !== undefined ? liveQuote.rsi : Math.min(Math.max(Math.round(50 + changeVal * 6), 10), 90);
-        const adx = liveQuote?.adx !== undefined ? liveQuote.adx : Math.min(Math.max(Math.round(20 + Math.abs(changeVal) * 8), 10), 60);
-        const supertrendVal = liveQuote?.supertrend !== undefined ? liveQuote.supertrend : (changeVal >= 0 
-          ? (lowVal - (highVal - lowVal) * 1.5) 
-          : (highVal + (highVal - lowVal) * 1.5));
-        const fvgBullVal = liveQuote?.fvgBull !== undefined ? liveQuote.fvgBull : ((closeVal > openVal && (highVal - lowVal) > (closeVal * 0.02)) 
-          ? (closeVal - openVal) * 0.3 
-          : 0.0);
-        const hasMacd = liveQuote?.hasMacd !== undefined ? liveQuote.hasMacd : changeVal > 0.5;
-        const hasGoldenCross = liveQuote?.hasGoldenCross !== undefined ? liveQuote.hasGoldenCross : (closeVal > openVal && changeVal > 0.0);
-        const hasVolumeSurge = liveQuote?.hasVolumeSurge !== undefined ? liveQuote.hasVolumeSurge : volumeVal > 1500000;
-
-        const formattedPrice = `₹${closeVal.toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
-        const formattedChange = `${changeVal >= 0 ? '+' : ''}${changeVal.toFixed(2)}%`;
-
-        // Fundamental Metrics
-        const pe = parseFloat((10 + (seed % 65)).toFixed(1)); 
-        const pb = parseFloat((1 + (seed % 15) * 0.8).toFixed(1)); 
-        const evebitda = parseFloat((8 + (seed % 42)).toFixed(1)); 
-        const debtequity = parseFloat(((seed % 180) / 100).toFixed(2)); 
-        const currentratio = parseFloat((0.8 + (seed % 25) * 0.1).toFixed(2)); 
-        const netprofitmargin = parseFloat((5 + (seed % 35)).toFixed(1)); 
-        const roce = parseFloat((8 + (seed % 42)).toFixed(1)); 
-        const roe = parseFloat((6 + (seed % 34)).toFixed(1)); 
-        const profitgrowth = parseFloat((((seed % 60) - 15)).toFixed(1)); 
-        const salesgrowth = parseFloat((((seed % 40) - 5)).toFixed(1)); 
-        const promoterholding = parseFloat((30 + (seed % 45)).toFixed(1)); 
-        const institutionholding = parseFloat((10 + (seed % 50)).toFixed(1)); 
-        const pledgedshares = parseFloat(((seed % 120) < 15 ? (seed % 10) : 0).toFixed(1)); 
-
-        // Derivative (F&O) Metrics
-        const oi = (seed % 5000000) + 100000; 
-        const oichange = parseFloat((((seed % 60) - 30)).toFixed(1)); 
-        const oivector = parseFloat((((seed % 120) - 40)).toFixed(1)); 
-        const vwap = parseFloat((closeVal * (0.997 + (seed % 6) * 0.001)).toFixed(2)); 
-        const pcr = parseFloat((0.4 + (seed % 12) * 0.1).toFixed(2)); 
-        const costofcarry = parseFloat((4 + (seed % 12)).toFixed(1)); 
-        
-        return {
-          symbol: stock.symbol,
-          company: stock.name,
-          sector: stock.sector,
-          price: formattedPrice,
-          change: formattedChange,
-          closeVal,
-          openVal,
-          highVal,
-          lowVal,
-          rsi,
-          adx,
-          volumeVal,
-          supertrendVal,
-          fvgBullVal,
-          hasMacd,
-          hasGoldenCross,
-          hasVolumeSurge,
-          rawChange: changeVal,
-          pe,
-          pb,
-          evebitda,
-          debtequity,
-          currentratio,
-          netprofitmargin,
-          roce,
-          roe,
-          profitgrowth,
-          salesgrowth,
-          promoterholding,
-          institutionholding,
-          pledgedshares,
-          oi,
-          oichange,
-          oivector,
-          vwap,
-          pcr,
-          costofcarry
-        };
-      }).filter(stock => {
-        if (isMathExpression) {
-          return evaluateCustomExpression(query, stock);
+        try {
+          // Proxy to backend via Next.js API route
+          const response = await fetch('/api/v1/scanner/run', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ 
+              universe_id: activeUniverseScope,
+              filters: { query: prompt }
+            })
+          });
+          
+          if (!response.ok) {
+            throw new Error('Scanner API failed');
+          }
+          
+          const data = await response.json();
+          
+          // The backend conforms to the OpenAPI spec and returns { results: [...] }
+          const backendResults = data.results || [];
+          
+          // Adapt backend format to UI format for Phase 1
+          const formatted = backendResults.map((r: any) => ({
+            symbol: r.ticker || '',
+            company: r.name || '',
+            sector: r.sector || 'Unknown',
+            price: `₹${(r.last_price || 0).toLocaleString('en-IN', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`,
+            change: `${(r.change_1d || 0) >= 0 ? '+' : ''}${(r.change_1d || 0).toFixed(2)}%`,
+            closeVal: r.last_price || 0,
+            openVal: r.last_price || 0,
+            highVal: r.last_price || 0,
+            lowVal: r.last_price || 0,
+            rsi: r.rsi || 0,
+            adx: r.adx || 0,
+            volumeVal: r.volume || 0,
+            supertrendVal: r.supertrend || 0,
+            fvgBullVal: 0,
+            hasMacd: r.signal_type === 'MACD',
+            hasGoldenCross: r.signal_type === 'GOLDEN_CROSS',
+            hasVolumeSurge: r.signal_type === 'VOLUME_SPIKE',
+            rawChange: r.change_1d || 0,
+            pe: r.pe_ratio || 0,
+            pb: 0,
+            evebitda: 0,
+            debtequity: 0,
+            currentratio: 0,
+            netprofitmargin: 0,
+            roce: 0,
+            roe: 0,
+            profitgrowth: 0,
+            salesgrowth: 0,
+            promoterholding: 0,
+            institutionholding: 0,
+            pledgedshares: 0,
+            oi: 0,
+            oichange: 0,
+            oivector: 0,
+            vwap: 0,
+            pcr: 0,
+            costofcarry: 0
+          }));
+    
+          setResults(formatted);
+        } catch (err) {
+          console.error("Live scanning failed:", err);
+          toast.error("Scanning failed. Backend may be offline.");
+        } finally {
+          setIsScanning(false);
         }
-
-        // Conversational NLP matchers
-        if (query.includes('rsi') && (query.includes('oversold') || query.includes('under') || query.includes('below') || query.includes('30'))) {
-          return stock.rsi < 30;
-        }
-        if (query.includes('rsi') && (query.includes('overbought') || query.includes('above') || query.includes('70'))) {
-          return stock.rsi > 70;
-        }
-        if (query.includes('macd') || query.includes('crossover')) {
-          return stock.hasMacd;
-        }
-        if (query.includes('golden') || query.includes('cross') || query.includes('sma') || query.includes('ema')) {
-          return stock.hasGoldenCross;
-        }
-        if (query.includes('volume') || query.includes('surge') || query.includes('spike')) {
-          return stock.hasVolumeSurge;
-        }
-        if (query.includes('supertrend') && (query.includes('bullish') || query.includes('buy') || query.includes('above'))) {
-          return stock.closeVal > stock.supertrendVal;
-        }
-        if (query.includes('adx') && (query.includes('strong') || query.includes('trend') || query.includes('25'))) {
-          return stock.adx > 25;
-        }
-        if (query.includes('fvg') || query.includes('fair value gap') || query.includes('imbalance')) {
-          return stock.fvgBullVal > 0;
-        }
-        if (query.includes('orb') || query.includes('opening range')) {
-          return stock.closeVal > stock.openVal;
-        }
-
-        return stock.symbol.toLowerCase().includes(query) || 
-               stock.company.toLowerCase().includes(query) || 
-               stock.sector.toLowerCase().includes(query);
-      });
-
-      setResults(matched);
-    } catch (err) {
-      console.error("Live scanning failed:", err);
-    } finally {
-      setIsScanning(false);
-    }
-  };
+      };
 
   // Export filtered data directly to CSV format
   const handleExportCSV = () => {
@@ -820,24 +610,21 @@ export default function MagicScanner() {
     
     // Simulate low-latency microservice timeseries fetch
     setTimeout(() => {
-      const seed = getSymbolSeed(stock.symbol);
       const dataPoints = [];
       let currentVal = stock.closeVal;
       
       for (let i = 0; i < 30; i++) {
         const date = new Date(Date.now() - (30 - i) * 86400000).toLocaleDateString('en-IN', { month: 'short', day: 'numeric' });
-        const dev = (seed % 8 - 4) + (Math.random() - 0.5) * (currentVal * 0.03);
+        const dev = (Math.random() - 0.5) * (currentVal * 0.03);
         currentVal += dev;
         
         dataPoints.push({
           date,
           price: parseFloat(currentVal.toFixed(2)),
-          ema9: parseFloat((currentVal * (1.004 + (seed % 3) / 1000)).toFixed(2)),
-          ema21: parseFloat((currentVal * (0.992 - (seed % 4) / 1000)).toFixed(2)),
-          supertrend: parseFloat((currentVal * (dev >= 0 ? 0.97 : 1.03)).toFixed(2)),
-          rsi: Math.round(50 + (dev / currentVal) * 800)
+          volume: Math.floor(Math.random() * 500000) + 100000
         });
       }
+      
       setChartData(dataPoints);
       setChartLoading(false);
     }, 600);
@@ -1168,8 +955,7 @@ export default function MagicScanner() {
                 
                 // Real-time currency conversions, exchange mappings and simulation offsets
                 if (isActiveBse) {
-                  const seed = getSymbolSeed(r.symbol);
-                  const multiplier = 0.998 + (Math.sin(seed) * 0.004);
+                  const multiplier = 0.998;
                   displayPrice = displayPrice * multiplier;
                   displayOpen = displayOpen * multiplier;
                   displayHigh = displayHigh * multiplier;
